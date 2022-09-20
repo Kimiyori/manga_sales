@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+<h1>Manga sales</h1>
+        <div class="main-list">
+        {% for date in dates %}
+            {% for year,data in date.items() %}
+            <div class="year-list">
+                {{year}}
+                <div class="months">
+                    {% for month,dates in data.items() %}
+                    <div class="month-list">
+                        {{month}}
+                        <div class="date-list">
+                            {% for date in dates %} 
+                                {{date}}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+        </div>
+</div>
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}

@@ -1,0 +1,37 @@
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="http://fonts.cdnfonts.com/css/justin-honey">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <title>Nav Bar Template</title>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <a href="#" class="nav-logo"><span>Logo</span></a>
+            <div class="nav">
+                <ul class="nav-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li >
+                </ul>
+            </div>
+    </header>
+
+
+        {% block content %}
+
+        {% endblock %}
+
+</body>
+{% block script %}
+
+{% endblock %}
+
+</html>

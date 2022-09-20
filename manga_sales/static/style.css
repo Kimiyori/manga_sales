@@ -1,0 +1,129 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* base */
+
+.navbar {
+ list-style: none;
+    background-color: #000000; 
+    text-align: center;
+    margin: 0;
+    top: 0;
+    width: 100%;
+    border-radius: 0px;
+}
+
+.nav-logo {
+  text-decoration: none;
+  user-select: none;
+  float: left;
+  color: #fff;
+  font-size: 30px;
+  padding-left: 0.5em;
+  padding-top:5px;
+}
+.nav-links {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav li {
+    line-height: 45px;
+    height: 40px;
+    border: none;
+    color: #121212; 
+    width: 140px;
+    border-bottom: none;
+    line-height: 50px;
+    display: inline-block;
+    text-transform: uppercase;
+  }
+
+.nav a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+    transition: .5s background-color;
+    border-radius: 5px;
+    margin-right: 0px;
+  }
+.nav a:hover {
+color: #80CBC4;
+ font-weight: 500;
+ margin-right: 0px;
+ }
+  
+
+/* index */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+
+}
+.main-list {
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    width:900px;
+}
+.year-list {
+  display: flex;
+  flex-direction: column;
+    align-items: flex-start;
+}
+.month-list {
+  display: flex;
+  flex-direction:column;
+    align-items: flex-start;
+    
+}
+.date-list {
+  display: flex;
+  flex-direction:row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.months {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+/* detail */
+.item {
+  display: flex;
+  word-wrap: break-word;
+    word-break: break-all;
+    margin: 0 0 10px;
+    padding:  10px;
+    background: #fff;
+    border: 2px solid #eee;
+    width:100%;
+}
+.item >  *{
+  padding-left:20px;
+}
+.image,.rating {
+  word-wrap: normal;
+  word-break:normal;
+  display: flex;
+  /**
+  Uncomment 'justify-content' below to center horizontally.
+  ✪ Read below for a better way to center vertically and horizontally.
+  **/
+
+  /* justify-content: center; */
+  align-items: center;
+}
+.image img {
+  height: auto;
+}
