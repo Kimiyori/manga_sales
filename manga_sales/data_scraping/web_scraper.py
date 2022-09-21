@@ -13,9 +13,9 @@ import uuid
 
 class OriconScraper(AbstractScraper):
 
-    _URL = 'https://www.oricon.co.jp/rank/obc/w/'
-    _SEARCH_URL = 'https://www.mangaupdates.com/series.html?search='
-    _NUMBER_PAGES = 4
+    _URL: str = 'https://www.oricon.co.jp/rank/obc/w/'
+    _SEARCH_URL: str = 'https://www.mangaupdates.com/series.html?search='
+    _NUMBER_PAGES: int = 4
 
     def __init__(self, session) -> None:
         super().__init__(session)
@@ -61,9 +61,9 @@ class OriconScraper(AbstractScraper):
             return 0
         return int(data.replace(',', ''))
 
-    async def fetch(self, url, expect_bs=True):
-        response = await self.session.fetch(url, expect_bs)
-        return BeautifulSoup(response, 'html.parser') if expect_bs else response
+    async def fetch(self, url, commands=None):
+        response = await self.session.fetch(url, commands)
+        return BeautifulSoup(response, 'html.parser')
 
     async def _get_title(self, item):
 
@@ -87,10 +87,10 @@ class OriconScraper(AbstractScraper):
         japanese_name = ' '.join(
             x for x in split_name[:-1]) if len(split_name) > 1 else split_name[0]
 
-        mangau_list = await self.fetch(self._SEARCH_URL+japanese_name)
+        mangau_list = await self.fetch(url=self._SEARCH_URL+japanese_name, commands=['content', 'read'])
         mangau_item_link = get_most_similar_title(
             japanese_name, mangau_list)
-        title_page = await self.fetch(mangau_item_link)
+        title_page = await self.fetch(url=mangau_item_link, commands=['content', 'read'])
         english_name = title_page.find(
             'span', {'class': 'releasestitle tabletitle'}).text
 
@@ -125,7 +125,7 @@ class OriconScraper(AbstractScraper):
             return None
         extension = re.search(r'.(\w+)$', img_url).group(1)
         name = f'{uuid.uuid4()}.{extension}'
-        binary_image = await self.fetch(img_url, expect_bs=False)
+        binary_image = await self.fetch(img_url, ['read'])
         return name, binary_image
 
     async def retrieve_data(self, url):

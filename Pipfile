@@ -18,6 +18,8 @@ bcrypt = "*"
 gunicorn = "*"
 alembic = "*"
 beautifulsoup4 = "*"
+pytest = "*"
+aioresponses = "*"
 
 [dev-packages]
 

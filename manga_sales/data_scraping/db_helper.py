@@ -1,5 +1,6 @@
 
 
+from datetime import datetime
 from manga_sales.data_scraping.web_scraper import OriconScraper
 from manga_sales.models import Author, Item, Publisher, Title, Week
 from manga_sales.data_scraping.session_context_manager import Session
@@ -73,9 +74,12 @@ class DBWriter:
                 authors = await self.handle_authors(session, item.authors)
                 title = await self.handle_title(session, item.name)
                 publishers = await self.handle_publisher(session, item.publisher)
+
                 self.handle_image(item.imageb, item.image, datestr)
+
                 item = Item(rating=item.rating, volume=item.volume, image=item.image,
                             release_date=item.release_date, sold=item.sold)
+
                 item.title = title
                 item.author.extend(authors)
                 item.publisher.extend(publishers)

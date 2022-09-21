@@ -8,3 +8,6 @@ class Unsuccessful(Exception):
 
 class ConnectError(Exception):
     pass
+
+class IncorrectMethod(Exception):
+    pass

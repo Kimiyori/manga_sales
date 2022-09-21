@@ -2,7 +2,7 @@
 
 import aiohttp
 import asyncio
-from .exceptions import ConnectError, NotFound, Unsuccessful
+from .exceptions import ConnectError, IncorrectMethod, NotFound, Unsuccessful
 
 
 class Session:
@@ -15,34 +15,53 @@ class Session:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 OPR/85.0.4341.75'
     }
 
-    def __init__(self, sleep_time=5) -> None:
+    def __init__(self,
+                 sleep_time: int = 5,
+                 timeout: int = 360) -> None:
         self.sleep_time = sleep_time
+        self.timeout = aiohttp.ClientTimeout(total=timeout)
 
-    async def __aenter__(self, *args):
-        self.session = aiohttp.ClientSession(headers=self.headers)
+    async def __aenter__(self, *args) -> 'Session':
+        self.session = aiohttp.ClientSession(
+            headers=self.headers,
+            timeout=self.timeout
+        )
         return self
 
     async def __aexit__(self, *args):
         await self.session.close()
         self.session = None
 
-    async def fetch(self, url, expect_bs=True, retries=5):
+    async def fetch(self,
+                    url: str,
+                    retries: int = 5,
+                    commands: list[str]|None = None):
         if retries == 0:
             raise Unsuccessful('Get 429 error too often')
         try:
             async with self.session.get(url) as response:
                 if response.status == 200:
-                    if expect_bs:
-                        text = await response.content.read()
-                    else:
-                        text = await response.read()
-                    return text
+                    if commands:
+                        for command in commands:
+                            try:
+                                response = getattr(response, command)
+                                try:
+                                    response = await response()
+                                except TypeError:
+                                    pass
+                            except AttributeError:
+                                raise IncorrectMethod(
+                                    f'Response object does not have given attribute - {command}')
+                    return response
                 elif response.status == 404:
                     raise NotFound('Can\'t find given page')
                 elif response.status == 429:
                     await asyncio.sleep(self.sleep_time)
-                    return await self.fetch(url, expect_bs, retries=retries-1)
+                    return await self.fetch(url, retries-1, commands)
                 else:
                     raise Unsuccessful(f'Status code is {response.status}')
-        except aiohttp.ClientError as exc:
-            raise ConnectError('Failed to connect') from exc
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            raise ConnectError(
+                f'Failed to connect with following error - {exc}') from exc
+        except AttributeError:
+            raise Unsuccessful('Use this object as context manager')
