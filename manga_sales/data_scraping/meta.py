@@ -9,7 +9,7 @@ class AbstractScraper(metaclass=ABCMeta):
 
     def __init__(self,session) -> None:
 
-        self.session = session()
+        self.session = session() 
         self.rating_list = []
 
     @abstractmethod

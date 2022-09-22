@@ -11,3 +11,6 @@ class ConnectError(Exception):
 
 class IncorrectMethod(Exception):
     pass
+
+class BSError(Exception):
+    pass

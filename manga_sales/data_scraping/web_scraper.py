@@ -1,10 +1,11 @@
 
 import datetime
 import asyncio
+from multiprocessing.dummy import Array
 import re
 import difflib
 import uu
-from .exceptions import NotFound
+from .exceptions import BSError, NotFound
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.data_scraping.dataclasses import Content
 from bs4 import BeautifulSoup
@@ -20,22 +21,26 @@ class OriconScraper(AbstractScraper):
     def __init__(self, session) -> None:
         super().__init__(session)
 
+    async def fetch(self,
+                    url: str,
+                    commands: list[str] | None = None,
+                    bs: bool = True):
+        response = await self.session.fetch(url, commands)
+        return BeautifulSoup(response, 'html.parser') if bs else response
+
     def _get_rating(self, item):
         try:
-            rating = item.find('p', {'class': 'num'}).text
-            rating = int(rating)
+            rating = int(item.find('p', {'class': 'num'}).text)
         except (AttributeError, ValueError):
             return 0
         return rating
 
     def _get_volume(self, item):
+        volume = None
         try:
             list = item.find('h2', {'class': 'title'}).text.split(' ')
         except AttributeError:
-            return 0
-        if len(list) == 0:
-            return 0
-        volume = None
+            return volume
         for item in list:
             try:
                 volume = int(item)
@@ -45,25 +50,38 @@ class OriconScraper(AbstractScraper):
         return volume
 
     def _get_release_date(self, item):
-        text = item.find('ul', {'class': 'list'}).contents[3].text
-        raw_data = text.split('：')[-1]
-        data = re.match(
-            r'(?P<year>\d{4})\w(?P<month>\d{2})', raw_data, re.MULTILINE)
-        date = datetime.date(int(data['year']), int(
-            data['month']), 1)
+        try:
+            text = item.find('ul', {'class': 'list'}).find(
+                lambda tag: tag.name == "li" and "発売日" in tag.string).text
+        except AttributeError:
+            return None
+        regex_date = re.search(
+            r'(?P<year>\d{4})年(?P<month>\d{2})月',
+            text)
+        try:
+            date = datetime.date(
+                int(regex_date['year']),
+                int(regex_date['month']),
+                1) if regex_date else None
+        except ValueError:
+            return None
         return date
 
     def _get_sold_amount(self, item):
         try:
-            text = item.find('ul', {'class': 'list'}).contents[7].text
-            data = text.split('：')[-1][:-1]
+            text = item.find('ul', {'class': 'list'}).find(
+                lambda tag: tag.name == "li" and "推定売上部数" in tag.string).text
         except AttributeError:
             return 0
-        return int(data.replace(',', ''))
-
-    async def fetch(self, url, commands=None):
-        response = await self.session.fetch(url, commands)
-        return BeautifulSoup(response, 'html.parser')
+        regex_date = re.search(
+            r'(?P<sold>[0-9,]+(?=部))',
+            text)
+        try:
+            sold = float(regex_date['sold'].replace(
+                ',', '.')) if regex_date else None
+        except ValueError:
+            return 0
+        return sold
 
     async def _get_title(self, item):
 
@@ -81,25 +99,27 @@ class OriconScraper(AbstractScraper):
             most_similar = difflib.get_close_matches(
                 original_name, titles.keys())
             return titles[most_similar[0]] if most_similar else titles[list(titles.keys())[0]]
+        try:
+            split_name = item.find(
+                'h2', {'class': 'title'}).text.split(' ')
+            japanese_name = ' '.join(
+                x for x in split_name[:-1]) if len(split_name) > 1 else split_name[0]
 
-        split_name = item.find(
-            'h2', {'class': 'title'}).text.split(' ')
-        japanese_name = ' '.join(
-            x for x in split_name[:-1]) if len(split_name) > 1 else split_name[0]
-
-        mangau_list = await self.fetch(url=self._SEARCH_URL+japanese_name, commands=['content', 'read'])
-        mangau_item_link = get_most_similar_title(
-            japanese_name, mangau_list)
-        title_page = await self.fetch(url=mangau_item_link, commands=['content', 'read'])
-        english_name = title_page.find(
-            'span', {'class': 'releasestitle tabletitle'}).text
-
+            mangau_list = await self.fetch(
+                url=self._SEARCH_URL+japanese_name, commands=['content', 'read'])
+            mangau_item_link = get_most_similar_title(
+                japanese_name, mangau_list)
+            title_page = await self.fetch(url=mangau_item_link, commands=['content', 'read'])
+            english_name = title_page.find(
+                'span', {'class': 'releasestitle tabletitle'}).text
+        except AttributeError:
+            raise BSError('Can\'t parse to find title name')
         return english_name, title_page
 
     def _get_authors(self, item):
         try:
             authors_tag = item.find(
-                'b', text='Author(s)').parent.find_next_sibling('div')
+                'b', string='Author(s)').parent.find_next_sibling('div')
             authors_list = [
                 author.text for author in authors_tag.find_all('u')]
         except AttributeError:
@@ -109,7 +129,7 @@ class OriconScraper(AbstractScraper):
     def _get_publishers(self, item):
         try:
             publishers_tag = item.find(
-                'b', text='Original Publisher').parent.find_next_sibling('div')
+                'b', string='Original Publisher').parent.find_next_sibling('div')
             publishers = [
                 publisher.text for publisher in publishers_tag.find_all('u')]
         except AttributeError:
@@ -125,7 +145,7 @@ class OriconScraper(AbstractScraper):
             return None
         extension = re.search(r'.(\w+)$', img_url).group(1)
         name = f'{uuid.uuid4()}.{extension}'
-        binary_image = await self.fetch(img_url, ['read'])
+        binary_image = await self.fetch(img_url, ['read'], False)
         return name, binary_image
 
     async def retrieve_data(self, url):
