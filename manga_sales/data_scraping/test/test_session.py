@@ -1,6 +1,6 @@
 import unittest
 from manga_sales.data_scraping.exceptions import IncorrectMethod, NotFound, Unsuccessful
-from ..session_context_manager import Session
+from manga_sales.data_scraping.session_context_manager import Session
 from aioresponses import aioresponses
 
 TEST_URL = 'http://example.com'

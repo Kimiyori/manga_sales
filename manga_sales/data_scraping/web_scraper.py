@@ -28,14 +28,14 @@ class OriconScraper(AbstractScraper):
         response = await self.session.fetch(url, commands)
         return BeautifulSoup(response, 'html.parser') if bs else response
 
-    def _get_rating(self, item):
+    def _get_rating(self, item: BeautifulSoup):
         try:
             rating = int(item.find('p', {'class': 'num'}).text)
         except (AttributeError, ValueError):
             return 0
         return rating
 
-    def _get_volume(self, item):
+    def _get_volume(self, item: BeautifulSoup):
         volume = None
         try:
             list = item.find('h2', {'class': 'title'}).text.split(' ')
@@ -49,7 +49,7 @@ class OriconScraper(AbstractScraper):
                 continue
         return volume
 
-    def _get_release_date(self, item):
+    def _get_release_date(self, item: BeautifulSoup):
         try:
             text = item.find('ul', {'class': 'list'}).find(
                 lambda tag: tag.name == "li" and "発売日" in tag.string).text
@@ -67,7 +67,7 @@ class OriconScraper(AbstractScraper):
             return None
         return date
 
-    def _get_sold_amount(self, item):
+    def _get_sold_amount(self, item: BeautifulSoup):
         try:
             text = item.find('ul', {'class': 'list'}).find(
                 lambda tag: tag.name == "li" and "推定売上部数" in tag.string).text
@@ -83,9 +83,9 @@ class OriconScraper(AbstractScraper):
             return 0
         return sold
 
-    async def _get_title(self, item):
+    async def _get_title(self, item: BeautifulSoup):
 
-        def get_most_similar_title(original_name, link):
+        def get_most_similar_title(original_name: str, link: BeautifulSoup):
 
             items = link.find_all(
                 'div', {'class': 'col-12 col-lg-6 p-3 text'})
@@ -116,7 +116,7 @@ class OriconScraper(AbstractScraper):
             raise BSError('Can\'t parse to find title name')
         return english_name, title_page
 
-    def _get_authors(self, item):
+    def _get_authors(self, item: BeautifulSoup):
         try:
             authors_tag = item.find(
                 'b', string='Author(s)').parent.find_next_sibling('div')
@@ -126,7 +126,7 @@ class OriconScraper(AbstractScraper):
             return []
         return authors_list
 
-    def _get_publishers(self, item):
+    def _get_publishers(self, item: BeautifulSoup):
         try:
             publishers_tag = item.find(
                 'b', string='Original Publisher').parent.find_next_sibling('div')
@@ -136,21 +136,24 @@ class OriconScraper(AbstractScraper):
             return []
         return publishers
 
-    async def _get_image(self, item):
+    async def _get_image(self, item: BeautifulSoup):
         try:
             img_url = item.find('p', {'class': 'image'}).find('img').get('src')
             if img_url is None:
                 return None
         except AttributeError:
             return None
-        extension = re.search(r'.(\w+)$', img_url).group(1)
+        extension = re.search(
+            r'.(\w+)$', img_url).group(1)
         name = f'{uuid.uuid4()}.{extension}'
         binary_image = await self.fetch(img_url, ['read'], False)
         return name, binary_image
 
-    async def retrieve_data(self, url):
+    async def retrieve_data(self, url: str):
         data = await self.fetch(url)
         list_items = data.find_all('section', {'class': 'box-rank-entry'})
+        if not list_items:
+            raise BSError('Fail to find class with titles list')
         for item in list_items:
             rating: int = self._get_rating(item)
             image_name, image = await self._get_image(item)
@@ -164,7 +167,7 @@ class OriconScraper(AbstractScraper):
                               publishers, release, rating, sold)
             self.rating_list.append(content)
 
-    async def get_data(self, date):
+    async def get_data(self, date: str):
         pages = [self._URL + date +
                  f'/p/{x}/' for x in range(1, self._NUMBER_PAGES)]
         async with self.session:
