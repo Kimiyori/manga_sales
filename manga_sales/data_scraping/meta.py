@@ -1,6 +1,6 @@
 
 from abc import ABCMeta, abstractmethod
-
+from manga_sales.data_scraping.session_context_manager import Session
 
 
 
@@ -9,7 +9,7 @@ class AbstractScraper(metaclass=ABCMeta):
 
     def __init__(self,session) -> None:
 
-        self.session = session() 
+        self.session =session()  if session else Session()
         self.rating_list = []
 
     @abstractmethod

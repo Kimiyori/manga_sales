@@ -1,7 +1,6 @@
 
 import datetime
 import asyncio
-from multiprocessing.dummy import Array
 import re
 import difflib
 import uu
@@ -13,7 +12,9 @@ import uuid
 
 
 class OriconScraper(AbstractScraper):
-
+    """
+    Class for collecting data from Oricon
+    """
     _URL: str = 'https://www.oricon.co.jp/rank/obc/w/'
     _SEARCH_URL: str = 'https://www.mangaupdates.com/series.html?search='
     _NUMBER_PAGES: int = 4
@@ -25,6 +26,14 @@ class OriconScraper(AbstractScraper):
                     url: str,
                     commands: list[str] | None = None,
                     bs: bool = True):
+        """
+        Method foe fetching given url
+
+        Args:
+            url:url from which exctract data
+            commands: set fo commands that will be applied to response
+            bs: return bs4 or pure response
+        """
         response = await self.session.fetch(url, commands)
         return BeautifulSoup(response, 'html.parser') if bs else response
 
@@ -38,9 +47,11 @@ class OriconScraper(AbstractScraper):
     def _get_volume(self, item: BeautifulSoup):
         volume = None
         try:
-            list = item.find('h2', {'class': 'title'}).text.split(' ')
+            list = item.find('h2', {'class': 'title'}).string.split(' ')
         except AttributeError:
             return volume
+        # iterate over all space-separated words from the title and
+        # catch the first integer (usually this will be the volume)
         for item in list:
             try:
                 volume = int(item)
@@ -52,9 +63,10 @@ class OriconScraper(AbstractScraper):
     def _get_release_date(self, item: BeautifulSoup):
         try:
             text = item.find('ul', {'class': 'list'}).find(
-                lambda tag: tag.name == "li" and "発売日" in tag.string).text
+                lambda tag: tag.name == "li" and "発売日" in tag.string).string
         except AttributeError:
             return None
+        # fetch year and month
         regex_date = re.search(
             r'(?P<year>\d{4})年(?P<month>\d{2})月',
             text)
@@ -70,7 +82,7 @@ class OriconScraper(AbstractScraper):
     def _get_sold_amount(self, item: BeautifulSoup):
         try:
             text = item.find('ul', {'class': 'list'}).find(
-                lambda tag: tag.name == "li" and "推定売上部数" in tag.string).text
+                lambda tag: tag.name == "li" and "推定売上部数" in tag.string).string
         except AttributeError:
             return 0
         regex_date = re.search(
@@ -90,28 +102,35 @@ class OriconScraper(AbstractScraper):
             items = link.find_all(
                 'div', {'class': 'col-12 col-lg-6 p-3 text'})
 
-            titles = {}
+            titles: dict[str, str] = {}
 
             for item in items:
                 item = item.find('div', {'class': 'text'})
-                titles[item.find('b').text] = item.find(
-                    'a')['href']
+                try:
+                    titles[item.find('b').string] = item.find(
+                        'a')['href']
+                except KeyError:
+                    continue
             most_similar = difflib.get_close_matches(
                 original_name, titles.keys())
+            # return link to most similar if they exist else return first in list fo titles
             return titles[most_similar[0]] if most_similar else titles[list(titles.keys())[0]]
+
         try:
             split_name = item.find(
-                'h2', {'class': 'title'}).text.split(' ')
+                'h2', {'class': 'title'}).string.split(' ')
             japanese_name = ' '.join(
                 x for x in split_name[:-1]) if len(split_name) > 1 else split_name[0]
 
+            # get list fo titles from mangaupdates with search by japanese title
             mangau_list = await self.fetch(
                 url=self._SEARCH_URL+japanese_name, commands=['content', 'read'])
+            # find most similar title
             mangau_item_link = get_most_similar_title(
                 japanese_name, mangau_list)
             title_page = await self.fetch(url=mangau_item_link, commands=['content', 'read'])
             english_name = title_page.find(
-                'span', {'class': 'releasestitle tabletitle'}).text
+                'span', {'class': 'releasestitle tabletitle'}).string
         except AttributeError:
             raise BSError('Can\'t parse to find title name')
         return english_name, title_page
@@ -121,7 +140,7 @@ class OriconScraper(AbstractScraper):
             authors_tag = item.find(
                 'b', string='Author(s)').parent.find_next_sibling('div')
             authors_list = [
-                author.text for author in authors_tag.find_all('u')]
+                author.string for author in authors_tag.find_all('u')]
         except AttributeError:
             return []
         return authors_list
@@ -131,7 +150,7 @@ class OriconScraper(AbstractScraper):
             publishers_tag = item.find(
                 'b', string='Original Publisher').parent.find_next_sibling('div')
             publishers = [
-                publisher.text for publisher in publishers_tag.find_all('u')]
+                publisher.string for publisher in publishers_tag.find_all('u')]
         except AttributeError:
             return []
         return publishers
@@ -187,9 +206,10 @@ class OriconScraper(AbstractScraper):
                 )
                 url = self._URL+guess_date.strftime('%Y-%m-%d')+'/'
                 try:
-                    await self.session.fetch(url)
+                    await self.fetch(url, bs=False)
                 except NotFound:
                     delta += 1
                     count_days += 1
+                    continue
                 return guess_date
         return None

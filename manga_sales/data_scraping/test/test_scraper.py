@@ -3,11 +3,11 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from manga_sales.data_scraping.dataclasses import Content
 
-from manga_sales.data_scraping.exceptions import BSError
+from manga_sales.data_scraping.exceptions import BSError, NotFound
 from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.data_scraping.web_scraper import OriconScraper
 from bs4 import BeautifulSoup
-import asyncio
+from operator import sub, add
 
 
 class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
@@ -301,3 +301,12 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             self.scraper.rating_list.append(item) for item in data]
         result = await self.scraper.get_data('2022-08-09')
         self.assertEqual(data, result)
+
+    @patch('manga_sales.data_scraping.web_scraper.OriconScraper.fetch', side_effect=[
+        NotFound('1'), NotFound('1'), 's'])
+    async def test_find_latest_date(self, mock):
+        correct_date = add(
+            datetime.date.today(), datetime.timedelta(days=2)
+        )
+        date = await self.scraper.find_latest_date(add)
+        self.assertEqual(date, correct_date)
