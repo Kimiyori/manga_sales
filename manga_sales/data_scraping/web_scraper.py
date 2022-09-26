@@ -27,7 +27,7 @@ class OriconScraper(AbstractScraper):
                     commands: list[str] | None = None,
                     bs: bool = True):
         """
-        Method foe fetching given url
+        Method for fetching given url
 
         Args:
             url:url from which exctract data
