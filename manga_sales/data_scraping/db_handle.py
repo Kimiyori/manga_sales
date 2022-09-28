@@ -12,7 +12,7 @@ from pathlib import Path
 class DBWriter:
 
     def __init__(self, app):
-        self.database_session = app['db']
+        self.database_session = app
         self.scraper = OriconScraper(Session)
         self.image_path = 'manga_sales/static/images/oricon/'
 
@@ -53,10 +53,6 @@ class DBWriter:
         date = await self.scraper.find_latest_date(operator=add if last_row else sub)
         return date
 
-    async def insert_date(self, session, date):
-        obj = await Week.insert(session, date)
-        return obj
-
     def handle_image(self, file, name, date):
         p = Path(f'{self.image_path}{date}')
         p.mkdir(exist_ok=True)
@@ -64,7 +60,7 @@ class DBWriter:
             f.write(file)
 
     async def write_data(self):
-        async with self.database_session() as session:
+        async with self.database_session.get_session as session:
             date = await self.get_date(session)
             datestr = date.strftime('%Y-%m-%d')
             data = await self.scraper.get_data(datestr)

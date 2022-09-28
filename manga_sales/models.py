@@ -111,7 +111,11 @@ class Item(Base):
     publisher = relationship(
         'Publisher', secondary=association_item_publisher, back_populates='items', cascade="all, delete",)
 
-
+    @classmethod
+    async def get_count(cls,session):
+        query= select(func.count(cls.id).label('count'))
+        result=await session.execute(query)
+        return result.first().count
 
 
     @classmethod
@@ -159,6 +163,11 @@ class Title(Base):
         )
 
     @classmethod
+    async def get_all(cls,session):
+        query=select(cls)
+        results=await session.execute(query)
+        return results.all()
+    @classmethod
     async def filter_by_name(cls, session, name):
         maon_query = select(cls).where(cls.name == name)
         item = await session.execute(maon_query)
@@ -180,11 +189,16 @@ class Author(Base):
             f")>"
         )
 
+    @classmethod
+    async def get_all(cls,session):
+        query=select(cls)
+        results=await session.execute(query)
+        return results.all()
 
     @classmethod
     async def filter_by_name(cls, session, authors):
-        maon_query = select(cls).where(cls.name.in_(authors))
-        results = await session.execute(maon_query)
+        main_query = select(cls).where(cls.name.in_(authors))
+        results = await session.execute(main_query)
         return results.all()
 
 

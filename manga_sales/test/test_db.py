@@ -160,4 +160,4 @@ class TestPublishers(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session as session:
             data = await Publisher.filter_by_name(session, ['test_publisher'])
             self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][0].name, 'test_publisher')
+            self.assertEqual(data[0][0] .name, 'test_publisher')
