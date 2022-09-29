@@ -21,40 +21,12 @@ async def setup_redis(app):
     pool = await aioredis.from_url("redis://redis:6379")
 
     async def close_redis(app):
-        pool.close()
-        await pool.wait_closed()
+        await pool.close()
+        #await pool.wait_closed()
 
     app.on_cleanup.append(close_redis) 
     app['redis_pool'] = pool
     return pool
-
-
-
-async def init_app():
-
-    app = web.Application()
-
-    app['config'] = config
-    setup_routes(app)
-    session=AsyncDatabaseSession(app['config']['postgres'])
-    session.init()
-    app['db']=session
-    redis_pool = await setup_redis(app)
-    setup_session(app, RedisStorage(redis_pool))
-    # setup Jinja2 template renderer
-    aiohttp_jinja2.setup(app,
-                         loader=jinja2.FileSystemLoader(str(BASE_DIR / 'manga_sales' / 'templates')))
-
-
-    #app.cleanup_ctx.append(pg_context)
-
-
-
-    setup_middlewares(app)
-    #asyncio.get_event_loop().create_task(DBWriter(app).write_data())
-    return app
-
-
 
 
 app = web.Application()
@@ -65,10 +37,11 @@ session.init()
 app['db']=session
 aiohttp_jinja2.setup(app,
                     loader=jinja2.FileSystemLoader(str(BASE_DIR / 'manga_sales' / 'templates')))
-
+setup_middlewares(app)
 
 async def main():
     #logging.basicConfig(level=logging.DEBUG)
     redis_pool = await setup_redis(app)
     setup_session(app, RedisStorage(redis_pool))
+    #asyncio.get_event_loop().create_task(DBWriter(app['db']).write_data())
     return app

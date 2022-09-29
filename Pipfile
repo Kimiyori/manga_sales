@@ -11,7 +11,6 @@ aiopg = {extras = ["sa"], version = "*"}
 psycopg2 = "*"
 aiohttp-jinja2 = "*"
 aiohttp-security = "*"
-aiohttp-session = "*"
 asyncpgsa = "*"
 aioredis = "*"
 bcrypt = "*"
@@ -20,6 +19,7 @@ alembic = "*"
 beautifulsoup4 = "*"
 pytest = "*"
 aioresponses = "*"
+aiohttp-session = {extras = ["aioredis"], version = "*"}
 
 [dev-packages]
 

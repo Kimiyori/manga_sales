@@ -45,4 +45,4 @@ def setup_middlewares(app):
         500: handle_500
     })
     app.middlewares.append(error_middleware)
-    #app.middlewares.append(session_middleware)
+    app.middlewares.append(session_middleware)

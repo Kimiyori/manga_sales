@@ -1,10 +1,11 @@
 
 import datetime
 import asyncio
+from operator import add, sub
 import re
 import difflib
 import uu
-from .exceptions import BSError, NotFound
+from .exceptions import BSError, ConnectError, NotFound
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.data_scraping.dataclasses import Content
 from bs4 import BeautifulSoup
@@ -34,7 +35,7 @@ class OriconScraper(AbstractScraper):
             commands: set fo commands that will be applied to response
             bs: return bs4 or pure response
         """
-        response = await self.session.fetch(url, commands)
+        response = await self.session.fetch(url, commands=commands)
         return BeautifulSoup(response, 'html.parser') if bs else response
 
     def _get_rating(self, item: BeautifulSoup):
@@ -89,8 +90,8 @@ class OriconScraper(AbstractScraper):
             r'(?P<sold>[0-9,]+(?=部))',
             text)
         try:
-            sold = float(regex_date['sold'].replace(
-                ',', '.')) if regex_date else None
+            sold = int(regex_date['sold'].replace(
+                ',', '')) if regex_date else None
         except ValueError:
             return 0
         return sold
@@ -165,11 +166,14 @@ class OriconScraper(AbstractScraper):
         extension = re.search(
             r'.(\w+)$', img_url).group(1)
         name = f'{uuid.uuid4()}.{extension}'
-        binary_image = await self.fetch(img_url, ['read'], False)
+        try:
+            binary_image = await self.fetch(img_url, ['read'], False)
+        except ConnectError:
+            return None,None
         return name, binary_image
 
     async def retrieve_data(self, url: str):
-        data = await self.fetch(url)
+        data = await self.fetch(url,commands=['content','read'])
         list_items = data.find_all('section', {'class': 'box-rank-entry'})
         if not list_items:
             raise BSError('Fail to find class with titles list')

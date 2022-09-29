@@ -2,7 +2,7 @@
 from datetime import datetime
 
 import datetime
-from sqlalchemy import Column, DateTime, String, Date, SmallInteger, Integer, ForeignKey, Table
+from sqlalchemy import Column, DateTime, String, Date, SmallInteger, Integer, ForeignKey, Table,DECIMAL
 from sqlalchemy import delete as sqlalchemy_delete
 from sqlalchemy import update as sqlalchemy_update
 from sqlalchemy.future import select
@@ -199,8 +199,8 @@ class Author(Base):
     async def filter_by_name(cls, session, authors):
         main_query = select(cls).where(cls.name.in_(authors))
         results = await session.execute(main_query)
-        return results.all()
-
+        list_authors=[author[0] for author in results.all()]
+        return list_authors
 
 class Publisher(Base):
     __tablename__ = 'publisher'
@@ -219,6 +219,7 @@ class Publisher(Base):
 
     @classmethod
     async def filter_by_name(cls, session, publishers):
-        maon_query = select(cls).where(cls.name.in_(publishers))
-        results = await session.execute(maon_query)
-        return results.all()
+        main_query = select(cls).where(cls.name.in_(publishers))
+        results = await session.execute(main_query)
+        list_publishers=[publisher[0] for publisher in results.all()]
+        return list_publishers
