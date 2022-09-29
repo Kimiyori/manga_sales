@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 
 import datetime
@@ -16,6 +17,7 @@ class DBWriter:
     """
     Class for handling scraped data and write it into db
     """
+
     def __init__(self, app: web.Application):
         self.database_session = app
         self.scraper: AbstractScraper = OriconScraper(Session)
@@ -50,10 +52,6 @@ class DBWriter:
         existed_publishers.extend(new_publishers)
         return existed_publishers
 
-    async def get_date(self, session):
-        last_row = await Week.get_last_row(session)
-        return await self.scraper.find_latest_date(operator=add if last_row else sub)
-
     def handle_image(self, file: str, name: str, date: str) -> None:
         if file and name:
             p = Path(f'{self.image_path}{date}')
@@ -61,26 +59,42 @@ class DBWriter:
             with open(p / f'{name}', 'wb') as f:
                 f.write(file)
 
-    async def write_data(self) -> None:
+    async def get_date(self, session,
+                       operator: add | sub,
+                       date: datetime.date | None = None
+                       ) -> datetime.date:
+        if not date:
+            date = await Week.get_last_date(session) if operator == add else datetime.date.today()
+        valid_date = await self.scraper.find_latest_date(date, operator)
+        if valid_date:
+            check = await Week.get(session, valid_date)
+            if check:
+                return await self.get_date(session, operator, valid_date)
+
+        return valid_date
+
+    async def write_data(self, operator: add | sub) -> None:
         async with self.database_session.get_session as session:
-            date: datetime.date | None = await self.get_date(session)
-            datestr: str = date.strftime('%Y-%m-%d')
-            data: list[Content] = await self.scraper.get_data(datestr)
-            week = Week(date=date)
-            items = []
-            for item in data:
-                authors = await self.handle_authors(session, item.authors)
-                title = await self.handle_title(session, item.name)
-                publishers = await self.handle_publisher(session, item.publisher)
+            date: datetime.date | None = await self.get_date(session, operator)
 
-                self.handle_image(item.imageb, item.image, datestr)
-
-                item = Item(rating=item.rating, volume=item.volume, image=item.image,
-                            release_date=item.release_date, sold=item.sold)
-                item.title = title
-                item.author.extend(authors)
-                item.publisher.extend(publishers)
-                items.append(item)
-            week.items.extend(items)
-            session.add(week)
+            while date:
+                print(date)
+                datestr: str = date.strftime('%Y-%m-%d')
+                data: list[Content] = await self.scraper.get_data(datestr)
+                week = Week(date=date)
+                items = []
+                for item in data:
+                    authors = await self.handle_authors(session, item.authors)
+                    title = await self.handle_title(session, item.name)
+                    publishers = await self.handle_publisher(session, item.publisher)
+                    self.handle_image(item.imageb, item.image, datestr)
+                    item = Item(rating=item.rating, volume=item.volume, image=item.image,
+                                release_date=item.release_date, sold=item.sold)
+                    item.title = title
+                    item.author.extend(authors)
+                    item.publisher.extend(publishers)
+                    items.append(item)
+                week.items.extend(items)
+                session.add(week)
+                date: datetime.date | None = await self.get_date(session, operator, date)
             await session.commit()

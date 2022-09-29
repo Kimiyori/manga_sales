@@ -1,3 +1,4 @@
+from __future__ import annotations
 
 import datetime
 import asyncio
@@ -169,11 +170,11 @@ class OriconScraper(AbstractScraper):
         try:
             binary_image = await self.fetch(img_url, ['read'], False)
         except ConnectError:
-            return None,None
+            return None, None
         return name, binary_image
 
     async def retrieve_data(self, url: str):
-        data = await self.fetch(url,commands=['content','read'])
+        data = await self.fetch(url, commands=['content', 'read'])
         list_items = data.find_all('section', {'class': 'box-rank-entry'})
         if not list_items:
             raise BSError('Fail to find class with titles list')
@@ -191,8 +192,9 @@ class OriconScraper(AbstractScraper):
             self.rating_list.append(content)
 
     async def get_data(self, date: str):
-        pages = [self._URL + date +
-                 f'/p/{x}/' for x in range(1, self._NUMBER_PAGES)]
+        self.rating_list=[]
+        pages: list[str] = [self._URL + date +
+                            f'/p/{x}/' for x in range(1, self._NUMBER_PAGES)]
         async with self.session:
             tasks = [asyncio.create_task(
                 self.retrieve_data(page)) for page in pages]
@@ -200,19 +202,17 @@ class OriconScraper(AbstractScraper):
 
         return self.rating_list
 
-    async def find_latest_date(self, operator):
+    async def find_latest_date(self, date: datetime.date, operator: add | sub):
         async with self.session:
-            date = None
-            delta, count_days = 0, 0
-            while not date and count_days <= 7:
+            count_days = 1
+            while  count_days <= 7:
                 guess_date = operator(
-                    datetime.date.today(), datetime.timedelta(days=delta)
+                    date, datetime.timedelta(days=count_days)
                 )
                 url = self._URL+guess_date.strftime('%Y-%m-%d')+'/'
                 try:
                     await self.fetch(url, bs=False)
                 except NotFound:
-                    delta += 1
                     count_days += 1
                     continue
                 return guess_date

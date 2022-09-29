@@ -27,12 +27,12 @@ class Week(Base):
     @classmethod
     async def get(cls, session, date):
         week = await session.execute(select(cls).where(cls.date==date))
-        return week.fetchone()
+        return week.first()
 
 
     @classmethod
-    async def get_last_row(cls, session):
-        row = await session.execute(select(cls).order_by(cls.id.desc()))
+    async def get_last_date(cls, session):
+        row = await session.execute(select(cls).order_by(cls.date.desc()))
         row = row.first()
         return row
 

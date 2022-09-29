@@ -4,7 +4,7 @@ import sys
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
-
+from operator import add, sub
 from aiohttp_session import setup as setup_session
 from aiohttp_session.redis_storage import RedisStorage
 import aioredis
@@ -43,5 +43,5 @@ async def main():
     #logging.basicConfig(level=logging.DEBUG)
     redis_pool = await setup_redis(app)
     setup_session(app, RedisStorage(redis_pool))
-    #asyncio.get_event_loop().create_task(DBWriter(app['db']).write_data())
+    #asyncio.get_event_loop().create_task(DBWriter(app['db']).write_data(sub))
     return app
