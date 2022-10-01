@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-
+from sqlalchemy import exc
 import datetime
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.meta import AbstractScraper
@@ -10,7 +10,7 @@ from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.models import Author, Item, Publisher, Title, Week
 from operator import add, sub
 from pathlib import Path
-from aiohttp import web
+
 
 
 class DBWriter:
@@ -18,9 +18,9 @@ class DBWriter:
     Class for handling scraped data and write it into db
     """
 
-    def __init__(self, app: web.Application):
+    def __init__(self,app,scraper):
         self.database_session = app
-        self.scraper: AbstractScraper = OriconScraper(Session)
+        self.scraper: AbstractScraper = scraper()
         self.image_path = 'manga_sales/static/images/oricon/'
 
     async def handle_authors(self, session, authors: list[str]) -> list[Author]:
@@ -52,7 +52,7 @@ class DBWriter:
         existed_publishers.extend(new_publishers)
         return existed_publishers
 
-    def handle_image(self, file: str, name: str, date: str) -> None:
+    def save_image(self, file: str, name: str, date: str) -> None:
         if file and name:
             p = Path(f'{self.image_path}{date}')
             p.mkdir(exist_ok=True)
@@ -73,28 +73,30 @@ class DBWriter:
 
         return valid_date
 
-    async def write_data(self, operator: add | sub) -> None:
-        async with self.database_session.get_session as session:
+    async def write_data(self, operator: add | sub = add) -> None:
+        async with self.database_session.get_session() as session:
             date: datetime.date | None = await self.get_date(session, operator)
-
             while date:
-                print(date)
                 datestr: str = date.strftime('%Y-%m-%d')
                 data: list[Content] = await self.scraper.get_data(datestr)
                 week = Week(date=date)
                 items = []
                 for item in data:
+                    print(item)
                     authors = await self.handle_authors(session, item.authors)
                     title = await self.handle_title(session, item.name)
                     publishers = await self.handle_publisher(session, item.publisher)
-                    self.handle_image(item.imageb, item.image, datestr)
+
+                    self.save_image(item.imageb, item.image, datestr)
                     item = Item(rating=item.rating, volume=item.volume, image=item.image,
                                 release_date=item.release_date, sold=item.sold)
                     item.title = title
                     item.author.extend(authors)
                     item.publisher.extend(publishers)
                     items.append(item)
+                    print(item)
                 week.items.extend(items)
                 session.add(week)
                 date: datetime.date | None = await self.get_date(session, operator, date)
-            await session.commit()
+                await session.commit()
+ 

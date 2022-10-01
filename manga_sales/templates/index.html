@@ -2,28 +2,36 @@
 
 {% block content %}
 <div class="main">
-<h1>Manga sales</h1>
-        <div class="main-list">
+    <h1>Manga sales</h1>
+    <div class="main-list">
         {% for date in dates %}
-            {% for year,data in date.items() %}
-            <div class="year-list">
+        {% for year,data in date.items() %}
+        <div class="year-item">
+            <div class="year">
                 {{year}}
-                <div class="months">
-                    {% for month,dates in data.items() %}
-                    <div class="month-list">
-                        {{month}}
-                        <div class="date-list">
-                            {% for date in dates %} 
-                                {{date}}
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endfor %}
-                </div>
             </div>
-            {% endfor %}
-        {% endfor %}
+            <div class="months">
+                {% for month,dates in data.items() %}
+                <div class="month-item">
+                    <div class="name_month">
+                        {{month}}
+                    </div>
+                    <div class="date-list">
+                        {% for date in dates %}
+                        <div class="date">
+                            <a href="oricon/{{year}}-{{convert_date(month,'month')}}-{{convert_date(date,'day')}}/">
+                                {{date}}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endfor %}
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}
 

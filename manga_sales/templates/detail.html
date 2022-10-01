@@ -10,7 +10,11 @@
             </div>
             <div class="image">
                 <span>
+                    {% if file_exist(item.week_date,item.image) %}
                     <img src='{{item.image}}'>
+                    {% else %}
+                    <img src='no_img.jpg'>
+                    {% endif %}
                 </span>
             </div>
             <div class="wrap-text">

@@ -5,7 +5,7 @@ import asyncio
 from operator import add, sub
 import re
 import difflib
-import uu
+
 from .exceptions import BSError, ConnectError, NotFound
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.data_scraping.dataclasses import Content
@@ -21,8 +21,8 @@ class OriconScraper(AbstractScraper):
     _SEARCH_URL: str = 'https://www.mangaupdates.com/series.html?search='
     _NUMBER_PAGES: int = 4
 
-    def __init__(self, session) -> None:
-        super().__init__(session)
+    def __init__(self) -> None:
+        super().__init__()
 
     async def fetch(self,
                     url: str,

@@ -2,7 +2,7 @@
 from datetime import datetime
 
 import datetime
-from sqlalchemy import Column, DateTime, String, Date, SmallInteger, Integer, ForeignKey, Table,DECIMAL
+from sqlalchemy import Column, DateTime, String, Date, SmallInteger, Integer, ForeignKey, Table, DECIMAL
 from sqlalchemy import delete as sqlalchemy_delete
 from sqlalchemy import update as sqlalchemy_update
 from sqlalchemy.future import select
@@ -10,6 +10,7 @@ from sqlalchemy import func, cast, TEXT, delete
 from sqlalchemy.sql import text, distinct
 from sqlalchemy.orm import relationship, aliased
 from .db import Base
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 
 
 class Week(Base):
@@ -18,7 +19,6 @@ class Week(Base):
     date = Column(Date, unique=True, nullable=False)
     items = relationship('Item', back_populates='week')
 
-
     @classmethod
     async def get_all(cls, session):
         weeks = await session.execute(select(cls))
@@ -26,44 +26,49 @@ class Week(Base):
 
     @classmethod
     async def get(cls, session, date):
-        week = await session.execute(select(cls).where(cls.date==date))
+        week = await session.execute(select(cls).where(cls.date == date))
         return week.first()
-
 
     @classmethod
     async def get_last_date(cls, session):
         row = await session.execute(select(cls).order_by(cls.date.desc()))
-        row = row.first()
+        row = row.first()[0].date
         return row
 
     @classmethod
     async def get_all_groupby(cls, session):
         year = func.extract('year', cls.date).label('year')
 
-        month = func.to_char(
+        month_str = func.to_char(
             func.to_date(
                 cast(
                     func.extract(
                         'month', cls.date), TEXT),
                 'FMMM'),
             'FMMonth'
-        ).label('month')
+        ).label('month_str').label('month_str')
 
-        aggregate_dates = func.json_agg(cls.date).label('dates')
+        aggregate_dates = func.json_agg(
+            aggregate_order_by(
+                func.extract(
+                    'day', cls.date),
+                cls.date)
+        ).label('dates')
 
         inner_maon_query = select(
             year,
-            month,
+            month_str,
+            func.extract('month', cls.date).label('month_int'),
             aggregate_dates,
-        ).group_by('year', 'month'
+        ).group_by('year', 'month_str', 'month_int'
                    ).order_by(
-            'year', 'month').subquery()
+            'year', 'month_int').subquery()
 
         aggregate_month = select(
             inner_maon_query.c.year,
             func.json_object_agg(
-                inner_maon_query.c.month,
-                inner_maon_query.c.dates
+                inner_maon_query.c.month_str,
+                inner_maon_query.c.dates,
             ).label('dates2')
         ).group_by(inner_maon_query.c.year).subquery()
 
@@ -112,11 +117,10 @@ class Item(Base):
         'Publisher', secondary=association_item_publisher, back_populates='items', cascade="all, delete",)
 
     @classmethod
-    async def get_count(cls,session):
-        query= select(func.count(cls.id).label('count'))
-        result=await session.execute(query)
+    async def get_count(cls, session):
+        query = select(func.count(cls.id).label('count'))
+        result = await session.execute(query)
         return result.first().count
-
 
     @classmethod
     async def get_instance(cls, session, date):
@@ -163,10 +167,11 @@ class Title(Base):
         )
 
     @classmethod
-    async def get_all(cls,session):
-        query=select(cls)
-        results=await session.execute(query)
+    async def get_all(cls, session):
+        query = select(cls)
+        results = await session.execute(query)
         return results.all()
+
     @classmethod
     async def filter_by_name(cls, session, name):
         maon_query = select(cls).where(cls.name == name)
@@ -190,17 +195,18 @@ class Author(Base):
         )
 
     @classmethod
-    async def get_all(cls,session):
-        query=select(cls)
-        results=await session.execute(query)
+    async def get_all(cls, session):
+        query = select(cls)
+        results = await session.execute(query)
         return results.all()
 
     @classmethod
     async def filter_by_name(cls, session, authors):
         main_query = select(cls).where(cls.name.in_(authors))
         results = await session.execute(main_query)
-        list_authors=[author[0] for author in results.all()]
+        list_authors = [author[0] for author in results.all()]
         return list_authors
+
 
 class Publisher(Base):
     __tablename__ = 'publisher'
@@ -221,5 +227,5 @@ class Publisher(Base):
     async def filter_by_name(cls, session, publishers):
         main_query = select(cls).where(cls.name.in_(publishers))
         results = await session.execute(main_query)
-        list_publishers=[publisher[0] for publisher in results.all()]
+        list_publishers = [publisher[0] for publisher in results.all()]
         return list_publishers

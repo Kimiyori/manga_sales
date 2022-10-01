@@ -7,9 +7,9 @@ from manga_sales.data_scraping.session_context_manager import Session
 
 class AbstractScraper(metaclass=ABCMeta):
 
-    def __init__(self,session) -> None:
+    def __init__(self) -> None:
 
-        self.session =session()  if session else Session()
+        self.session = Session()
         self.rating_list = []
 
     @abstractmethod
