@@ -23,8 +23,8 @@ class AsyncDatabaseSession:
         )
 
     @property
-    def get_session(self) -> sessionmaker[AsyncSession]:
-        return self._session
+    def get_session(self) ->AsyncSession:
+        return self._session# type:ignore
 
     async def create_all(self) -> None:
         async with self._engine.begin() as conn:
