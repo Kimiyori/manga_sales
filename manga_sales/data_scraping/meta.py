@@ -1,5 +1,7 @@
 
 from abc import ABCMeta, abstractmethod
+
+from async_timeout import Any
 from manga_sales.data_scraping.session_context_manager import Session
 
 
@@ -10,7 +12,7 @@ class AbstractScraper(metaclass=ABCMeta):
     def __init__(self) -> None:
 
         self.session = Session()
-        self.rating_list = []
+        self.rating_list:list[Any] = []
 
     @abstractmethod
     def _get_rating(self, item):
@@ -70,6 +72,13 @@ class AbstractScraper(metaclass=ABCMeta):
 
     @abstractmethod
     def retrieve_data(self, url):
+        """
+        Get concrete piece of data
+        """
+        pass
+
+    @abstractmethod
+    async def find_latest_date(self, date,operator):
         """
         Get concrete piece of data
         """

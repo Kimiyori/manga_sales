@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 aiohttp = "*"
 pyyaml = "*"
-sqlalchemy = "*"
 aiopg = {extras = ["sa"], version = "*"}
 psycopg2 = "*"
 aiohttp-jinja2 = "*"
@@ -20,6 +19,9 @@ beautifulsoup4 = "*"
 pytest = "*"
 aioresponses = "*"
 aiohttp-session = {extras = ["aioredis"], version = "*"}
+mypy = "*"
+sqlalchemy = {extras = ["mypy"], version = "*"}
+types-pyyaml = "*"
 
 [dev-packages]
 

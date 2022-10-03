@@ -5,6 +5,7 @@ import asyncio
 from operator import add, sub
 import re
 import difflib
+from typing_extensions import reveal_type
 
 from .exceptions import BSError, ConnectError, NotFound
 from manga_sales.data_scraping.meta import AbstractScraper
