@@ -1,5 +1,5 @@
-
-
+from __future__ import annotations
+from typing import Any
 import aiohttp
 import asyncio
 from .exceptions import ConnectError, IncorrectMethod, NotFound, Unsuccessful
@@ -16,9 +16,9 @@ class Session:
     """
 
     def __init__(self,
-                 sleep_time: int = 5,
-                 timeout: int = 360,
-                 headers: dict[str, str] = None
+                 sleep_time: float = 5,
+                 timeout: int | None = 360,
+                 headers: dict[str, str] | None = None
                  ) -> None:
         self.sleep_time = sleep_time
         self.timeout = aiohttp.ClientTimeout(total=timeout)
@@ -31,21 +31,21 @@ class Session:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 OPR/85.0.4341.75'
         }
 
-    async def __aenter__(self, *args) -> 'Session':
+    async def __aenter__(self, *args: Any) -> Session:
         self.session = aiohttp.ClientSession(
             headers=self.headers,
             timeout=self.timeout
         )
         return self
 
-    async def __aexit__(self, *args):
+    async def __aexit__(self, *args: Any) -> None:
         await self.session.close()
-        self.session = None
+        del self.session
 
     async def fetch(self,
                     url: str,
                     retries: int = 5,
-                    commands: list[str] | None = None):
+                    commands: list[str] | None = None) -> Any:
         """
         Method for handling requests/responses
 
@@ -64,9 +64,10 @@ class Session:
                     if commands:
                         for command in commands:
                             try:
-                                response = getattr(response, command)
+                                response: Any = getattr( # type: ignore
+                                    response, command)  
                                 try:
-                                    response = await response()
+                                    response = await response()  # type: ignore
                                 except TypeError:
                                     pass
                             except AttributeError:

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date
-from aiohttp import web
+from aiohttp import ClientResponse
 
 @dataclass
 class Content:
@@ -9,10 +9,10 @@ class Content:
     """
     name: str
     volume: int|None
-    image:str
-    imageb:web.Response
+    image:str|None
+    imageb:ClientResponse|None
     authors: list[str]
     publisher: list[str]
-    release_date: date
+    release_date: date|None
     rating: int
     sold: int

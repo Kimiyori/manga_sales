@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Callable
 import datetime
 from typing_extensions import reveal_type
+
+from aiohttp import ClientResponse
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.db import AsyncDatabaseSession
@@ -12,6 +14,7 @@ from operator import add
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiohttp.web import Response
+
 
 class DBWriter:
     """
@@ -55,27 +58,27 @@ class DBWriter:
         existed_publishers.extend(new_publishers)
         return existed_publishers
 
-    def save_image(self, file: bytes | None, name: str, date: str) -> None:
+    def save_image(self, file: ClientResponse | None, name: str | None, date: str) -> None:
         if file and name:
             p = Path(f'{self.image_path}{date}')
             p.mkdir(exist_ok=True)
             with open(p / f'{name}', 'wb') as f:
-                f.write(file)
+                f.write(file)  # type: ignore
 
     async def get_date(self, session: AsyncSession,
-                       operator: Callable[[datetime.datetime, datetime.datetime], datetime.datetime],
+                       operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
                        date: datetime.date | None = None
                        ) -> datetime.date | None:
         if not date:
             date = await Week.get_last_date(session) if operator == add else datetime.date.today()
-        valid_date:datetime.date|None = await self.scraper.find_latest_date(date, operator)
+        valid_date: datetime.date | None = await self.scraper.find_latest_date(date, operator)
         if valid_date:
             check = await Week.get(session, valid_date)
             if check:
                 return await self.get_date(session, operator, valid_date)
-        return valid_date 
+        return valid_date
 
-    async def write_data(self, operator: Callable[[datetime.datetime, datetime.datetime], datetime.datetime] = add) -> None:
+    async def write_data(self, operator: Callable[[datetime.date, datetime.timedelta], datetime.date] = add) -> None:
         async with self.database_session.get_session() as session:
             date: datetime.date | None = await self.get_date(session, operator)
             while date:
@@ -87,15 +90,14 @@ class DBWriter:
                     authors = await self.handle_authors(session, content.authors)
                     title = await self.handle_title(session, content.name)
                     publishers = await self.handle_publisher(session, content.publisher)
-
                     self.save_image(content.imageb, content.image, datestr)
                     item = Item(rating=content.rating, volume=content.volume, image=content.image,
                                 release_date=content.release_date, sold=content.sold)
-                    item.title = title
+                    item.title = title  # type: ignore
                     item.author.extend(authors)
                     item.publisher.extend(publishers)
                     items.append(item)
                 week.items.extend(items)
                 session.add(week)
-                date: datetime.date | None = await self.get_date(session, operator, date)
+                date: datetime.date | None = await self.get_date(session, operator, date) # type:ignore
                 await session.commit()
