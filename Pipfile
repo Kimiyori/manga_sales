@@ -22,6 +22,8 @@ aiohttp-session = {extras = ["aioredis"], version = "*"}
 mypy = "*"
 sqlalchemy = {extras = ["mypy"], version = "*"}
 types-pyyaml = "*"
+flake8 = "*"
+black = "*"
 
 [dev-packages]
 

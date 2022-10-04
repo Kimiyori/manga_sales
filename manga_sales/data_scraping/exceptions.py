@@ -9,8 +9,10 @@ class Unsuccessful(Exception):
 class ConnectError(Exception):
     pass
 
+
 class IncorrectMethod(Exception):
     pass
+
 
 class BSError(Exception):
     pass

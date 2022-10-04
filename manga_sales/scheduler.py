@@ -33,10 +33,10 @@ class PeriodicSchedule:
                 last_date = await Week.get_last_date(session)
             if last_date:
                 last_datetime = datetime.datetime.combine(
-                    last_date, datetime.datetime.min.time())
-                next_date = last_datetime+datetime.timedelta(days=7)
-                remaining = (next_date-datetime.datetime.now()).total_seconds()
+                    last_date, datetime.datetime.min.time()
+                )
+                next_date = last_datetime + datetime.timedelta(days=7)
+                remaining = (next_date - datetime.datetime.now()).total_seconds()
                 await asyncio.sleep(remaining)
-            tasks = [asyncio.create_task(task.write_data())
-                     for task in self._tasks]
+            tasks = [asyncio.create_task(task.write_data()) for task in self._tasks]
             await asyncio.gather(*tasks)

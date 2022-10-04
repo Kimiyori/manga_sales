@@ -1,5 +1,4 @@
 # pyright: reportMissingImports=false
-import logging
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
@@ -22,31 +21,33 @@ async def setup_redis(app: web.Application) -> Redis:
 
     async def close_redis(app: web.Application) -> None:
         await pool.close()
+
     app.on_cleanup.append(close_redis)
-    app['redis_pool'] = pool
+    app["redis_pool"] = pool
     return pool
 
 
 async def setup_tasks(app: web.Application) -> None:
-    schedule: PeriodicSchedule = PeriodicSchedule(app['db'])
+    schedule: PeriodicSchedule = PeriodicSchedule(app["db"])
     await schedule.start()
 
+
 app = web.Application()
-app['config'] = config
+app["config"] = config
 setup_routes(app)
-session = AsyncDatabaseSession(app['config']['postgres'])
+session = AsyncDatabaseSession(app["config"]["postgres"])
 session.init()
-app['db'] = session
-aiohttp_jinja2.setup(app,
-                     loader=jinja2.FileSystemLoader(
-                         str(BASE_DIR / 'manga_sales' / 'templates')))
+app["db"] = session
+aiohttp_jinja2.setup(
+    app, loader=jinja2.FileSystemLoader(str(BASE_DIR / "manga_sales" / "templates"))
+)
 setup_middlewares(app)
 env = aiohttp_jinja2.get_env(app)
 env.globals.update(convert_date=convert_date, file_exist=file_exist)
 
 
 async def main() -> web.Application:
-    # logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
     redis_pool = await setup_redis(app)
     setup_session(app, RedisStorage(redis_pool))
     # await setup_tasks(app)

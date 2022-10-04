@@ -1,4 +1,3 @@
-
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import text
@@ -12,7 +11,13 @@ class AsyncDatabaseSession:
         self.data = data
 
     def init(self, echo: bool = True) -> None:
-        DSN = f"postgresql+asyncpg://{self.data['user']}:{self.data['password']}@{self.data['host']}:{self.data['port']}/{self.data['database']}"
+        DSN = "postgresql+asyncpg://{}:{}@{}:{}/{}".format(
+            self.data["user"],
+            self.data["password"],
+            self.data["host"],
+            self.data["port"],
+            self.data["database"],
+        )
         self._engine: AsyncEngine = create_async_engine(
             DSN,
             future=True,
@@ -23,8 +28,8 @@ class AsyncDatabaseSession:
         )
 
     @property
-    def get_session(self) ->AsyncSession:
-        return self._session# type:ignore
+    def get_session(self) -> AsyncSession:
+        return self._session  # type:ignore
 
     async def create_all(self) -> None:
         async with self._engine.begin() as conn:
@@ -33,11 +38,12 @@ class AsyncDatabaseSession:
     async def create_db(self) -> None:
         async with self._engine.connect() as conn:
             await conn.execution_options(isolation_level="AUTOCOMMIT")
-            await conn.execute(text('drop database if exists test'))
-            await conn.execute(text('create database test'))
+            await conn.execute(text("drop database if exists test"))
+            await conn.execute(text("create database test"))
 
     async def delete_db(self) -> None:
         async with self._engine.connect() as conn:
             await conn.execution_options(isolation_level="AUTOCOMMIT")
-            await conn.execute(text('drop database if exists test WITH (FORCE)'))
+            row = text("drop database if exists test WITH (FORCE)")
+            await conn.execute(row)
         await self._engine.dispose()
