@@ -21,9 +21,6 @@ class OriconScraper(AbstractScraper):
     _SEARCH_URL: str = "https://www.mangaupdates.com/series.html?search="
     _NUMBER_PAGES: int = 4
 
-    def __init__(self) -> None:
-        super().__init__()
-
     async def fetch(
         self, url: str, commands: list[str] | None = None, bs: bool = True
     ) -> BeautifulSoup | ClientResponse:
@@ -218,8 +215,7 @@ class OriconScraper(AbstractScraper):
         ]
         async with self.session:
             tasks = [asyncio.create_task(self.retrieve_data(page)) for page in pages]
-            await asyncio.gather(*tasks)
-
+            self.rating_list = await asyncio.gather(*tasks)
         return self.rating_list
 
     async def find_latest_date(

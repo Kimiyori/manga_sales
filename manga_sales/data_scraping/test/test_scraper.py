@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.exceptions import BSError, NotFound
-from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.data_scraping.web_scraper import OriconScraper
 from bs4 import BeautifulSoup
 from operator import add
@@ -11,7 +10,7 @@ from operator import add
 
 class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.scraper = OriconScraper(Session)
+        self.scraper = OriconScraper()
 
     def test_rating_success(self):
         text = BeautifulSoup(
@@ -124,7 +123,7 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
         date = self.scraper._get_sold_amount(text)
-        self.assertEqual(date, 147.741)
+        self.assertEqual(date, 147741)
 
     def test_sold_fail_not_found(self):
         text = BeautifulSoup(
@@ -286,7 +285,7 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         )
 
         image = await self.scraper._get_image(text)
-        self.assertEqual(image, None)
+        self.assertEqual(image, (None, None))
 
     async def test_image_fail_not_find_src(self):
         text = BeautifulSoup(
@@ -302,8 +301,9 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        image = await self.scraper._get_image(text)
+        image, imageb = await self.scraper._get_image(text)
         self.assertEqual(image, None)
+        self.assertEqual(imageb, None)
 
     @patch.multiple(
         "manga_sales.data_scraping.web_scraper.OriconScraper",
@@ -408,8 +408,9 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                 sold=45,
             ),
         ]
-        mock.side_effect = [self.scraper.rating_list.append(item) for item in data]
+        mock.side_effect = [item for item in data]
         result = await self.scraper.get_data("2022-08-09")
+        self.maxDiff = None
         self.assertEqual(data, result)
 
     @patch(
@@ -417,6 +418,6 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         side_effect=[NotFound("1"), NotFound("1"), "s"],
     )
     async def test_find_latest_date(self, mock):
-        correct_date = add(datetime.date.today(), datetime.timedelta(days=2))
-        date = await self.scraper.find_latest_date(add)
+        correct_date = add(datetime.date.today(), datetime.timedelta(days=3))
+        date = await self.scraper.find_latest_date(datetime.date.today(), operator=add)
         self.assertEqual(date, correct_date)

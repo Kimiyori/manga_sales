@@ -33,7 +33,7 @@ class Week(Base):
     async def get_last_date(cls, session: AsyncSession) -> datetime.date | None:
         results = await session.execute(select(cls).order_by(cls.date.desc()))
         row = results.first()
-        date: datetime.date | None = row.date if row else None
+        date: datetime.date | None = row[0].date if row else None
         return date
 
     @classmethod
@@ -125,6 +125,9 @@ class Item(Base):
         cascade="all, delete",
     )
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(" f"id={self.id})>"
+
     @classmethod
     async def get_count(cls, session: AsyncSession) -> Callable[[Any], int] | Any:
         query = select(func.count(cls.id).label("count"))
@@ -134,7 +137,7 @@ class Item(Base):
         return c
 
     @classmethod
-    async def get_instance(cls, session: AsyncSession, date_str: str) -> list[Item]:
+    async def get_instance(cls, session: AsyncSession, date_str: str) -> list[Row]:
         try:
             date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         except TypeError as e:
@@ -161,7 +164,7 @@ class Item(Base):
             .order_by(cls.rating)
         )
         result = await session.execute(query)
-        items = [item[0] for item in result.all()]
+        items = [item for item in result.all()]
         return items
 
 

@@ -17,7 +17,7 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
             Week(date=datetime.date(2022, 6, 6)),
             Week(date=datetime.date(2021, 8, 22)),
         ]
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             session.add_all(self.weeks)
             await session.commit()
 
@@ -25,28 +25,28 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     async def test_all_group(self) -> None:
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Week.get_all_groupby(session)
             self.assertEqual(
                 data,
                 [
-                    {"2021": {"August": ["2021-08-22"]}},
-                    {"2022": {"June": ["2022-06-06"], "September": ["2022-09-11"]}},
+                    {"2021": {"August": [22]}},
+                    {"2022": {"June": [6], "September": [11]}},
                 ],
             )
 
     async def test_get_all(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Week.get_all(session)
             self.assertEqual(len(data), 3)
 
     async def test_get(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Week.get(session, datetime.date(2022, 9, 11))
             self.assertEqual(data[0].date, self.weeks[0].date)
 
     async def test_get_last_row(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Week.get(session, datetime.date(2022, 9, 11))
             self.assertEqual(data[0].date, self.weeks[0].date)
 
@@ -83,7 +83,7 @@ class TestItem(unittest.IsolatedAsyncioTestCase):
                 image="2022-08-11/test2.jpg",
             ),
         ]
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             for i, item in enumerate(self.items):
                 item.title = self.titles[i]
                 item.author.append(self.authors[i])
@@ -97,18 +97,18 @@ class TestItem(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     async def test_get_items_success(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Item.get_instance(session, "2022-09-11")
             self.assertEqual(len(data), 1)
             self.assertEqual(data[0].rating, 1)
 
     async def test_get_items_empty(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Item.get_instance(session, "2022-09-12")
             self.assertEqual(len(data), 0)
 
     async def test_get_items_wrong_date_type(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             with self.assertRaises(TypeError):
                 await Item.get_instance(session, datetime.date(2022, 9, 11))
 
@@ -120,7 +120,7 @@ class TestTitle(unittest.IsolatedAsyncioTestCase):
         self.session.init(False)
         await self.session.create_all()
         self.titles = [Title(name="test_title"), Title(name="test_title2")]
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             session.add_all(self.titles)
             await session.commit()
 
@@ -128,10 +128,10 @@ class TestTitle(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     async def test_filter(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Title.filter_by_name(session, "test_title")
-            self.assertEqual(len(data), 1)
-            self.assertEqual(data[0].name, "test_title")
+            self.assertTrue(data)
+            self.assertEqual(data.name, "test_title")
 
 
 class TestAuthors(unittest.IsolatedAsyncioTestCase):
@@ -141,7 +141,7 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
         self.session.init(False)
         await self.session.create_all()
         self.authors = [Author(name="test_author"), Author(name="test_author2")]
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             session.add_all(self.authors)
             await session.commit()
 
@@ -149,10 +149,10 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     async def test_filter(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Author.filter_by_name(session, ["test_author"])
             self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][0].name, "test_author")
+            self.assertEqual(data[0].name, "test_author")
 
 
 class TestPublishers(unittest.IsolatedAsyncioTestCase):
@@ -165,7 +165,7 @@ class TestPublishers(unittest.IsolatedAsyncioTestCase):
             Publisher(name="test_publisher"),
             Publisher(name="test_publisher2"),
         ]
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             session.add_all(self.publishers)
             await session.commit()
 
@@ -173,7 +173,7 @@ class TestPublishers(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     async def test_filter(self):
-        async with self.session.get_session as session:
+        async with self.session.get_session() as session:
             data = await Publisher.filter_by_name(session, ["test_publisher"])
             self.assertEqual(len(data), 1)
-            self.assertEqual(data[0][0].name, "test_publisher")
+            self.assertEqual(data[0].name, "test_publisher")
