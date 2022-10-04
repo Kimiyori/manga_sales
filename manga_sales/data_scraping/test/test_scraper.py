@@ -2,12 +2,11 @@ import datetime
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from manga_sales.data_scraping.dataclasses import Content
-
 from manga_sales.data_scraping.exceptions import BSError, NotFound
 from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.data_scraping.web_scraper import OriconScraper
 from bs4 import BeautifulSoup
-from operator import sub, add
+from operator import add
 
 
 class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
@@ -17,10 +16,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_rating_success(self):
         text = BeautifulSoup(
             """
-                                <div class="inner-label">
-						            <p class="num ">1</p>
-                                </div>
-                            """,
+                <div class="inner-label">
+                    <p class="num ">1</p>
+                </div>
+            """,
             "html.parser",
         )
         rating = self.scraper._get_rating(text)
@@ -82,10 +81,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_release_date_success(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-								<li>発売日：2022年08月</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>発売日：2022年08月</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_release_date(text)
@@ -94,10 +93,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_release_date_fail_not_found(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-								<li>出版社：講談社</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>出版社：講談社</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_release_date(text)
@@ -106,10 +105,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_release_date_fail_not_match(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-                                <li>発売日：2022.08</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>発売日：2022.08</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_release_date(text)
@@ -118,10 +117,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_sold_success(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-								<li>推定売上部数：147,741部</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>推定売上部数：147,741部</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_sold_amount(text)
@@ -130,10 +129,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_sold_fail_not_found(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-								<li>推部数：147,741部</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>推部数：147,741部</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_sold_amount(text)
@@ -142,10 +141,10 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_sold_fail_not_match(self):
         text = BeautifulSoup(
             """
-                            <ul class="list">
-								<li>推部数：147741</li>
-							</ul>
-                            """,
+            <ul class="list">
+                <li>推部数：147741</li>
+            </ul>
+            """,
             "html.parser",
         )
         date = self.scraper._get_sold_amount(text)
@@ -156,7 +155,7 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         text = BeautifulSoup(
             """
             <h2 class="title" itemprop="name">東京卍リベンジャーズ 29</h2>
-                            """,
+            """,
             "html.parser",
         )
 
@@ -164,9 +163,9 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             BeautifulSoup(
                 """
             <div class="col-12 col-lg-6 p-3 text">
- 	                <div class="text">
-                        <a href="https://www.mangaupdates.com/series/aev98v4/toukyou-wanrevengers" alt="Series Info"><u><b><i>東京卍リベンジャーズ</i></b></u></a>
-                    </div>
+                <div class="text">
+                    <a href="https://www.mangaupdates.com/series/aev98v4/toukyou-wanrevengers" alt="Series Info"><u><b><i>東京卍リベンジャーズ</i></b></u></a>
+                </div>
             </div>
             <div class="col-12 col-lg-6 p-3 text">
                 <div class="text">
@@ -178,13 +177,13 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                     <a href="https://www.mangaupdates.com/series/p5qneev/tokyo-revengers-dj-kiken-na-tora-no-shitsukekata" alt="Series Info"><u><b><i>東京卍リベンジャーズ dj - キケンな虎のしつけかた</i></b></u></a>
                 </div>
             </div>
-            </div>  
+            </div>
             """,
                 "html.parser",
             ),
             BeautifulSoup(
                 """
-            <span class="releasestitle tabletitle">Toukyou卍Revengers</span> 
+            <span class="releasestitle tabletitle">Toukyou卍Revengers</span>
             """,
                 "html.parser",
             ),
@@ -255,13 +254,15 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
     async def test_image_success(self, mock, mock_uuid):
         text = BeautifulSoup(
-            """<p class="image">
-							<span>
-							<a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
-								<img src="https://m.media-amazon.com/images/I/51x+1xrAGiL._SL160_.jpg" alt="東京卍リベンジャーズ 29" itemprop="image">
-							</a>
-							</span>
-						</p>""",
+            """
+            <p class="image">
+                <span>
+                <a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
+                <img src="https://m.media-amazon.com/images/I/51x+1xrAGiL._SL160_.jpg" alt="東京卍リベンジャーズ 29" itemprop="image">
+                </a>
+                </span>
+            </p>
+            """,
             "html.parser",
         )
         mock.return_value = "image file"
@@ -272,13 +273,15 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
 
     async def test_image_fail_not_find_class(self):
         text = BeautifulSoup(
-            """<p >
-							<span>
-							<a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
-								<img src="https://m.media-amazon.com/images/I/51x+1xrAGiL._SL160_.jpg" alt="東京卍リベンジャーズ 29" itemprop="image">
-							</a>
-							</span>
-						</p>""",
+            """
+            <p >
+                <span>
+                <a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
+                <img src="https://m.media-amazon.com/images/I/51x+1xrAGiL._SL160_.jpg" alt="東京卍リベンジャーズ 29" itemprop="image">
+                </a>
+                </span>
+            </p>
+            """,
             "html.parser",
         )
 
@@ -287,13 +290,15 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
 
     async def test_image_fail_not_find_src(self):
         text = BeautifulSoup(
-            """<p  class="image" >
-							<span>
-							<a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
-								<img alt="東京卍リベンジャーズ 29" itemprop="image">
-							</a>
-							</span>
-						</p>""",
+            """
+            <p  class="image" >
+                <span>
+                <a href="https://www.oricon.co.jp/book/406528657/" itemprop="url">
+                <img alt="東京卍リベンジャーズ 29" itemprop="image">
+                </a>
+                </span>
+            </p>
+            """,
             "html.parser",
         )
 
@@ -316,9 +321,12 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
     async def test_retrieve_data_success(self, mock_fetch, **mocks):
         mock_fetch.return_value = BeautifulSoup(
-            """<section class="box-rank-entry" itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
-				</section><section class="box-rank-entry" itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
-				</section>""",
+            """
+            <section class="box-rank-entry" itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            </section>
+            <section class="box-rank-entry" itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            </section>
+            """,
             "html.parser",
         )
 

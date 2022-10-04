@@ -1,14 +1,11 @@
 import unittest
 from unittest.mock import patch
-from xml.dom.domreg import well_known_implementations
+
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.db_handle import DBWriter
-from manga_sales.data_scraping.exceptions import IncorrectMethod, NotFound, Unsuccessful
-from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.main import app
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
-from manga_sales.settings import config
 import datetime
 
 

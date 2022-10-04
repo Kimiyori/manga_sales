@@ -28,7 +28,7 @@ class AbstractScraper(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _get_title(self, item: BeautifulSoup) -> tuple[str, BeautifulSoup]:
+    async def _get_title(self, item: BeautifulSoup) -> tuple[str, BeautifulSoup]:
         """
         Get title from given item
         """
@@ -63,14 +63,14 @@ class AbstractScraper(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_data(self, date: str) -> list[Content]:
+    async def get_data(self, date: str) -> list[Content]:
         """
         Main function for get all data
         """
         pass
 
     @abstractmethod
-    def retrieve_data(self, url: str) -> None:
+    async def retrieve_data(self, url: str) -> None:
         """
         Get concrete piece of data
         """
@@ -80,7 +80,7 @@ class AbstractScraper(metaclass=ABCMeta):
     async def find_latest_date(
         self,
         date: datetime.date,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.datetime],
+        operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
     ) -> datetime.date | None:
         """
         Get concrete piece of data

@@ -75,10 +75,9 @@ class DBWriter:
         date: datetime.date | None = None,
     ) -> datetime.date | None:
         if not date:
+            check_date = await Week.get_last_date(session)
             date = (
-                await Week.get_last_date(session)
-                if operator == add
-                else datetime.date.today()
+                check_date if operator == add and check_date else datetime.date.today()
             )
         valid_date: datetime.date | None = await self.scraper.find_latest_date(
             date, operator
@@ -118,8 +117,7 @@ class DBWriter:
                     items.append(item)
                 week.items.extend(items)
                 session.add(week)
-                # type:ignore
-                date: datetime.date | None = await self.get_date(
+                date: datetime.date | None = await self.get_date(  # type:ignore
                     session, operator, date
                 )
                 await session.commit()

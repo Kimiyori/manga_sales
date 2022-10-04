@@ -127,7 +127,6 @@ class OriconScraper(AbstractScraper):
                 if len(split_name) > 1
                 else split_name[0]
             )
-
             # get list fo titles from mangaupdates
             # with search by japanese title
             mangau_list = await self.fetch(
@@ -226,7 +225,7 @@ class OriconScraper(AbstractScraper):
     async def find_latest_date(
         self,
         date: datetime.date,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.datetime],
+        operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
     ) -> datetime.date | None:
         async with self.session:
             count_days = 1

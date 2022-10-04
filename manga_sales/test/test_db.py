@@ -1,10 +1,8 @@
 import unittest
-from manga_sales.data_scraping.exceptions import IncorrectMethod, NotFound, Unsuccessful
-from manga_sales.data_scraping.session_context_manager import Session
 from manga_sales.main import app
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
-from manga_sales.settings import config
+
 import datetime
 
 
@@ -23,10 +21,10 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
             session.add_all(self.weeks)
             await session.commit()
 
-    async def asyncTearDown(self):
+    async def asyncTearDown(self) -> None:
         await app["db"].delete_db()
 
-    async def test_all_group(self):
+    async def test_all_group(self) -> None:
         async with self.session.get_session as session:
             data = await Week.get_all_groupby(session)
             self.assertEqual(

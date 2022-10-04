@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING, TypeAlias
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import text
 
-
+if TYPE_CHECKING:
+    TSession: TypeAlias = sessionmaker[AsyncSession]
+else:
+    # anything that doesn't raise an exception
+    TSession: TypeAlias = AsyncSession
 Base = declarative_base()
 
 
@@ -28,8 +33,8 @@ class AsyncDatabaseSession:
         )
 
     @property
-    def get_session(self) -> AsyncSession:
-        return self._session  # type:ignore
+    def get_session(self) -> TSession:
+        return self._session
 
     async def create_all(self) -> None:
         async with self._engine.begin() as conn:
