@@ -3,7 +3,7 @@ from contextlib import suppress
 import datetime
 from typing import Callable
 from manga_sales.data_scraping.db_handle import DBWriter
-from manga_sales.data_scraping.web_scraper import OriconScraper
+from manga_sales.data_scraping.web_scraper import OriconWeeklyScraper
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Week
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,7 @@ class PeriodicSchedule:
     def __init__(self, app: AsyncDatabaseSession) -> None:
         self.session: Callable[[], AsyncSession] = app.get_session
         self.is_started: bool = False
-        self._tasks: list[DBWriter] = [DBWriter(app, OriconScraper)]
+        self._tasks: list[DBWriter] = [DBWriter(app, OriconWeeklyScraper)]
 
     async def start(self) -> None:
         if not self.is_started:
@@ -37,6 +37,7 @@ class PeriodicSchedule:
                 )
                 next_date = last_datetime + datetime.timedelta(days=7)
                 remaining = (next_date - datetime.datetime.now()).total_seconds()
+                print(remaining)
                 await asyncio.sleep(remaining)
             tasks = [asyncio.create_task(task.write_data()) for task in self._tasks]
             await asyncio.gather(*tasks)

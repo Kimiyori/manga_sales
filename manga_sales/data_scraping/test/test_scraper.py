@@ -3,14 +3,14 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.exceptions import BSError, NotFound
-from manga_sales.data_scraping.web_scraper import OriconScraper
+from manga_sales.data_scraping.web_scraper import OriconWeeklyScraper, ShosekiWeeklyScraper
 from bs4 import BeautifulSoup
 from operator import add
 
 
 class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.scraper = OriconScraper()
+        self.scraper = OriconWeeklyScraper()
 
     def test_rating_success(self):
         text = BeautifulSoup(
@@ -421,3 +421,11 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         correct_date = add(datetime.date.today(), datetime.timedelta(days=3))
         date = await self.scraper.find_latest_date(datetime.date.today(), operator=add)
         self.assertEqual(date, correct_date)
+
+
+class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
+    def setUp(self) -> None:
+        self.scraper = ShosekiWeeklyScraper()
+
+    async def test_write_data(self):
+        await self.scraper.get_data("2022-10-04")

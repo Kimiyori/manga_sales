@@ -2,13 +2,11 @@
 from __future__ import annotations
 from typing import Callable
 import datetime
-from aiohttp import ClientResponse
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
 from operator import add
-from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -59,15 +57,6 @@ class DBWriter:
         existed_publishers.extend(new_publishers)
         return existed_publishers
 
-    def save_image(
-        self, file: ClientResponse | None, name: str | None, date: str
-    ) -> None:
-        if file and name:
-            p = Path(f"{self.image_path}{date}")
-            p.mkdir(exist_ok=True)
-            with open(p / f"{name}", "wb") as f:
-                f.write(file)  # type: ignore
-
     async def get_date(
         self,
         session: AsyncSession,
@@ -103,7 +92,6 @@ class DBWriter:
                     authors = await self.handle_authors(session, content.authors)
                     title = await self.handle_title(session, content.name)
                     publishers = await self.handle_publisher(session, content.publisher)
-                    self.save_image(content.imageb, content.image, datestr)
                     item = Item(
                         rating=content.rating,
                         volume=content.volume,
@@ -111,13 +99,13 @@ class DBWriter:
                         release_date=content.release_date,
                         sold=content.sold,
                     )
-                    item.title = title  # type: ignore
+                    item.title = title
                     item.author.extend(authors)
                     item.publisher.extend(publishers)
                     items.append(item)
                 week.items.extend(items)
                 session.add(week)
-                date: datetime.date | None = await self.get_date(  # type:ignore
+                date: datetime.date | None = await self.get_date(
                     session, operator, date
                 )
                 await session.commit()

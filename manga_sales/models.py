@@ -1,10 +1,20 @@
-# pyright: reportMissingModuleSource=false
 from __future__ import annotations
 import datetime
 from typing import Any, Callable
-from sqlalchemy import Column, String, Date, SmallInteger, Integer, ForeignKey, Table
+from sqlalchemy import (
+    Column,
+    String,
+    Date,
+    SmallInteger,
+    Integer,
+    ForeignKey,
+    Table,
+    UniqueConstraint,
+    func,
+    cast,
+    TEXT,
+)
 from sqlalchemy.future import select
-from sqlalchemy import func, cast, TEXT
 from sqlalchemy.sql import distinct
 from sqlalchemy.orm import relationship
 from .db import Base
@@ -13,11 +23,57 @@ from sqlalchemy.engine.row import Row
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 
 
+class Source(Base):
+    __tablename__ = "source"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(256), nullable=False, unique=True)
+    image = Column(String, nullable=True, unique=True)
+    source_type: list[SourceType] = relationship("SourceType", back_populates="source")
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(" f"id={self.id},name={self.name})>"
+
+    @classmethod
+    async def get_all(cls, session: AsyncSession) -> list[Row]:
+        query = await session.execute(select(cls.name, cls.image))
+        return query.all()
+
+
+class SourceType(Base):
+    __tablename__ = "source_type"
+    id = Column(Integer, primary_key=True)
+    type = Column(String(256), nullable=False)
+    weeks: list[Week] = relationship("Week", back_populates="source_type")
+    source_id = Column(Integer, ForeignKey("source.id", ondelete="CASCADE"))
+    source: Source = relationship("Source", back_populates="source_type")
+    __table_args__ = (
+        UniqueConstraint("type", "source_id", name="_source_sourcetype_const"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(" f"id={self.id},type={self.type})>"
+
+    @classmethod
+    async def get(cls, session: AsyncSession, source: str) -> list[Row]:
+        query = await session.execute(
+            select(cls.type).join(Source).where(Source.name == source.capitalize())
+        )
+        return query.all()
+
+
 class Week(Base):
     __tablename__ = "week"
     id = Column(Integer, primary_key=True)
-    date = Column(Date, unique=True, nullable=False)
+    date = Column(Date, nullable=False)
+    source_type_id = Column(Integer, ForeignKey("source_type.id", ondelete="CASCADE"))
+    source_type: SourceType = relationship("SourceType", back_populates="weeks")
     items: list[Item] = relationship("Item", back_populates="week")
+    __table_args__ = (
+        UniqueConstraint("date", "source_type_id", name="_source_week_const"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(" f"id={self.id},date={self.date})>"
 
     @classmethod
     async def get_all(cls, session: AsyncSession) -> list[Row]:
@@ -109,8 +165,8 @@ class Item(Base):
     sold = Column(Integer, nullable=False)
     image = Column(String, nullable=True, unique=True)
     week_id = Column(Integer, ForeignKey("week.id", ondelete="CASCADE"))
-    week: list[Week] = relationship("Week", back_populates="items")
-    title: list[Title] = relationship("Title", back_populates="items")
+    week: Week = relationship("Week", back_populates="items")
+    title: Title = relationship("Title", back_populates="items")
     title_id = Column(Integer, ForeignKey("title.id", ondelete="CASCADE"))
     author: list[Author] = relationship(
         "Author",

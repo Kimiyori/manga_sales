@@ -2,38 +2,22 @@ from __future__ import annotations
 import datetime
 import asyncio
 import re
-import difflib
 from typing import Callable
-from aiohttp import ClientResponse
+import unicodedata
 from .exceptions import BSError, ConnectError, NotFound
-from manga_sales.data_scraping.meta import AbstractScraper
+from manga_sales.data_scraping.meta import AbstractScraper, MangaUpdatesAbstract
 from manga_sales.data_scraping.dataclasses import Content
 from bs4 import BeautifulSoup
 import uuid
 
 
-class OriconScraper(AbstractScraper):
+class OriconWeeklyScraper(MangaUpdatesAbstract, AbstractScraper):
     """
     Class for collecting data from Oricon
     """
 
     _URL: str = "https://www.oricon.co.jp/rank/obc/w/"
-    _SEARCH_URL: str = "https://www.mangaupdates.com/series.html?search="
     _NUMBER_PAGES: int = 4
-
-    async def fetch(
-        self, url: str, commands: list[str] | None = None, bs: bool = True
-    ) -> BeautifulSoup | ClientResponse:
-        """
-        Method for fetching given url
-
-        Args:
-            url:url from which exctract data
-            commands: set fo commands that will be applied to response
-            bs: return bs4 or pure response
-        """
-        response = await self.session.fetch(url, commands=commands)
-        return BeautifulSoup(response, "html.parser") if bs else response
 
     def _get_rating(self, item: BeautifulSoup) -> int:
         try:
@@ -95,27 +79,7 @@ class OriconScraper(AbstractScraper):
             return 0
         return sold
 
-    async def _get_title(self, item: BeautifulSoup) -> tuple[str, BeautifulSoup]:
-        def get_most_similar_title(original_name: str, link: BeautifulSoup) -> str:
-
-            items = link.find_all("div", {"class": "col-12 col-lg-6 p-3 text"})
-
-            titles: dict[str, str] = {}
-
-            for item in items:
-                item = item.find("div", {"class": "text"})
-                try:
-                    titles[item.find("b").string] = item.find("a")["href"]
-                except KeyError:
-                    continue
-            most_similar = difflib.get_close_matches(original_name, titles.keys())
-            # return link to most similar if they exist
-            # else return first in list fo titles
-            return (
-                titles[most_similar[0]]
-                if most_similar
-                else titles[list(titles.keys())[0]]
-            )
+    def _get_original_title(self, item: BeautifulSoup) -> str:
 
         try:
             split_name = item.find("h2", {"class": "title"}).string.split(" ")
@@ -124,62 +88,23 @@ class OriconScraper(AbstractScraper):
                 if len(split_name) > 1
                 else split_name[0]
             )
-            # get list fo titles from mangaupdates
-            # with search by japanese title
-            mangau_list = await self.fetch(
-                url=self._SEARCH_URL + japanese_name, commands=["content", "read"]
-            )
-            # find most similar title
-            mangau_item_link = get_most_similar_title(japanese_name, mangau_list)
-            title_page: BeautifulSoup = await self.fetch(
-                url=mangau_item_link, commands=["content", "read"]
-            )
-            english_name: str = title_page.find(
-                "span", {"class": "releasestitle tabletitle"}
-            ).string
         except AttributeError:
             raise BSError("Can't parse to find title name")
-        return english_name, title_page
+        return japanese_name
 
-    def _get_authors(self, item: BeautifulSoup) -> list[str]:
-        try:
-            authors_tag = item.find("b", string="Author(s)").parent.find_next_sibling(
-                "div"
-            )
-            authors_list = [author.string for author in authors_tag.find_all("u")]
-        except AttributeError:
-            return []
-        return authors_list
-
-    def _get_publishers(self, item: BeautifulSoup) -> list[str]:
-        try:
-            publishers_tag = item.find(
-                "b", string="Original Publisher"
-            ).parent.find_next_sibling("div")
-            publishers = [
-                publisher.string for publisher in publishers_tag.find_all("u")
-            ]
-        except AttributeError:
-            return []
-        return publishers
-
-    async def _get_image(
-        self, item: BeautifulSoup
-    ) -> tuple[str, ClientResponse] | tuple[None, None]:
+    async def _get_image(self, item: BeautifulSoup) -> str | None:
         try:
             img_url = item.find("p", {"class": "image"}).find("img").get("src")
             if img_url is None:
-                return None, None
-        except AttributeError:
-            return None, None
-        reg = re.search(r".(\w+)$", img_url)
-        extension = reg.group(1) if reg else "jpg"
-        name = f"{uuid.uuid4()}.{extension}"
-        try:
-            binary_image = await self.fetch(img_url, ["read"], False)
-        except ConnectError:
-            return None, None
-        return name, binary_image
+                return None
+            reg = re.search(r".(\w+)$", img_url)
+            extension = reg.group(1) if reg else "jpg"
+            name = f"{uuid.uuid4()}.{extension}"
+            image_file = await self.fetch(img_url, ["read"], False)
+            self.save_image(image_file, name)
+        except (ConnectError, AttributeError):
+            return None
+        return name
 
     async def retrieve_data(self, url: str) -> None:
         data: BeautifulSoup = await self.fetch(url, commands=["content", "read"])
@@ -187,8 +112,8 @@ class OriconScraper(AbstractScraper):
         if not list_items:
             raise BSError("Fail to find class with titles list")
         for item in list_items:
-            rating: int = self._get_rating(item)
-            image_name, image = await self._get_image(item)
+            rating = self._get_rating(item)
+            image = await self._get_image(item)
             name, data_url = await self._get_title(item)
             authors = self._get_authors(data_url)
             publishers = self._get_publishers(data_url)
@@ -198,7 +123,6 @@ class OriconScraper(AbstractScraper):
             content = Content(
                 name,
                 volume,
-                image_name,
                 image,
                 authors,
                 publishers,
@@ -209,6 +133,7 @@ class OriconScraper(AbstractScraper):
             self.rating_list.append(content)
 
     async def get_data(self, date: str) -> list[Content]:
+        self.date = date
         self.rating_list = []
         pages: list[str] = [
             self._URL + date + f"/p/{x}/" for x in range(1, self._NUMBER_PAGES)
@@ -235,3 +160,112 @@ class OriconScraper(AbstractScraper):
                     continue
                 return guess_date
         return None
+
+
+class ShosekiWeeklyScraper(MangaUpdatesAbstract, AbstractScraper):
+    """
+    Class for collecting data from Shoseki
+    """
+
+    _URL: str = "http://shosekiranking.blog.fc2.com/blog-category-6.html"
+
+    async def get_data(self, date: str) -> list[Content]:
+        self.date = date
+        self.rating_list = []
+        url = None
+        async with self.session:
+            main_page: BeautifulSoup = await self.fetch(
+                self._URL, commands=["content", "read"]
+            )
+            dates: list[BeautifulSoup] = main_page.find(
+                "ul", {"class": "list_body"}
+            ).find_all("li")
+            for date_obj in dates:
+                guess_date: str = re.sub(
+                    r"^([0-9]+)\/([0-9]+)\/([0-9]+) : .+",
+                    r"\g<1>-\g<2>-\g<3>",
+                    date_obj.text,
+                )
+                if date == guess_date:
+                    url: str = date_obj.find("a")["href"]
+                    break
+            await self.retrieve_data(url) if url else None
+        return self.rating_list
+
+    async def retrieve_data(self, url: str) -> None:
+        page: BeautifulSoup = await self.fetch(url, commands=["content", "read"])
+        body = page.find("div", {"class": "entry_body"})
+        text_items: str = body.get_text(strip=True, separator="\n").splitlines()
+        list_items: list[list[str]] = [text_items[i : i + 3] for i in range(0, 90, 3)]
+        urls: list[str] = body.find_all("a")
+        for i in range(len(list_items)):
+            list_items[i].append(urls[i]["href"])
+            list_items[i][2] = unicodedata.normalize("NFKC", list_items[i][2])
+        for row in list_items:
+            rating: int = self._get_rating(row[0])
+            volume: int = self._get_volume(row[2])
+            name, data_url = await self._get_title(row[2])
+            authors = self._get_authors(data_url)
+            publishers = self._get_publishers(data_url)
+            sold = self._get_sold_amount()
+            release = self._get_release_date(row[2])
+            image = await self._get_image(row[3])
+            content = Content(
+                name,
+                volume,
+                image,
+                authors,
+                publishers,
+                release,
+                rating,
+                sold,
+            )
+            self.rating_list.append(content)
+
+    async def _get_image(self, url):
+        page_image = await self.fetch(url, commands=["content", "read"])
+        img_url = page_image.find("img", {"class": "s-image"})["src"]
+        reg = re.search(r".(\w+)$", img_url)
+        extension = reg.group(1) if reg else "jpg"
+        name = f"{uuid.uuid4()}.{extension}"
+        try:
+            image_file = await self.fetch(img_url, ["read"], False)
+            self.save_image(image_file, name)
+        except ConnectError:
+            return None
+        return name
+
+    def _get_rating(self, item: str) -> int:
+        return int(item)
+
+    def _get_volume(self, item: str) -> int | None:
+        regex = re.search(r"^\D+ (\d+)\D+", item).group(1)
+        return int(regex)
+
+    def _get_release_date(self, item: str) -> datetime.date | None:
+        regex = re.search(r"(?P<year>[\d]+).(?P<month>[\d]+).(?P<day>[\d]+)$", item)
+        try:
+            date = (
+                datetime.date(
+                    int(regex["year"]), int(regex["month"]), int(regex["day"])
+                )
+                if regex
+                else None
+            )
+        except ValueError:
+            return None
+        return date
+
+    def _get_sold_amount(self) -> None:
+        return None
+
+    def _get_original_title(self, item: str) -> str:
+        japanese_name: str = re.search(r"^(\D+)", item).group(1)
+        return japanese_name
+
+    async def find_latest_date(
+        self,
+        date: datetime.date,
+        operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
+    ) -> datetime.date | None:
+        return await super().find_latest_date(date, operator)
