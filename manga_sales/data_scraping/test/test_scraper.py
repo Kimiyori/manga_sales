@@ -1,16 +1,29 @@
 import datetime
+import shutil
+import unicodedata
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.exceptions import BSError, NotFound
-from manga_sales.data_scraping.web_scraper import OriconWeeklyScraper, ShosekiWeeklyScraper
+from manga_sales.data_scraping.web_scraper import (
+    OriconWeeklyScraper,
+    ShosekiWeeklyScraper,
+)
 from bs4 import BeautifulSoup
 from operator import add
 
 
-class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
+class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.scraper = OriconWeeklyScraper()
+        self.date='2022-02-12'
+    def tearDown(self):
+        try:
+            print(f"Delete test folder from {self.__class__.__name__}")
+            shutil.rmtree(f"manga_sales/static/images/oricon/weekly/{self.date}")
+        except OSError:
+            print("Fail to delete test folder")
+            pass
 
     def test_rating_success(self):
         text = BeautifulSoup(
@@ -27,31 +40,31 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_rating_fail_not_found(self):
         text = BeautifulSoup(
             """
-                                <div class="inner-label">
-                                </div>
-                            """,
+            <div class="inner-label"></div>
+            """,
             "html.parser",
         )
-        rating = self.scraper._get_rating(text)
-        self.assertEqual(rating, 0)
+        with self.assertRaises(AttributeError):
+            self.scraper._get_rating(text)
 
     def test_rating_fail_not_decimal(self):
         text = BeautifulSoup(
             """
-                                <div class="inner-label">
-                                    <p class="num ">something</p>
-                                </div>
-                            """,
+            <div class="inner-label">
+                <p class="num ">something</p>
+            </div>
+            """,
             "html.parser",
         )
-        rating = self.scraper._get_rating(text)
-        self.assertEqual(rating, 0)
+        with self.assertRaises(ValueError):
+            self.scraper._get_rating(text)
+
 
     def test_volume_success(self):
         text = BeautifulSoup(
             """
-                        <h2 class="title" itemprop="name">東京卍リベンジャーズ 29</h2>
-                            """,
+            <h2 class="title" itemprop="name">東京卍リベンジャーズ 29</h2>
+            """,
             "html.parser",
         )
         volume = self.scraper._get_volume(text)
@@ -60,8 +73,8 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_volume_fail_not_found(self):
         text = BeautifulSoup(
             """
-                        <h2 itemprop="name">東京卍リベンジャーズ 29</h2>
-                            """,
+            <h2 itemprop="name">東京卍リベンジャーズ 29</h2>
+            """,
             "html.parser",
         )
         volume = self.scraper._get_volume(text)
@@ -70,8 +83,8 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
     def test_volume_fail_without_volume_info(self):
         text = BeautifulSoup(
             """
-                        <h2 class="title" itemprop="name">東京卍リベンジャーズ </h2>
-                            """,
+            <h2 class="title" itemprop="name">東京卍リベンジャーズ </h2>
+            """,
             "html.parser",
         )
         volume = self.scraper._get_volume(text)
@@ -149,7 +162,7 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         date = self.scraper._get_sold_amount(text)
         self.assertEqual(date, 0)
 
-    @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
+    @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
     async def test_title_success(self, mock):
         text = BeautifulSoup(
             """
@@ -250,7 +263,7 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(authors, [])
 
     @patch("manga_sales.data_scraping.web_scraper.uuid.uuid4")
-    @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
+    @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
     async def test_image_success(self, mock, mock_uuid):
         text = BeautifulSoup(
             """
@@ -264,11 +277,11 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        mock.return_value = "image file"
+        mock.return_value = b"image file"
         mock_uuid.return_value = "uuid_name"
-        name, image = await self.scraper._get_image(text)
+        name= await self.scraper._get_image(text,self.date)
         self.assertEqual(name, "uuid_name.jpg")
-        self.assertEqual(image, "image file")
+
 
     async def test_image_fail_not_find_class(self):
         text = BeautifulSoup(
@@ -284,8 +297,8 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        image = await self.scraper._get_image(text)
-        self.assertEqual(image, (None, None))
+        image = await self.scraper._get_image(text,self.date)
+        self.assertEqual(image, None)
 
     async def test_image_fail_not_find_src(self):
         text = BeautifulSoup(
@@ -301,15 +314,15 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        image, imageb = await self.scraper._get_image(text)
+        image= await self.scraper._get_image(text,self.date)
         self.assertEqual(image, None)
-        self.assertEqual(imageb, None)
+
 
     @patch.multiple(
-        "manga_sales.data_scraping.web_scraper.OriconScraper",
+        "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper",
         _get_rating=MagicMock(side_effect=[1, 2]),
         _get_image=AsyncMock(
-            side_effect=[("image name1", "image file1"), ("image name2", "image file2")]
+            side_effect=["image name1", "image name2"]
         ),
         _get_title=AsyncMock(return_value=("title", "title_url")),
         _get_authors=MagicMock(return_value=[]),
@@ -318,8 +331,8 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         _get_release_date=MagicMock(return_value=2022),
         _get_sold_amount=MagicMock(return_value=22),
     )
-    @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
-    async def test_retrieve_data_success(self, mock_fetch, **mocks):
+    @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
+    async def test_retrieve_data_success(self, mock_fetch):
         mock_fetch.return_value = BeautifulSoup(
             """
             <section class="box-rank-entry" itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
@@ -330,13 +343,12 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        await self.scraper.retrieve_data("1")
+        res=await self.scraper._retrieve_data("1",self.date)
         result_data = [
             Content(
                 name="title",
                 volume=11,
                 image="image name1",
-                imageb="image file1",
                 authors=[],
                 publisher=[],
                 release_date=2022,
@@ -347,7 +359,6 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                 name="title",
                 volume=11,
                 image="image name2",
-                imageb="image file2",
                 authors=[],
                 publisher=[],
                 release_date=2022,
@@ -355,9 +366,9 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                 sold=22,
             ),
         ]
-        self.assertEqual(self.scraper.rating_list, result_data)
+        self.assertCountEqual(res, result_data)
 
-    @patch("manga_sales.data_scraping.web_scraper.OriconScraper.fetch")
+    @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
     async def test_retrive_data_fail_no_class(self, mock_fetch):
         mock_fetch.return_value = BeautifulSoup(
             """<section  >
@@ -366,19 +377,18 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
         with self.assertRaises(BSError) as error:
-            await self.scraper.retrieve_data("1")
+            await self.scraper._retrieve_data("1",'2022-10-04')
             self.assertTrue(
                 "Fail to find class with titles list" in str(error.exception)
             )
 
-    @patch("manga_sales.data_scraping.web_scraper.OriconScraper.retrieve_data")
+    @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper._retrieve_data")
     async def test_get_data_success(self, mock):
         data = [
             Content(
                 name="title",
                 volume=122,
                 image="image name1",
-                imageb="image file1",
                 authors=[],
                 publisher=[],
                 release_date=2022,
@@ -389,7 +399,6 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                 name="title",
                 volume=111,
                 image="image name1",
-                imageb="image file1",
                 authors=[],
                 publisher=[],
                 release_date=2022,
@@ -400,7 +409,6 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
                 name="title",
                 volume=113,
                 image="image name1",
-                imageb="image file1",
                 authors=[],
                 publisher=[],
                 release_date=2022,
@@ -410,22 +418,261 @@ class TestOriconScraper(unittest.IsolatedAsyncioTestCase):
         ]
         mock.side_effect = [item for item in data]
         result = await self.scraper.get_data("2022-08-09")
-        self.maxDiff = None
         self.assertEqual(data, result)
 
     @patch(
-        "manga_sales.data_scraping.web_scraper.OriconScraper.fetch",
+        "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch",
         side_effect=[NotFound("1"), NotFound("1"), "s"],
     )
     async def test_find_latest_date(self, mock):
         correct_date = add(datetime.date.today(), datetime.timedelta(days=3))
-        date = await self.scraper.find_latest_date(datetime.date.today(), operator=add)
+        date = await self.scraper.find_latest_date(datetime.date.today())
         self.assertEqual(date, correct_date)
 
 
 class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.scraper = ShosekiWeeklyScraper()
+        self.date = "2022-10-04"
 
-    async def test_write_data(self):
-        await self.scraper.get_data("2022-10-04")
+    def tearDown(self):
+        try:
+            print(f"Delete test folder from {self.__class__.__name__}")
+            shutil.rmtree(f"manga_sales/static/images/shoseki/weekly/{self.date}")
+        except OSError:
+            print("Fail to delete test folder")
+            pass
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper._get_image",
+        side_effect=[None, None, None],
+    )
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.get_list_raw_data",
+        return_value=[
+            ["1", "9784757581012", "その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24"],
+            ["2", "9784088924250", "キングダム 66 集英社 原泰久 2022.9.16"],
+            ["3", "9784867204153", "終末のワルキューレ 16 コアミック アジチカ 2022.9.20"],
+        ],
+    )
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper._get_data_url",
+        return_value="http://shosekiranking.blog.fc2.com/blog-entry-4115.html",
+    )
+    async def test_get_data_success(self, mock_url, mock_raw_data, mock_img):
+        result = await self.scraper.get_data(self.date)
+        guessed_result = [
+            Content(
+                name="Sono Bisque Doll wa Koi wo suru",
+                volume=10,
+                image=None,
+                authors=["FUKUDA Shinichi"],
+                publisher=["Square Enix"],
+                release_date=datetime.date(2022, 9, 24),
+                rating=1,
+                sold=None,
+            ),
+            Content(
+                name="Kingdom",
+                volume=66,
+                image=None,
+                authors=["HARA Yasuhisa"],
+                publisher=["Shueisha"],
+                release_date=datetime.date(2022, 9, 16),
+                rating=2,
+                sold=None,
+            ),
+            Content(
+                name="Record of Ragnarok",
+                volume=16,
+                image=None,
+                authors=["FUKUI Takumi", "UMEMURA Shinya"],
+                publisher=["Tokuma Shoten"],
+                release_date=datetime.date(2022, 9, 20),
+                rating=3,
+                sold=None,
+            ),
+        ]
+        self.assertEqual(result, guessed_result)
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper._get_data_url",
+        return_value=None,
+    )
+    async def test_get_data_none(self, mock_url):
+        result = await self.scraper.get_data(self.date)
+        self.assertEqual(result, None)
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+            <div class="content">
+            <div class="entry_body">1 <a target="_blank"
+            href="">
+            9784757581012 </a><img src="//ir-jp.amazon-adsystem.com/e/ir?t=shosekicomic-22&amp;l=ur2&amp;o=9" width="1"
+            height="1" border="0" alt=""
+            style="border: none !important; margin: 0px !important; display: none !important;">  その着せ替え人形は恋をする　１０ スクウェア 福田晋一 2022.9.24<br>2 <a target="_blank"
+            href="">
+            9784088924250 </a><img src="//ir-jp.amazon-adsystem.com/e/ir?t=shosekicomic-22&amp;l=ur2&amp;o=9" width="1"
+            height="1" border="0" alt=""
+            style="border: none !important; margin: 0px !important; display: none !important;">  キングダム　６６ 集英社 原泰久 2022.9.16<br>3 <a target="_blank"
+            href="">
+            9784867204153 </a><img src="//ir-jp.amazon-adsystem.com/e/ir?t=shosekicomic-22&amp;l=ur2&amp;o=9" width="1"
+            height="1" border="0" alt=""
+            style="border: none !important; margin: 0px !important; display: none !important;">  終末のワルキューレ　１６ コアミック アジチカ 2022.9.20<br>
+        """,
+            "html.parser",
+        ),
+    )
+    async def test_get_list_raw_data_success(self, mock_fetch):
+        raw_expect = [
+            ["1", "9784757581012", "その着せ替え人形は恋をする １０ スクウェア 福田晋一 2022.9.24"],
+            ["2", "9784088924250", "キングダム ６６ 集英社 原泰久 2022.9.16"],
+            ["3", "9784867204153", "終末のワルキューレ １６ コアミック アジチカ 2022.9.20"],
+        ]
+        expect = [[unicodedata.normalize("NFKC", x) for x in i] for i in raw_expect]
+        result = await self.scraper.get_list_raw_data("dummy_url")
+        self.assertCountEqual(result, expect)
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+            <div class="entry_body">1 <a target="_blank"
+            href="">
+            9784757581012 </a><img src="//ir-jp.amazon-adsystem.com/e/ir?t=shosekicomic-22&amp;l=ur2&amp;o=9" width="1"
+            height="1" border="0" alt=""
+            style="border: none !important; margin: 0px !important; display: none !important;">  その着せ替え人形は恋をする　１０ スクウェア 福田晋一 2022.9.24<br>
+        """,
+            "html.parser",
+        ),
+    )
+    async def test_get_list_raw_data_fail_parse(self, mock_fetch):
+        with self.assertRaises(AttributeError) as error:
+            await self.scraper.get_list_raw_data("dummy_url")
+            self.assertTrue(
+                "'NoneType' object has no attribute 'find'" in str(error.exception)
+            )
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+        <ul class="list_body">
+<li>2022/10/04 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4115.html" title="2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】">2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】</a></li>
+<li>2022/09/27 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4107.html" title="2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】">2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】</a></li>
+    """,
+            "html.parser",
+        ),
+    )
+    async def test_get_data_url_success(self, mock_fetch):
+        result = await self.scraper._get_data_url(self.date)
+        self.assertEqual(
+            result, "http://shosekiranking.blog.fc2.com/blog-entry-4115.html"
+        )
+
+        result_none = await self.scraper._get_data_url("2022-10-05")
+        self.assertEqual(result_none, None)
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+<li>2022/10/04 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4115.html" title="2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】">2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】</a></li>
+    """,
+            "html.parser",
+        ),
+    )
+    async def test_get_data_url_fail_parse(self, mock_fetch):
+        with self.assertRaises(AttributeError) as error:
+            await self.scraper._get_data_url(self.date)
+            self.assertTrue(
+                "'NoneType' object has no attribute 'find_all'" in str(error.exception)
+            )
+
+    def test_convert_str_to_date_success(self):
+        date = self.scraper.convert_str_to_date(self.date)
+        self.assertEqual(date, datetime.datetime(2022, 10, 4))
+
+        date_without_day = self.scraper.convert_str_to_date("2022-10")
+        self.assertEqual(date_without_day, datetime.datetime(2022, 10, 1))
+
+    def test_convert_str_to_date_fail(self):
+        with self.assertRaises(AssertionError) as error:
+            self.scraper.convert_str_to_date("2022")
+            self.assertTrue("Fail match date" in str(error.exception))
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+        <ul class="list_body">
+<li>2022/10/04 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4115.html" title="2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】">2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】</a></li>
+<li>2022/09/27 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4107.html" title="2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】">2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】</a></li>
+    """,
+            "html.parser",
+        ),
+    )
+    async def test_find_latest_date_success(self, mock_fetch):
+        result = await self.scraper.find_latest_date(datetime.datetime(2022, 9, 27))
+        self.assertEqual(result, datetime.datetime(2022, 10, 4))
+        result_without_convert = await self.scraper.find_latest_date(
+            datetime.datetime(2022, 9, 27), date_convert=False
+        )
+        self.assertEqual(
+            result_without_convert,
+            "2022/10/04 : 2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】",
+        )
+
+        result_none = await self.scraper.find_latest_date(
+            datetime.datetime(2022, 10, 4)
+        )
+        self.assertEqual(result_none, None)
+        result_none2 = await self.scraper.find_latest_date(
+            datetime.datetime(2022, 9, 4)
+        )
+        self.assertEqual(result_none2, None)
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.fetch",
+        return_value=BeautifulSoup(
+            """
+
+<li>2022/10/04 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4115.html" title="2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】">2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】</a></li>
+<li>2022/09/27 : <a href="http://shosekiranking.blog.fc2.com/blog-entry-4107.html" title="2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】">2022年9/19-9/25 漫画ランキング コミック売上BEST500【キングダム66】</a></li>
+    """,
+            "html.parser",
+        ),
+    )
+    async def test_find_latest_date_file_fail(self, mock_fetch):
+        with self.assertRaises(AttributeError):
+            await self.scraper.find_latest_date(datetime.datetime(2022, 9, 27))
+    
+    async def test_get_rating_success(self):
+        res=self.scraper._get_rating('4')
+        self.assertEqual(res,4)
+    
+    async def test_get_rating_fail(self):
+        with self.assertRaises(ValueError):
+            self.scraper._get_rating('a')
+        
+    async def test_get_volume_success(self):
+        res=self.scraper._get_volume('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
+        self.assertEqual(res,10)
+    
+    async def test_get_volume_fail(self):
+        with self.assertRaises(AssertionError):
+            self.scraper._get_volume('その着せ替え人形は恋をする スクウェア 福田晋一 2022.9.24')
+        
+    def test_get_release_success(self):
+        res=self.scraper._get_release_date('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
+        self.assertEqual(res,datetime.date(2022,9,24))
+    
+    def test_get_release_fail(self):
+        res=self.scraper._get_release_date('その着せ替え人形は恋をする スクウェア 福田晋一')
+        self.assertEqual(res,None)
+    
+    def test_get_original_title_success(self):
+        res=self.scraper._get_original_title('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
+        self.assertEqual(res,'その着せ替え人形は恋をする ')

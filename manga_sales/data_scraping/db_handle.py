@@ -2,12 +2,11 @@
 from __future__ import annotations
 from typing import Callable
 import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.meta import AbstractScraper
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
-from operator import add
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class DBWriter:
@@ -60,29 +59,23 @@ class DBWriter:
     async def get_date(
         self,
         session: AsyncSession,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
         date: datetime.date | None = None,
     ) -> datetime.date | None:
         if not date:
             check_date = await Week.get_last_date(session)
-            date = (
-                check_date if operator == add and check_date else datetime.date.today()
-            )
-        valid_date: datetime.date | None = await self.scraper.find_latest_date(
-            date, operator
-        )
+            date = check_date if check_date else datetime.date.today()
+        valid_date: datetime.date | None = await self.scraper.find_latest_date(date)
         if valid_date:
             check = await Week.get(session, valid_date)
             if check:
-                return await self.get_date(session, operator, valid_date)
+                return await self.get_date(session, valid_date)
         return valid_date
 
     async def write_data(
         self,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.date] = add,
     ) -> None:
         async with self.database_session.get_session() as session:
-            date: datetime.date | None = await self.get_date(session, operator)
+            date: datetime.date | None = await self.get_date(session)
             while date:
                 datestr: str = date.strftime("%Y-%m-%d")
                 data: list[Content] = await self.scraper.get_data(datestr)
@@ -106,6 +99,6 @@ class DBWriter:
                 week.items.extend(items)
                 session.add(week)
                 date: datetime.date | None = await self.get_date(
-                    session, operator, date
+                    session, date
                 )
                 await session.commit()

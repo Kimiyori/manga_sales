@@ -15,4 +15,4 @@ class Content:
     publisher: list[str]
     release_date: date | None
     rating: int
-    sold: int
+    sold: int | None
