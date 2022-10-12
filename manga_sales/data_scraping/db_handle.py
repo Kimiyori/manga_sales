@@ -4,7 +4,7 @@ from typing import Callable
 import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.meta import AbstractScraper
+from manga_sales.data_scraping.meta import AbstractBase
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
 
@@ -15,7 +15,7 @@ class DBWriter:
     """
 
     def __init__(
-        self, app: AsyncDatabaseSession, scraper: Callable[[], AbstractScraper]
+        self, app: AsyncDatabaseSession, scraper: Callable[[], AbstractBase]
     ) -> None:
         self.database_session = app
         self.scraper = scraper()

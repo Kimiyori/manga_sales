@@ -34,7 +34,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        rating = self.scraper._get_rating(text)
+        rating = self.scraper.get_rating(text)
         self.assertEqual(rating, 1)
 
     def test_rating_fail_not_found(self):
@@ -45,7 +45,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
         with self.assertRaises(AttributeError):
-            self.scraper._get_rating(text)
+            self.scraper.get_rating(text)
 
     def test_rating_fail_not_decimal(self):
         text = BeautifulSoup(
@@ -57,7 +57,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
         with self.assertRaises(ValueError):
-            self.scraper._get_rating(text)
+            self.scraper.get_rating(text)
 
 
     def test_volume_success(self):
@@ -67,7 +67,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        volume = self.scraper._get_volume(text)
+        volume = self.scraper.get_volume(text)
         self.assertEqual(volume, 29)
 
     def test_volume_fail_not_found(self):
@@ -77,7 +77,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        volume = self.scraper._get_volume(text)
+        volume = self.scraper.get_volume(text)
         self.assertEqual(volume, None)
 
     def test_volume_fail_without_volume_info(self):
@@ -87,7 +87,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        volume = self.scraper._get_volume(text)
+        volume = self.scraper.get_volume(text)
         self.assertEqual(volume, None)
 
     def test_release_date_success(self):
@@ -99,7 +99,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_release_date(text)
+        date = self.scraper.get_release_date(text)
         self.assertEqual(date, datetime.date(2022, 8, 1))
 
     def test_release_date_fail_not_found(self):
@@ -111,7 +111,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_release_date(text)
+        date = self.scraper.get_release_date(text)
         self.assertEqual(date, None)
 
     def test_release_date_fail_not_match(self):
@@ -123,7 +123,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_release_date(text)
+        date = self.scraper.get_release_date(text)
         self.assertEqual(date, None)
 
     def test_sold_success(self):
@@ -135,7 +135,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_sold_amount(text)
+        date = self.scraper.get_sale(text)
         self.assertEqual(date, 147741)
 
     def test_sold_fail_not_found(self):
@@ -147,7 +147,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_sold_amount(text)
+        date = self.scraper.get_sale(text)
         self.assertEqual(date, 0)
 
     def test_sold_fail_not_match(self):
@@ -159,7 +159,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             """,
             "html.parser",
         )
-        date = self.scraper._get_sold_amount(text)
+        date = self.scraper.get_sale(text)
         self.assertEqual(date, 0)
 
     @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
@@ -201,7 +201,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             ),
         ]
 
-        title, _ = await self.scraper._get_title(text)
+        title, _ = await self.scraper.get_title(text)
         self.assertEqual(title, "Toukyou卍Revengers")
 
     async def test_title_fail_not_find_tag(self):
@@ -213,7 +213,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
         )
 
         with self.assertRaises(BSError) as error:
-            await self.scraper._get_title(text)
+            await self.scraper.get_title(text)
             self.assertTrue("Can't parse to find title name" in str(error.exception))
 
     def test_authors_success(self):
@@ -226,7 +226,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
                                 </div>""",
             "html.parser",
         )
-        authors = self.scraper._get_authors(text)
+        authors = self.scraper.get_authors(text)
         self.assertEqual(authors, ["WAKUI Ken"])
 
     def test_authors_fail_not_found(self):
@@ -239,7 +239,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
                                 </div>""",
             "html.parser",
         )
-        authors = self.scraper._get_authors(text)
+        authors = self.scraper.get_authors(text)
         self.assertEqual(authors, [])
 
     def test_publishers_success(self):
@@ -249,7 +249,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
 </div>""",
             "html.parser",
         )
-        authors = self.scraper._get_publishers(text)
+        authors = self.scraper.get_publishers(text)
         self.assertEqual(authors, ["Kodansha"])
 
     def test_publishers_fail_not_found(self):
@@ -259,7 +259,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
 </div>""",
             "html.parser",
         )
-        authors = self.scraper._get_publishers(text)
+        authors = self.scraper.get_publishers(text)
         self.assertEqual(authors, [])
 
     @patch("manga_sales.data_scraping.web_scraper.uuid.uuid4")
@@ -279,7 +279,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
         )
         mock.return_value = b"image file"
         mock_uuid.return_value = "uuid_name"
-        name= await self.scraper._get_image(text,self.date)
+        name= await self.scraper.get_image(text,self.date)
         self.assertEqual(name, "uuid_name.jpg")
 
 
@@ -297,7 +297,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        image = await self.scraper._get_image(text,self.date)
+        image = await self.scraper.get_image(text,self.date)
         self.assertEqual(image, None)
 
     async def test_image_fail_not_find_src(self):
@@ -314,22 +314,22 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
             "html.parser",
         )
 
-        image= await self.scraper._get_image(text,self.date)
+        image= await self.scraper.get_image(text,self.date)
         self.assertEqual(image, None)
 
 
     @patch.multiple(
         "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper",
-        _get_rating=MagicMock(side_effect=[1, 2]),
-        _get_image=AsyncMock(
+        get_rating=MagicMock(side_effect=[1, 2]),
+        get_image=AsyncMock(
             side_effect=["image name1", "image name2"]
         ),
-        _get_title=AsyncMock(return_value=("title", "title_url")),
-        _get_authors=MagicMock(return_value=[]),
-        _get_publishers=MagicMock(return_value=[]),
-        _get_volume=MagicMock(return_value=11),
-        _get_release_date=MagicMock(return_value=2022),
-        _get_sold_amount=MagicMock(return_value=22),
+        get_title=AsyncMock(return_value=("title", "title_url")),
+        get_authors=MagicMock(return_value=[]),
+        get_publishers=MagicMock(return_value=[]),
+        get_volume=MagicMock(return_value=11),
+        get_release_date=MagicMock(return_value=2022),
+        get_sale=MagicMock(return_value=22),
     )
     @patch("manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.fetch")
     async def test_retrieve_data_success(self, mock_fetch):
@@ -444,11 +444,11 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
             pass
 
     @patch(
-        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper._get_image",
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.get_image",
         side_effect=[None, None, None],
     )
     @patch(
-        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper.get_list_raw_data",
+        "manga_sales.data_scraping.web_scraper.ShosekiWeeklyScraper._get_list_raw_data",
         return_value=[
             ["1", "9784757581012", "その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24"],
             ["2", "9784088924250", "キングダム 66 集英社 原泰久 2022.9.16"],
@@ -532,7 +532,7 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
             ["3", "9784867204153", "終末のワルキューレ １６ コアミック アジチカ 2022.9.20"],
         ]
         expect = [[unicodedata.normalize("NFKC", x) for x in i] for i in raw_expect]
-        result = await self.scraper.get_list_raw_data("dummy_url")
+        result = await self.scraper._get_list_raw_data("dummy_url")
         self.assertCountEqual(result, expect)
 
     @patch(
@@ -550,7 +550,7 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
     )
     async def test_get_list_raw_data_fail_parse(self, mock_fetch):
         with self.assertRaises(AttributeError) as error:
-            await self.scraper.get_list_raw_data("dummy_url")
+            await self.scraper._get_list_raw_data("dummy_url")
             self.assertTrue(
                 "'NoneType' object has no attribute 'find'" in str(error.exception)
             )
@@ -650,27 +650,27 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
             await self.scraper.find_latest_date(datetime.datetime(2022, 9, 27))
     
     async def test_get_rating_success(self):
-        res=self.scraper._get_rating('4')
+        res=self.scraper.get_rating('4')
         self.assertEqual(res,4)
     
     async def test_get_rating_fail(self):
         with self.assertRaises(ValueError):
-            self.scraper._get_rating('a')
+            self.scraper.get_rating('a')
         
     async def test_get_volume_success(self):
-        res=self.scraper._get_volume('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
+        res=self.scraper.get_volume('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
         self.assertEqual(res,10)
     
     async def test_get_volume_fail(self):
         with self.assertRaises(AssertionError):
-            self.scraper._get_volume('その着せ替え人形は恋をする スクウェア 福田晋一 2022.9.24')
+            self.scraper.get_volume('その着せ替え人形は恋をする スクウェア 福田晋一 2022.9.24')
         
     def test_get_release_success(self):
-        res=self.scraper._get_release_date('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
+        res=self.scraper.get_release_date('その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24')
         self.assertEqual(res,datetime.date(2022,9,24))
     
     def test_get_release_fail(self):
-        res=self.scraper._get_release_date('その着せ替え人形は恋をする スクウェア 福田晋一')
+        res=self.scraper.get_release_date('その着せ替え人形は恋をする スクウェア 福田晋一')
         self.assertEqual(res,None)
     
     def test_get_original_title_success(self):
