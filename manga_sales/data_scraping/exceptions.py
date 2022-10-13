@@ -1,18 +1,18 @@
 class NotFound(Exception):
-    pass
+    """Not found 404"""
 
 
 class Unsuccessful(Exception):
-    pass
+    """Fail to get respnse"""
 
 
 class ConnectError(Exception):
-    pass
+    """Fail to connect"""
 
 
 class IncorrectMethod(Exception):
-    pass
+    """Raises if passed incorrect method or attribute in list of commands in context manager"""
 
 
 class BSError(Exception):
-    pass
+    """BeauitfulSoup parser error"""

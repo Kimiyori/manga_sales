@@ -2,14 +2,16 @@ import asyncio
 from contextlib import suppress
 import datetime
 from typing import Callable
+from sqlalchemy.ext.asyncio import AsyncSession
 from manga_sales.data_scraping.db_handle import DBWriter
 from manga_sales.data_scraping.web_scraper import OriconWeeklyScraper
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Week
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class PeriodicSchedule:
+    """Class for creating periodic tasks"""
+
     def __init__(self, app: AsyncDatabaseSession) -> None:
         self.session: Callable[[], AsyncSession] = app.get_session
         self.is_started: bool = False

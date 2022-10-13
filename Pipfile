@@ -24,6 +24,7 @@ sqlalchemy = {extras = ["mypy"], version = "*"}
 types-pyyaml = "*"
 flake8 = "*"
 black = "*"
+pylint = "*"
 
 [dev-packages]
 

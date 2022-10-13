@@ -16,6 +16,8 @@ from manga_sales.data_scraping.exceptions import BSError, ConnectError, NotFound
 
 
 class MangaUpdatesParser(MainItemDataParserAbstract):
+    """Parser main data from MangaUpdates"""
+
     _MAIN_URL: str = "https://www.mangaupdates.com/series.html?search="
 
     async def get_main_info_page(self, title: str) -> BeautifulSoup:
@@ -73,8 +75,9 @@ class MangaUpdatesParser(MainItemDataParserAbstract):
             return []
         return publishers
 
+    @staticmethod
     @abstractmethod
-    def _get_original_title(self, item: BeautifulSoup | str) -> str:
+    def _get_original_title(item: BeautifulSoup | str) -> str:
         pass
 
     async def get_title(self, page: BeautifulSoup) -> tuple[str, BeautifulSoup]:
@@ -109,9 +112,9 @@ class OriconWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
             return volume
         # iterate over all space-separated words from the title and
         # catch the first integer (usually this will be the volume)
-        for item in lst:
+        for piece in lst:
             try:
-                volume = int(item)
+                volume = int(piece)
                 break
             except ValueError:
                 continue
@@ -154,7 +157,8 @@ class OriconWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
             return 0
         return sold
 
-    def _get_original_title(self, item: BeautifulSoup) -> str:
+    @staticmethod
+    def _get_original_title(item: BeautifulSoup) -> str:
 
         try:
             split_name: list[str] = item.find("h2", {"class": "title"}).string.split(

@@ -83,13 +83,12 @@ class Session:
                                     f"given attribute - {command}"
                                 ) from error
                     return response
-                elif response.status == 404:
+                if response.status == 404:
                     raise NotFound("Can't find given page")
-                elif response.status == 429:
+                if response.status == 429:
                     await asyncio.sleep(self.sleep_time)
                     return await self.fetch(url, retries - 1, commands)
-                else:
-                    raise Unsuccessful(f"Status code is {response.status}")
+                raise Unsuccessful(f"Status code is {response.status}")
         except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
             raise ConnectError(
                 f"Failed to connect with following error - {exc}"

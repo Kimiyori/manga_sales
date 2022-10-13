@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Callable
 import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.meta import AbstractBase
+from manga_sales.data_scraping.meta import ChartItemDataParserAbstract
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
 
@@ -15,7 +14,9 @@ class DBWriter:
     """
 
     def __init__(
-        self, app: AsyncDatabaseSession, scraper: Callable[[], AbstractBase]
+        self,
+        app: AsyncDatabaseSession,
+        scraper: Callable[[], ChartItemDataParserAbstract],
     ) -> None:
         self.database_session = app
         self.scraper = scraper()
@@ -40,8 +41,7 @@ class DBWriter:
             title = Title(name=name)
             session.add(title)
             return title
-        else:
-            return check_title
+        return check_title
 
     async def handle_publisher(
         self, session: AsyncSession, publishers: list[str]
@@ -78,7 +78,9 @@ class DBWriter:
             date: datetime.date | None = await self.get_date(session)
             while date:
                 datestr: str = date.strftime("%Y-%m-%d")
-                data: list[Content] = await self.scraper.get_data(datestr)
+                data = await self.scraper.get_data(datestr)
+                if not data:
+                    break
                 week = Week(date=date)
                 items = []
                 for content in data:
@@ -98,7 +100,5 @@ class DBWriter:
                     items.append(item)
                 week.items.extend(items)
                 session.add(week)
-                date: datetime.date | None = await self.get_date(
-                    session, date
-                )
+                date: datetime.date | None = await self.get_date(session, date)  # type: ignore
                 await session.commit()

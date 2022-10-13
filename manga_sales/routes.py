@@ -1,6 +1,6 @@
 import pathlib
-from manga_sales.views import detail, source_type_detail, source, source_type
 from aiohttp.web import Application
+from manga_sales.views import detail, source_type_detail, source, source_type
 
 PROJECT_ROOT = pathlib.Path(__file__).parent
 

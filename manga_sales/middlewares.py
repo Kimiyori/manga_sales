@@ -1,8 +1,8 @@
 import aiohttp_jinja2
+from aiohttp_session import get_session
 from aiohttp import web
 from aiohttp.typedefs import Handler
 from aiohttp.web_middlewares import _Middleware
-from aiohttp_session import get_session
 
 
 async def handle_404(request: web.Request) -> web.Response:
@@ -26,10 +26,6 @@ def create_error_middleware(overrides: dict[int, Handler]) -> _Middleware:
                 return await override(request)
 
             raise
-        except Exception:
-            request.protocol.logger.exception("Error handling request")
-            return await overrides[500](request)
-
     return error_middleware
 
 
