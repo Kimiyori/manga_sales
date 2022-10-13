@@ -2,10 +2,10 @@ import datetime
 from pathlib import Path
 
 
-def convert_date(date: str, type: str) -> str:
+def convert_date(date: str, date_type: str) -> str:
     try:
         datetime_object = datetime.datetime.strptime(date, "%B")
-        date_part: int = getattr(datetime_object, type)
+        date_part: int = getattr(datetime_object, date_type)
     except TypeError:
         date_part = int(date)
     return str(date_part) if date_part > 9 else f"0{date_part}"

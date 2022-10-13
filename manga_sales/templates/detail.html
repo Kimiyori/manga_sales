@@ -10,7 +10,7 @@
             </div>
             <div class="image">
                 <span>
-                    {% if file_exist(item.week_date,item.image) %}
+                    {% if item.image != None %}
                     <img src='{{item.image}}'>
                     {% else %}
                     <img src='no_img.jpg'>
@@ -23,7 +23,7 @@
                     {% for author in item.authors %}
                         {{author}}
                     {% endfor %}
-                </p>    
+                </p>      
                 <p class="publisher"> Publishers:
                     {% for publisher in item.publishers %}
                         {{publisher}}

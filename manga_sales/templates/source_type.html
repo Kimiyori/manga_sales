@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+    <h1>Manga sales</h1>
+    <div class="main-list">
+        {% for source_type in data %}
+        <a href="{{source_type.type|lower}}/">
+        {{source_type.type}}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}

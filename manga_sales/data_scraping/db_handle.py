@@ -2,14 +2,10 @@
 from __future__ import annotations
 from typing import Callable
 import datetime
-from aiohttp import ClientResponse
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.meta import AbstractScraper
+from sqlalchemy.ext.asyncio import AsyncSession
+from manga_sales.data_scraping.meta import ChartItemDataParserAbstract
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
-from operator import add
-from pathlib import Path
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class DBWriter:
@@ -18,7 +14,9 @@ class DBWriter:
     """
 
     def __init__(
-        self, app: AsyncDatabaseSession, scraper: Callable[[], AbstractScraper]
+        self,
+        app: AsyncDatabaseSession,
+        scraper: Callable[[], ChartItemDataParserAbstract],
     ) -> None:
         self.database_session = app
         self.scraper = scraper()
@@ -43,8 +41,7 @@ class DBWriter:
             title = Title(name=name)
             session.add(title)
             return title
-        else:
-            return check_title
+        return check_title
 
     async def handle_publisher(
         self, session: AsyncSession, publishers: list[str]
@@ -59,51 +56,37 @@ class DBWriter:
         existed_publishers.extend(new_publishers)
         return existed_publishers
 
-    def save_image(
-        self, file: ClientResponse | None, name: str | None, date: str
-    ) -> None:
-        if file and name:
-            p = Path(f"{self.image_path}{date}")
-            p.mkdir(exist_ok=True)
-            with open(p / f"{name}", "wb") as f:
-                f.write(file)  # type: ignore
-
     async def get_date(
         self,
         session: AsyncSession,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.date],
         date: datetime.date | None = None,
     ) -> datetime.date | None:
         if not date:
             check_date = await Week.get_last_date(session)
-            date = (
-                check_date if operator == add and check_date else datetime.date.today()
-            )
-        valid_date: datetime.date | None = await self.scraper.find_latest_date(
-            date, operator
-        )
+            date = check_date if check_date else datetime.date.today()
+        valid_date: datetime.date | None = await self.scraper.find_latest_date(date)
         if valid_date:
             check = await Week.get(session, valid_date)
             if check:
-                return await self.get_date(session, operator, valid_date)
+                return await self.get_date(session, valid_date)
         return valid_date
 
     async def write_data(
         self,
-        operator: Callable[[datetime.date, datetime.timedelta], datetime.date] = add,
     ) -> None:
         async with self.database_session.get_session() as session:
-            date: datetime.date | None = await self.get_date(session, operator)
+            date: datetime.date | None = await self.get_date(session)
             while date:
                 datestr: str = date.strftime("%Y-%m-%d")
-                data: list[Content] = await self.scraper.get_data(datestr)
+                data = await self.scraper.get_data(datestr)
+                if not data:
+                    break
                 week = Week(date=date)
                 items = []
                 for content in data:
                     authors = await self.handle_authors(session, content.authors)
                     title = await self.handle_title(session, content.name)
                     publishers = await self.handle_publisher(session, content.publisher)
-                    self.save_image(content.imageb, content.image, datestr)
                     item = Item(
                         rating=content.rating,
                         volume=content.volume,
@@ -111,13 +94,11 @@ class DBWriter:
                         release_date=content.release_date,
                         sold=content.sold,
                     )
-                    item.title = title  # type: ignore
+                    item.title = title
                     item.author.extend(authors)
                     item.publisher.extend(publishers)
                     items.append(item)
                 week.items.extend(items)
                 session.add(week)
-                date: datetime.date | None = await self.get_date(  # type:ignore
-                    session, operator, date
-                )
+                date: datetime.date | None = await self.get_date(session, date)  # type: ignore
                 await session.commit()
