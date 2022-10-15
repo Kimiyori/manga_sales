@@ -20,10 +20,8 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self):
         try:
-            print(f"Delete test folder from {self.__class__.__name__}")
             shutil.rmtree(f"manga_sales/static/images/oricon/weekly/{self.date}")
         except OSError:
-            print("Fail to delete test folder")
             pass
 
     def test_rating_success(self):
@@ -433,10 +431,8 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self):
         try:
-            print(f"Delete test folder from {self.__class__.__name__}")
             shutil.rmtree(f"manga_sales/static/images/shoseki/weekly/{self.date}")
         except OSError:
-            print("Fail to delete test folder")
             pass
 
     @patch(

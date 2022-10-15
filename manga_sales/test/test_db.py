@@ -1,17 +1,22 @@
 import unittest
-from manga_sales.main import app
-from manga_sales.db import AsyncDatabaseSession
+from manga_sales.settings import config
+from manga_sales.db import AsyncTestDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
-
 import datetime
 
 
-class TestWeek(unittest.IsolatedAsyncioTestCase):
+class AbstractTestDatabase:
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        self.session = AsyncTestDatabaseSession(config["postgres_test"])
+        await self.session.init()
+
+    async def asyncTearDown(self) -> None:
+        await self.session.delete_db()
+
+
+class TestWeek(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
         self.weeks = [
             Week(date=datetime.date(2022, 9, 11)),
             Week(date=datetime.date(2022, 6, 6)),
@@ -20,9 +25,6 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.weeks)
             await session.commit()
-
-    async def asyncTearDown(self) -> None:
-        await app["db"].delete_db()
 
     async def test_all_group(self) -> None:
         async with self.session.get_session() as session:
@@ -61,12 +63,9 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(data, (None,))
 
 
-class TestItem(unittest.IsolatedAsyncioTestCase):
+class TestItem(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.weeks = [
             Week(date=datetime.date(2022, 9, 11)),
             Week(date=datetime.date(2021, 8, 22)),
@@ -103,9 +102,6 @@ class TestItem(unittest.IsolatedAsyncioTestCase):
             session.add_all(self.weeks)
             await session.commit()
 
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
-
     async def test_get_items_success(self):
         async with self.session.get_session() as session:
             data = await Item.get_instance(session, "2022-09-11")
@@ -123,19 +119,13 @@ class TestItem(unittest.IsolatedAsyncioTestCase):
                 await Item.get_instance(session, datetime.date(2022, 9, 11))
 
 
-class TestTitle(unittest.IsolatedAsyncioTestCase):
+class TestTitle(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.titles = [Title(name="test_title"), Title(name="test_title2")]
         async with self.session.get_session() as session:
             session.add_all(self.titles)
             await session.commit()
-
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_filter(self):
         async with self.session.get_session() as session:
@@ -144,19 +134,13 @@ class TestTitle(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(data.name, "test_title")
 
 
-class TestAuthors(unittest.IsolatedAsyncioTestCase):
+class TestAuthors(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.authors = [Author(name="test_author"), Author(name="test_author2")]
         async with self.session.get_session() as session:
             session.add_all(self.authors)
             await session.commit()
-
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_filter(self):
         async with self.session.get_session() as session:
@@ -165,12 +149,9 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(data[0].name, "test_author")
 
 
-class TestPublishers(unittest.IsolatedAsyncioTestCase):
+class TestPublishers(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.publishers = [
             Publisher(name="test_publisher"),
             Publisher(name="test_publisher2"),
@@ -178,9 +159,6 @@ class TestPublishers(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.publishers)
             await session.commit()
-
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_filter(self):
         async with self.session.get_session() as session:

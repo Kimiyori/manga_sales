@@ -26,6 +26,7 @@ def create_error_middleware(overrides: dict[int, Handler]) -> _Middleware:
                 return await override(request)
 
             raise
+
     return error_middleware
 
 

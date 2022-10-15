@@ -1,6 +1,8 @@
 [MESSAGES CONTROL]
 disable=missing-module-docstring,
-        missing-function-docstring
+        missing-function-docstring,
+        attribute-defined-outside-init,
+        too-many-locals
 
 [MASTER]
 ignore=test

@@ -414,7 +414,7 @@ class Author(Base):
     @classmethod
     async def filter_by_name(
         cls, session: AsyncSession, authors: list[str]
-    ) -> list[Author] | list[Any]:
+    ) -> list[Author]:
         """Filter by name author table
 
         Args:
@@ -426,7 +426,7 @@ class Author(Base):
         """
         main_query = select(cls).where(cls.name.in_(authors))
         results = await session.execute(main_query)
-        list_authors: list[Author | None] = [author[0] for author in results.all()]
+        list_authors: list[Author] = [author[0] for author in results.all()]
         return list_authors
 
 
@@ -450,7 +450,7 @@ class Publisher(Base):
     @classmethod
     async def filter_by_name(
         cls, session: AsyncSession, publishers: list[str]
-    ) -> list[Publisher] | list[Any]:
+    ) -> list[Publisher]:
         """Filter by name publisher table
 
         Args:
@@ -462,7 +462,7 @@ class Publisher(Base):
         """
         main_query = select(cls).where(cls.name.in_(publishers))
         results = await session.execute(main_query)
-        list_publishers: list[Publisher | None] = [
+        list_publishers: list[Publisher] = [
             publisher[0] for publisher in results.all()
         ]
         return list_publishers
