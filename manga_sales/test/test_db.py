@@ -50,6 +50,16 @@ class TestWeek(unittest.IsolatedAsyncioTestCase):
             data = await Week.get(session, datetime.date(2022, 9, 11))
             self.assertEqual(data[0].date, self.weeks[0].date)
 
+    async def test_get_previous_row_success(self):
+        async with self.session.get_session() as session:
+            data = await Week.get_previous_week(session, self.weeks[0])
+            self.assertEqual(self.weeks[1].date, data.prev)
+
+    async def test_get_previous_row_no_found(self):
+        async with self.session.get_session() as session:
+            data = await Week.get_previous_week(session, self.weeks[2])
+            self.assertEqual(data, (None,))
+
 
 class TestItem(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:

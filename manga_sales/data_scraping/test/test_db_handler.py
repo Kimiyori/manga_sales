@@ -1,9 +1,11 @@
-from operator import add
 import unittest
 from unittest.mock import patch
 from manga_sales.data_scraping.dataclasses import Content
 from manga_sales.data_scraping.db_handle import DBWriter
-from manga_sales.data_scraping.web_scraper import OriconScraper
+from manga_sales.data_scraping.web_scraper import (
+    OriconWeeklyScraper,
+    ShosekiWeeklyScraper,
+)
 from manga_sales.main import app
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Author, Item, Publisher, Title, Week
@@ -20,7 +22,10 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.authors)
             await session.commit()
-        self.handler = DBWriter(app, OriconScraper)
+        self.handler = [
+            DBWriter(app, OriconWeeklyScraper),
+            DBWriter(app, ShosekiWeeklyScraper),
+        ]
 
     async def asyncTearDown(self):
         await app["db"].delete_db()
@@ -28,22 +33,25 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
     async def test_handle_authors_single_new(self):
         new_author = ["new_author"]
         async with self.session.get_session() as session:
-            data = await self.handler.handle_authors(session, new_author)
-            self.assertEqual(data[0].name, "new_author")
+            for handler in self.handler:
+                data = await handler.handle_authors(session, new_author)
+                self.assertEqual(data[0].name, "new_author")
 
     async def test_handle_authors_new(self):
         new_author = ["new_author", "test_author"]
         async with self.session.get_session() as session:
-            data = await self.handler.handle_authors(session, new_author)
-            self.assertEqual(len(data), 2)
-            self.assertEqual(data[0].name, "test_author")
+            for handler in self.handler:
+                data = await handler.handle_authors(session, new_author)
+                self.assertEqual(len(data), 2)
+                self.assertEqual(data[0].name, "test_author")
 
     async def test_handle_authors_empty(self):
         new_author = []
         async with self.session.get_session() as session:
-            data = await self.handler.handle_authors(session, new_author)
-            self.assertEqual(len(data), 0)
-            self.assertEqual(data, [])
+            for handler in self.handler:
+                data = await handler.handle_authors(session, new_author)
+                self.assertEqual(len(data), 0)
+                self.assertEqual(data, [])
 
 
 class TestPublisher(unittest.IsolatedAsyncioTestCase):
@@ -59,7 +67,7 @@ class TestPublisher(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.publishers)
             await session.commit()
-        self.handler = DBWriter(app, OriconScraper)
+        self.handler = DBWriter(app, OriconWeeklyScraper)
 
     async def asyncTearDown(self):
         await app["db"].delete_db()
@@ -95,7 +103,7 @@ class TestTitle(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.titles)
             await session.commit()
-        self.handler = DBWriter(app, OriconScraper)
+        self.handler = DBWriter(app, OriconWeeklyScraper)
 
     async def asyncTearDown(self):
         await app["db"].delete_db()
@@ -122,7 +130,7 @@ class TestDate(unittest.IsolatedAsyncioTestCase):
         self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
         self.session.init(False)
         await self.session.create_all()
-        self.handler = DBWriter(app, OriconScraper)
+        self.handler = DBWriter(app, OriconWeeklyScraper)
         self.weeks = [
             Week(date=datetime.date(2022, 9, 11)),
             Week(date=datetime.date(2021, 8, 22)),
@@ -132,15 +140,26 @@ class TestDate(unittest.IsolatedAsyncioTestCase):
         await app["db"].delete_db()
 
     @patch(
-        "manga_sales.data_scraping.web_scraper.OriconScraper.find_latest_date",
+        "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.find_latest_date",
         return_value=datetime.date(2022, 9, 17),
     )
     async def test_get_date_if_exist(self, mock):
         async with self.session.get_session() as session:
             session.add_all(self.weeks)
             await session.commit()
-            data = await self.handler.get_date(session, add)
+            data = await self.handler.get_date(session)
             self.assertEqual(data, datetime.date(2022, 9, 17))
+
+    @patch(
+        "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.find_latest_date",
+        side_effect=[datetime.date(2022, 9, 17), datetime.date(2022, 9, 24)],
+    )
+    async def test_get_date_recursion(self, mock):
+        async with self.session.get_session() as session:
+            session.add(Week(date=datetime.date(2022, 9, 17)))
+            await session.commit()
+            data = await self.handler.get_date(session)
+            self.assertEqual(data, datetime.date(2022, 9, 24))
 
 
 class TestWrite(unittest.IsolatedAsyncioTestCase):
@@ -163,24 +182,22 @@ class TestWrite(unittest.IsolatedAsyncioTestCase):
             session.add_all(self.publishers)
             session.add_all(self.weeks)
             await session.commit()
-        self.handler = DBWriter(self.session, OriconScraper)
+        self.handler = DBWriter(self.session, OriconWeeklyScraper)
 
     async def asyncTearDown(self):
         await app["db"].delete_db()
 
-    @patch("manga_sales.data_scraping.db_handle.DBWriter.save_image", return_value=None)
     @patch(
         "manga_sales.data_scraping.db_handle.DBWriter.get_date",
         side_effect=[datetime.date(2022, 9, 13), None],
     )
     @patch(
-        "manga_sales.data_scraping.web_scraper.OriconScraper.get_data",
+        "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.get_data",
         return_value=[
             Content(
                 name="title",
                 volume=122,
                 image="image name",
-                imageb="image file1",
                 authors=["test_author"],
                 publisher=[],
                 release_date=datetime.date(2022, 8, 11),
@@ -191,7 +208,6 @@ class TestWrite(unittest.IsolatedAsyncioTestCase):
                 name="title2",
                 volume=111,
                 image="image name1",
-                imageb="image file1",
                 authors=["test_author2"],
                 publisher=["test_publisher"],
                 release_date=datetime.date(2022, 8, 21),
@@ -200,7 +216,7 @@ class TestWrite(unittest.IsolatedAsyncioTestCase):
             ),
         ],
     )
-    async def test_wrtire_success(self, mock_data, mock_date, mock_img):
+    async def test_wrtire_success(self, mock_data, mock_date):
         await self.handler.write_data()
         async with self.session.get_session() as session:
             items = await Item.get_count(session)

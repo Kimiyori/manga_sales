@@ -589,10 +589,10 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
 
     def test_convert_str_to_date_success(self):
         date = self.scraper.convert_str_to_date(self.date)
-        self.assertEqual(date, datetime.datetime(2022, 10, 4))
+        self.assertEqual(date, datetime.date(2022, 10, 4))
 
         date_without_day = self.scraper.convert_str_to_date("2022-10")
-        self.assertEqual(date_without_day, datetime.datetime(2022, 10, 1))
+        self.assertEqual(date_without_day, datetime.date(2022, 10, 1))
 
     def test_convert_str_to_date_fail(self):
         with self.assertRaises(AssertionError) as error:
@@ -611,23 +611,19 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
         ),
     )
     async def test_find_latest_date_success(self, mock_fetch):
-        result = await self.scraper.find_latest_date(datetime.datetime(2022, 9, 27))
-        self.assertEqual(result, datetime.datetime(2022, 10, 4))
+        result = await self.scraper.find_latest_date(datetime.date(2022, 9, 27))
+        self.assertEqual(result, datetime.date(2022, 10, 4))
         result_without_convert = await self.scraper.find_latest_date(
-            datetime.datetime(2022, 9, 27), date_convert=False
+            datetime.date(2022, 9, 27), date_convert=False
         )
         self.assertEqual(
             result_without_convert,
             "2022/10/04 : 2022年9/26-10/2 漫画ランキング コミック売上BEST500【その着せ替え人形は恋をする10】",
         )
 
-        result_none = await self.scraper.find_latest_date(
-            datetime.datetime(2022, 10, 4)
-        )
+        result_none = await self.scraper.find_latest_date(datetime.date(2022, 10, 4))
         self.assertEqual(result_none, None)
-        result_none2 = await self.scraper.find_latest_date(
-            datetime.datetime(2022, 9, 4)
-        )
+        result_none2 = await self.scraper.find_latest_date(datetime.date(2022, 9, 4))
         self.assertEqual(result_none2, None)
 
     @patch(

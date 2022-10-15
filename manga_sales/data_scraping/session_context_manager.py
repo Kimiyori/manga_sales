@@ -64,7 +64,6 @@ class Session:
         if retries == 0:
             raise Unsuccessful("Get 429 error too often")
         try:
-            assert isinstance(self.session, aiohttp.ClientSession)
             async with self.session.get(url) as response:
                 if response.status == 200:
                     if commands:
