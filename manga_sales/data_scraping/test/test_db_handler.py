@@ -6,29 +6,24 @@ from manga_sales.data_scraping.web_scraper import (
     OriconWeeklyScraper,
     ShosekiWeeklyScraper,
 )
-from manga_sales.main import app
 from manga_sales.db import AsyncDatabaseSession
+from manga_sales.test.test_db import AbstractTestDatabase
 from manga_sales.models import Author, Item, Publisher, Title, Week
 import datetime
 
+AbstractTestDBHandler=1
 
-class TestAuthors(unittest.IsolatedAsyncioTestCase):
+class TestAuthors(AbstractTestDatabase,unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.authors = [Author(name="test_author"), Author(name="test_author2")]
         async with self.session.get_session() as session:
             session.add_all(self.authors)
             await session.commit()
         self.handler = [
-            DBWriter(app, OriconWeeklyScraper),
-            DBWriter(app, ShosekiWeeklyScraper),
+            DBWriter(self.session, OriconWeeklyScraper),
+            DBWriter(self.session, ShosekiWeeklyScraper),
         ]
-
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_handle_authors_single_new(self):
         new_author = ["new_author"]
@@ -54,12 +49,9 @@ class TestAuthors(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(data, [])
 
 
-class TestPublisher(unittest.IsolatedAsyncioTestCase):
+class TestPublisher(AbstractTestDatabase,unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.publishers = [
             Publisher(name="test_publisher"),
             Publisher(name="test_publisher2"),
@@ -67,10 +59,8 @@ class TestPublisher(unittest.IsolatedAsyncioTestCase):
         async with self.session.get_session() as session:
             session.add_all(self.publishers)
             await session.commit()
-        self.handler = DBWriter(app, OriconWeeklyScraper)
+        self.handler = DBWriter(self.session, OriconWeeklyScraper)
 
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_handle_publishers_single_new(self):
         new_publishers = ["new_publisher"]
@@ -93,26 +83,21 @@ class TestPublisher(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(data, [])
 
 
-class TestTitle(unittest.IsolatedAsyncioTestCase):
+class TestTitle(AbstractTestDatabase,unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.titles = [Title(name="test_title"), Title(name="test_title2")]
         async with self.session.get_session() as session:
             session.add_all(self.titles)
             await session.commit()
-        self.handler = DBWriter(app, OriconWeeklyScraper)
+        self.handler = DBWriter(self.session, OriconWeeklyScraper)
 
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     async def test_handle_new_title(self):
         new_title = "new_title"
         async with self.session.get_session() as session:
             data = await self.handler.handle_title(session, new_title)
-            self.assertEqual(data.name, "new_title")
+        self.assertEqual(data.name, "new_title")
 
     async def test_handle_old_title(self):
         new_title = "test_title"
@@ -120,24 +105,19 @@ class TestTitle(unittest.IsolatedAsyncioTestCase):
             data = await self.handler.handle_title(session, new_title)
             self.assertEqual(data.name, "test_title")
             await session.commit()
-        items = await Title.get_all(session)
-        self.assertEqual(len(items), 2)
+            items = await Title.get_all(session)
+            self.assertEqual(len(items), 2)
 
 
-class TestDate(unittest.IsolatedAsyncioTestCase):
+class TestDate(AbstractTestDatabase,unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
-        self.handler = DBWriter(app, OriconWeeklyScraper)
+        await super().asyncSetUp()
+        self.handler = DBWriter(self.session, OriconWeeklyScraper)
         self.weeks = [
             Week(date=datetime.date(2022, 9, 11)),
             Week(date=datetime.date(2021, 8, 22)),
         ]
 
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     @patch(
         "manga_sales.data_scraping.web_scraper.OriconWeeklyScraper.find_latest_date",
@@ -162,12 +142,9 @@ class TestDate(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(data, datetime.date(2022, 9, 24))
 
 
-class TestWrite(unittest.IsolatedAsyncioTestCase):
+class TestWrite(AbstractTestDatabase,unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
-        await app["db"].create_db()
-        self.session = AsyncDatabaseSession(app["config"]["postgres_test"])
-        self.session.init(False)
-        await self.session.create_all()
+        await super().asyncSetUp()
         self.weeks = [
             Week(date=datetime.date(2022, 9, 11)),
             Week(date=datetime.date(2021, 8, 22)),
@@ -184,8 +161,6 @@ class TestWrite(unittest.IsolatedAsyncioTestCase):
             await session.commit()
         self.handler = DBWriter(self.session, OriconWeeklyScraper)
 
-    async def asyncTearDown(self):
-        await app["db"].delete_db()
 
     @patch(
         "manga_sales.data_scraping.db_handle.DBWriter.get_date",
