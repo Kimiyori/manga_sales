@@ -83,6 +83,21 @@ class AbstractBase(ABC):
             tuple[str, BeautifulSoup]: (title name, page with main info)
         """
 
+    @abstractmethod
+    async def find_latest_date(
+        self, date: datetime.date, date_convert: bool = True
+    ) -> datetime.date | None:
+        """Find last date from page
+
+        Args:
+            date (datetime.date)
+            date_convert (bool, optional): bool value for deifint convert it to date type
+            or remain it as string. Defaults to True.
+
+        Returns:
+            datetime.date | None
+        """
+
 
 class MainItemDataParserAbstract(AbstractBase):
     """Abstract class for parser main data"""
@@ -97,6 +112,7 @@ class MainItemDataParserAbstract(AbstractBase):
         Returns:
             BeautifulSoup: bs page
         """
+
     @staticmethod
     @abstractmethod
     def get_authors(page: BeautifulSoup) -> list[str]:
@@ -108,6 +124,7 @@ class MainItemDataParserAbstract(AbstractBase):
         Returns:
             list[str]: list with strings of authors name
         """
+
     @staticmethod
     @abstractmethod
     def get_publishers(page: BeautifulSoup) -> list[str]:
@@ -123,6 +140,7 @@ class MainItemDataParserAbstract(AbstractBase):
 
 class ChartItemDataParserAbstract(AbstractBase):
     """Abstract class for parser chart data"""
+
     _CHART_URL: str = NotImplemented
 
     @abstractmethod
@@ -181,19 +199,4 @@ class ChartItemDataParserAbstract(AbstractBase):
 
         Returns:
             int | None: sale
-        """
-
-    @abstractmethod
-    async def find_latest_date(
-        self, date: datetime.date, date_convert: bool = True
-    ) -> datetime.date | None:
-        """Find last date from page
-
-        Args:
-            date (datetime.date)
-            date_convert (bool, optional): bool value for deifint convert it to date type
-            or remain it as string. Defaults to True.
-
-        Returns:
-            datetime.date | None
         """

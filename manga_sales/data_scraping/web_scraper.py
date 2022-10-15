@@ -323,7 +323,7 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
         return rating_list
 
     @staticmethod
-    def convert_str_to_date(date: str) -> datetime.datetime:
+    def convert_str_to_date(date: str) -> datetime.date:
         str_date = re.search(
             r"^(?P<year>[0-9]{4})[-\/\.](?P<month>[0-9]{1,2})[-\/\.]?(?P<day>[0-9]{0,2})",
             date,
@@ -336,7 +336,7 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
                 f'{str_date["day"] if str_date["day"] else 1}'
             ),
             "%Y/%m/%d",
-        )
+        ).date()
 
     async def find_latest_date(
         self, date: datetime.date, date_convert: bool = True

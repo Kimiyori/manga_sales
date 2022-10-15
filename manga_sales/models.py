@@ -1,6 +1,5 @@
 from __future__ import annotations
 import datetime
-from typing import Any
 from sqlalchemy import (
     Column,
     String,
@@ -216,6 +215,24 @@ class Week(Base):
         result = [week[0] for week in data.all()]
         return result
 
+    @classmethod
+    async def get_previous_week(cls, session: AsyncSession, week: Week) -> Row | None:
+        """Methof for getting previous week
+
+        Args:
+            session (AsyncSession): sql session
+            week (Week): Week instance
+
+        Returns:
+            Row | None: row with previous week with prev attribute if exist
+        """
+        inner_select = select(
+            cls.date, func.lag(cls.date).over(order_by=cls.date).label("prev")
+        ).subquery()
+        main_query = select(inner_select.c.prev).where(inner_select.c.date == week.date)
+        result = await session.execute(main_query)
+        return result.first()
+
 
 association_item_author = Table(
     "association_item_author",
@@ -262,6 +279,14 @@ class Item(Base):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(" f"id={self.id})>"
+
+    @classmethod
+    async def get_count(cls, session: AsyncSession) -> int:
+        query = select(func.count(cls.id).label("count"))
+        result = await session.execute(query)
+        row = result.first()
+        count: int = row.count if row else 0  # type: ignore
+        return count
 
     @classmethod
     async def get_instance(cls, session: AsyncSession, date_str: str) -> list[Row]:

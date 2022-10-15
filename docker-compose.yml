@@ -11,7 +11,19 @@ services:
       - 8080
     depends_on:
       - db
-    restart: on-failure
+  test:
+    build: .
+    command: python -m  unittest
+    working_dir: /aiohttp
+    volumes:
+      - .:/aiohttp
+
+  lint:
+    build: .
+    command: bash -c "mypy manga_sales ; pylint manga_sales ; flake8"
+    working_dir: /aiohttp
+    volumes:
+      - .:/aiohttp
 
   db:
     image: postgres:14
