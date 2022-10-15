@@ -66,8 +66,8 @@ class TestSession(unittest.IsolatedAsyncioTestCase):
 
     @aioresponses()
     async def test_without_context(self, mocked):
-        with self.assertRaises(Unsuccessful) as context:
+        with self.assertRaises(AssertionError):
             session = Session()
             mocked.get(TEST_URL, status=200)
             await session.fetch(TEST_URL)
-        self.assertTrue("Use this object as context manager" in str(context.exception))
+

@@ -10,8 +10,6 @@ from manga_sales.test.test_db import AbstractTestDatabase
 from manga_sales.models import Author, Item, Publisher, Title, Week
 import datetime
 
-AbstractTestDBHandler = 1
-
 
 class TestAuthors(AbstractTestDatabase, unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
