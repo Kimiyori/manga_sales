@@ -70,4 +70,3 @@ class TestSession(unittest.IsolatedAsyncioTestCase):
             session = Session()
             mocked.get(TEST_URL, status=200)
             await session.fetch(TEST_URL)
-
