@@ -4,7 +4,7 @@ The app is building to collect and aggregate data from multiple sources about ma
 
 # What's done
 
-- [x] Collect data from [Oricon](https://www.oricon.co.jp) about manga sales
+- [x] Collect data from [Oricon](https://www.oricon.co.jp) and [Shoseki](http://shosekiranking.blog.fc2.com) about manga sales
 - [x] Writing collected data in database
 - [x] Weekly data collection schedule
 
