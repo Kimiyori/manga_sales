@@ -25,6 +25,7 @@ types-pyyaml = "*"
 flake8 = "*"
 black = "*"
 pylint = "*"
+aiohttp-debugtoolbar = "*"
 
 [dev-packages]
 pytest = "*"

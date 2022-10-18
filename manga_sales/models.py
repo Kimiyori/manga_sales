@@ -1,5 +1,6 @@
 from __future__ import annotations
 import datetime
+import enum
 from sqlalchemy import (
     Column,
     String,
@@ -12,6 +13,8 @@ from sqlalchemy import (
     func,
     cast,
     TEXT,
+    case,
+    Enum,
 )
 from sqlalchemy.future import select
 from sqlalchemy.sql import distinct
@@ -71,7 +74,24 @@ class SourceType(Base):
         return f"<{self.__class__.__name__}(" f"id={self.id},type={self.type})>"
 
     @classmethod
-    async def get(cls, session: AsyncSession, source: str) -> list[Row]:
+    async def get(cls, session: AsyncSession, source: str) -> list[SourceType | None]:
+        """Get source type given on source argument
+
+        Args:
+            session (AsyncSession): sql session
+            source (str): source name that need to extract
+
+        Returns:
+            list[Row]: list of sourcetype rows
+        """
+        query = select(cls).join(Source).where(Source.name == source.capitalize())
+        result = await session.execute(query)
+        return [x[0] for x in result.all()]
+
+    @classmethod
+    async def get_by_source(
+        cls, session: AsyncSession, source: str, source_type: str
+    ) -> SourceType | None:
         """Get source type given on source argument
 
         Args:
@@ -82,9 +102,15 @@ class SourceType(Base):
             list[Row]: list of sourcetype rows
         """
         query = await session.execute(
-            select(cls.type).join(Source).where(Source.name == source.capitalize())
+            select(cls)
+            .join(Source)
+            .where(
+                Source.name == source.capitalize(), cls.type == source_type.capitalize()
+            )
         )
-        return query.all()
+        row = query.first()
+        result: SourceType | None = row[0] if row else None
+        return result
 
 
 class Week(Base):
@@ -134,7 +160,9 @@ class Week(Base):
         return week.first()
 
     @classmethod
-    async def get_last_date(cls, session: AsyncSession) -> datetime.date | None:
+    async def get_last_date(
+        cls, session: AsyncSession, source: str, source_type: str
+    ) -> datetime.date | None:
         """Get latest week in table based in desc date filter
 
         Args:
@@ -143,13 +171,23 @@ class Week(Base):
         Returns:
             datetime.date | None: date if table not empty else None
         """
-        results = await session.execute(select(cls).order_by(cls.date.desc()))
+        tpe = await SourceType.get_by_source(session, source, source_type)
+        assert tpe is not None
+        query = (
+            select(cls)
+            .where(cls.source_type_id == tpe.id)
+            .order_by(cls.date.desc())
+            .limit(1)
+        )
+        results = await session.execute(query)
         row = results.first()
         date: datetime.date | None = row[0].date if row else None
         return date
 
     @classmethod
-    async def get_all_groupby(cls, session: AsyncSession) -> list[Week]:
+    async def get_all_groupby(
+        cls, session: AsyncSession, source: str, source_type: str
+    ) -> list[Week]:
         """
         Get week date with group by by year and month if the following format:
 
@@ -168,6 +206,8 @@ class Week(Base):
         Returns:
             list[Week]: list of weeks with json groupby
         """
+        week_type = await SourceType.get_by_source(session, source, source_type)
+        assert week_type is not None
         year = func.extract("year", cls.date).label("year")
 
         month_str = (
@@ -190,6 +230,7 @@ class Week(Base):
                 func.extract("month", cls.date).label("month_int"),
                 aggregate_dates,
             )
+            .where(cls.source_type_id == week_type.id)
             .group_by("year", "month_str", "month_int")
             .order_by("year", "month_int")
             .subquery()
@@ -216,7 +257,9 @@ class Week(Base):
         return result
 
     @classmethod
-    async def get_previous_week(cls, session: AsyncSession, week: Week) -> Row | None:
+    async def get_previous_week(
+        cls, session: AsyncSession, week: Week, source_type: SourceType
+    ) -> Week | None:
         """Methof for getting previous week
 
         Args:
@@ -226,12 +269,16 @@ class Week(Base):
         Returns:
             Row | None: row with previous week with prev attribute if exist
         """
-        inner_select = select(
-            cls.date, func.lag(cls.date).over(order_by=cls.date).label("prev")
-        ).subquery()
-        main_query = select(inner_select.c.prev).where(inner_select.c.date == week.date)
-        result = await session.execute(main_query)
-        return result.first()
+
+        main_query = (
+            select(cls)
+            .where(cls.date < week.date, cls.source_type_id == source_type.id)
+            .order_by(cls.date.desc())
+            .limit(1)
+        )
+        query = await session.execute(main_query)
+        result = query.first()
+        return result[0] if result else None
 
 
 association_item_author = Table(
@@ -248,6 +295,20 @@ association_item_publisher = Table(
 )
 
 
+class PreviousRank(enum.IntEnum):
+    """Types for column Previous_rank
+
+    Args:
+        UP : new rank higher that previous
+        SAME : new rank the same as prevous
+        DOWN : new rank lower that preivous
+    """
+
+    UP = 2
+    SAME = 1
+    DOWN = 0
+
+
 class Item(Base):
     """
     Model of main data for title
@@ -258,7 +319,8 @@ class Item(Base):
     rating = Column(SmallInteger, nullable=False)
     volume = Column(SmallInteger)
     release_date = Column(Date)
-    sold = Column(Integer, nullable=False)
+    previous_rank = Column(Enum(PreviousRank), nullable=True)
+    sold = Column(Integer, nullable=True)
     image = Column(String, nullable=True, unique=True)
     week_id = Column(Integer, ForeignKey("week.id", ondelete="CASCADE"))
     week: Week = relationship("Week", back_populates="items")
@@ -281,12 +343,38 @@ class Item(Base):
         return f"<{self.__class__.__name__}(" f"id={self.id})>"
 
     @classmethod
+    async def get(cls, session: AsyncSession, **kwargs: str | Base) -> list[Item]:
+
+        query = select(cls).filter_by(**kwargs)
+        result = await session.execute(query)
+        return [x[0] for x in result.all()]
+
+    @classmethod
     async def get_count(cls, session: AsyncSession) -> int:
         query = select(func.count(cls.id).label("count"))
         result = await session.execute(query)
         row = result.first()
         count: int = row.count if row else 0  # type: ignore
         return count
+
+    @classmethod
+    async def get_previous_rank(
+        cls, session: AsyncSession, week: Week, rank: int, title: str
+    ) -> Row | None:
+        query = (
+            select(
+                case(
+                    (cls.rating > rank, int(PreviousRank.UP)),
+                    (cls.rating == rank, int(PreviousRank.SAME)),
+                    (cls.rating < rank, int(PreviousRank.DOWN)),
+                ).label("rank")
+            )
+            .join(Title)
+            .where(cls.week_id == week.id, Title.name == title)
+            .order_by(cls.rating)
+        )
+        result = await session.execute(query)
+        return result.first()
 
     @classmethod
     async def get_instance(cls, session: AsyncSession, date_str: str) -> list[Row]:
@@ -462,7 +550,5 @@ class Publisher(Base):
         """
         main_query = select(cls).where(cls.name.in_(publishers))
         results = await session.execute(main_query)
-        list_publishers: list[Publisher] = [
-            publisher[0] for publisher in results.all()
-        ]
+        list_publishers: list[Publisher] = [publisher[0] for publisher in results.all()]
         return list_publishers

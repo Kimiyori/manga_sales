@@ -20,7 +20,7 @@ async def source(request: web.Request) -> dict[str, list[Row]]:
 
 
 @aiohttp_jinja2.template("source_type.html")
-async def source_type(request: web.Request) -> dict[str, list[Row]]:
+async def source_type(request: web.Request) -> dict[str, list[SourceType | None]]:
     """View for page with source types
 
     Args:
@@ -45,8 +45,10 @@ async def source_type_detail(request: web.Request) -> dict[str, list[Week]]:
     Returns:
         dict[str, list[Row]]: json with weeks
     """
+    source_str = request.match_info["source"]
+    source_type_str = request.match_info["type"]
     async with request.app["db"].get_session() as session:
-        data = await Week.get_all_groupby(session)
+        data = await Week.get_all_groupby(session, source_str, source_type_str)
         return {"dates": data}
 
 

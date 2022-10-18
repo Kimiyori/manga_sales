@@ -15,6 +15,7 @@ services:
     build: .
     command: python -m  unittest
     working_dir: /aiohttp
+    profiles: ["test_profile"]
     volumes:
       - .:/aiohttp
     depends_on:
@@ -23,9 +24,9 @@ services:
     build: .
     command: bash -c "mypy manga_sales ; pylint manga_sales ; flake8"
     working_dir: /aiohttp
+    profiles: ["test_profile"]
     volumes:
       - .:/aiohttp
-
   db:
     image: postgres:14
     env_file:
