@@ -94,6 +94,8 @@ class OriconWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
     Class for collecting data from Oricon
     """
 
+    SOURCE = "Oricon"
+    SOURCE_TYPE = "Weekly"
     _CHART_URL: str = "https://www.oricon.co.jp/rank/obc/w/"
     _NUMBER_PAGES: int = 4
 
@@ -229,7 +231,7 @@ class OriconWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
                 asyncio.create_task(self._retrieve_data(page, date)) for page in pages
             ]
             rating_list = await asyncio.gather(*tasks)
-        return rating_list
+        return [x for y in rating_list for x in y] if rating_list else []
 
     async def find_latest_date(
         self, date: datetime.date, date_convert: bool = True
@@ -253,6 +255,8 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
     Class for collecting data from Shoseki
     """
 
+    SOURCE = "Shoseki"
+    SOURCE_TYPE = "Weekly"
     _CHART_URL: str = "http://shosekiranking.blog.fc2.com/blog-category-6.html"
 
     async def _get_list_raw_data(self, url: str) -> BeautifulSoup:
@@ -351,17 +355,14 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
                 ).find_all("li")
             except AttributeError as error:
                 raise error
+            date -= datetime.timedelta(days=1)
             for i, row in enumerate(dates):
                 guessed_date = self.convert_str_to_date(str(row.text))
                 if guessed_date <= date:
                     return (
-                        (
-                            self.convert_str_to_date(str(dates[i - 1].text))
-                            if date_convert
-                            else dates[i - 1].text
-                        )
-                        if i > 0
-                        else None
+                        self.convert_str_to_date(str(dates[max(0, i - 1)].text))
+                        if date_convert
+                        else dates[max(0, i - 1)].text
                     )
         return None
 
@@ -390,12 +391,12 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
 
     def get_volume(self, item: str) -> int | None:
         regex = re.search(r"^\D+ (\d+) \D+", item)
-        assert regex is not None
-        try:
-            volume = int(regex.group(1))
-            return volume
-        except ValueError:
-            pass
+        if regex:
+            try:
+                volume = int(regex.group(1))
+                return volume
+            except ValueError:
+                pass
         return None
 
     def get_release_date(self, item: str) -> datetime.date | None:
@@ -417,7 +418,7 @@ class ShosekiWeeklyScraper(ChartItemDataParserAbstract, MangaUpdatesParser):
 
     @staticmethod
     def _get_original_title(item: str) -> str:
-        reg = re.search(r"^(\D+)", item)
+        reg = re.search(r"^(\S+|\D+) \d+", item)
         assert reg is not None
         japanese_name = reg.group(1)
         return japanese_name

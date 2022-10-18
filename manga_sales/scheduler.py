@@ -4,7 +4,9 @@ import datetime
 from typing import Callable
 from sqlalchemy.ext.asyncio import AsyncSession
 from manga_sales.data_scraping.db_handle import DBWriter
-from manga_sales.data_scraping.web_scraper import OriconWeeklyScraper
+from manga_sales.data_scraping.web_scraper import (
+    ShosekiWeeklyScraper,
+)
 from manga_sales.db import AsyncDatabaseSession
 from manga_sales.models import Week
 
@@ -15,7 +17,7 @@ class PeriodicSchedule:
     def __init__(self, app: AsyncDatabaseSession) -> None:
         self.session: Callable[[], AsyncSession] = app.get_session
         self.is_started: bool = False
-        self._tasks: list[DBWriter] = [DBWriter(app, OriconWeeklyScraper)]
+        self._tasks: list[DBWriter] = [DBWriter(app, ShosekiWeeklyScraper)]
 
     async def start(self) -> None:
         if not self.is_started:
@@ -32,7 +34,11 @@ class PeriodicSchedule:
     async def _run(self) -> None:
         while True:
             async with self.session() as session:
-                last_date = await Week.get_last_date(session)
+                last_date = await Week.get_last_date(
+                    session,
+                    self._tasks[0].scraper.SOURCE,
+                    self._tasks[0].scraper.SOURCE_TYPE,
+                )
             if last_date:
                 last_datetime = datetime.datetime.combine(
                     last_date, datetime.datetime.min.time()

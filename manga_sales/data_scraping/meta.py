@@ -10,6 +10,8 @@ from manga_sales.data_scraping.session_context_manager import Session
 class AbstractBase(ABC):
     """Abstract class for scraping"""
 
+    __slots__ = ("session", "_MAIN_URL", "_CHART_URL", "SOURCE", "SOURCE_TYPE")
+
     def __init__(
         self,
     ) -> None:
@@ -141,6 +143,8 @@ class MainItemDataParserAbstract(AbstractBase):
 class ChartItemDataParserAbstract(AbstractBase):
     """Abstract class for parser chart data"""
 
+    SOURCE: str = NotImplemented
+    SOURCE_TYPE: str = NotImplemented
     _CHART_URL: str = NotImplemented
 
     @abstractmethod

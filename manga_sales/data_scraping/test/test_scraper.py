@@ -410,7 +410,7 @@ class TestOriconWeeklyScraper(unittest.IsolatedAsyncioTestCase):
                 sold=45,
             ),
         ]
-        mock.side_effect = [item for item in data]
+        mock.side_effect = [[item] for item in data]
         result = await self.scraper.get_data("2022-08-09")
         self.assertEqual(data, result)
 
@@ -607,10 +607,10 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
         ),
     )
     async def test_find_latest_date_success(self, mock_fetch):
-        result = await self.scraper.find_latest_date(datetime.date(2022, 9, 27))
+        result = await self.scraper.find_latest_date(datetime.date(2022, 10, 5))
         self.assertEqual(result, datetime.date(2022, 10, 4))
         result_without_convert = await self.scraper.find_latest_date(
-            datetime.date(2022, 9, 27), date_convert=False
+            datetime.date(2022, 10, 5), date_convert=False
         )
         self.assertEqual(
             result_without_convert,
@@ -618,7 +618,7 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
         )
 
         result_none = await self.scraper.find_latest_date(datetime.date(2022, 10, 4))
-        self.assertEqual(result_none, None)
+        self.assertEqual(result_none, datetime.date(2022, 10, 4))
         result_none2 = await self.scraper.find_latest_date(datetime.date(2022, 9, 4))
         self.assertEqual(result_none2, None)
 
@@ -649,10 +649,6 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
         res = self.scraper.get_volume("その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24")
         self.assertEqual(res, 10)
 
-    async def test_get_volume_fail(self):
-        with self.assertRaises(AssertionError):
-            self.scraper.get_volume("その着せ替え人形は恋をする スクウェア 福田晋一 2022.9.24")
-
     def test_get_release_success(self):
         res = self.scraper.get_release_date("その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24")
         self.assertEqual(res, datetime.date(2022, 9, 24))
@@ -663,4 +659,4 @@ class TestShosekiScraper(unittest.IsolatedAsyncioTestCase):
 
     def test_get_original_title_success(self):
         res = self.scraper._get_original_title("その着せ替え人形は恋をする 10 スクウェア 福田晋一 2022.9.24")
-        self.assertEqual(res, "その着せ替え人形は恋をする ")
+        self.assertEqual(res, "その着せ替え人形は恋をする")

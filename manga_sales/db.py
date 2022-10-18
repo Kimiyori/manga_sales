@@ -74,7 +74,7 @@ class AsyncTestDatabaseSession:
         self._test_engine: AsyncEngine = create_async_engine(
             new_dsn,
             future=True,
-            echo=False,
+            echo=True,
         )
         self._session: TSession = sessionmaker(
             self._test_engine, expire_on_commit=False, class_=AsyncSession
