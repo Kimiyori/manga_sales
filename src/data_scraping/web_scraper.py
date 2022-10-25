@@ -7,12 +7,12 @@ import re
 import unicodedata
 import uuid
 from bs4 import BeautifulSoup
-from manga_sales.data_scraping.meta import (
+from src.data_scraping.meta import (
     ChartItemDataParserAbstract,
     MainItemDataParserAbstract,
 )
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.exceptions import BSError, ConnectError, NotFound
+from src.data_scraping.dataclasses import Content
+from src.data_scraping.exceptions import BSError, ConnectError, NotFound
 
 
 class MangaUpdatesParser(MainItemDataParserAbstract):

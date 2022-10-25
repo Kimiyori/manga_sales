@@ -26,12 +26,12 @@ flake8 = "*"
 black = "*"
 pylint = "*"
 aiohttp-debugtoolbar = "*"
+dependency-injector = "*"
+environs = "*"
+pytest-asyncio = "*"
+pytest-aiohttp = "*"
 
 [dev-packages]
-pytest = "*"
-pylint = "*"
-flake8 = "*"
-black = "*"
 
 [requires]
 python_version = "3.10"

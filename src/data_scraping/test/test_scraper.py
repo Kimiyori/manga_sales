@@ -3,9 +3,9 @@ import shutil
 import unicodedata
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.exceptions import BSError, NotFound
-from manga_sales.data_scraping.web_scraper import (
+from src.data_scraping.dataclasses import Content
+from src.data_scraping.exceptions import BSError, NotFound
+from src.data_scraping.web_scraper import (
     OriconWeeklyScraper,
     ShosekiWeeklyScraper,
 )

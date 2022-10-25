@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 import enum
+from typing import Type, Union
 from sqlalchemy import (
     Column,
     String,
@@ -22,7 +23,17 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine.row import Row
 from sqlalchemy.dialects.postgresql import aggregate_order_by
-from .db import Base
+from src.db.base import Base
+
+TableType = Union[
+    Type["Source"],
+    Type["SourceType"],
+    Type["Item"],
+    Type["Author"],
+    Type["Publisher"],
+    Type["Week"],
+    Type["Title"],
+]
 
 
 class Source(Base):
@@ -253,8 +264,7 @@ class Week(Base):
         ).group_by(aggregate_month.c.year)
 
         data = await session.execute(main_query)
-        result = [week[0] for week in data.all()]
-        return result
+        return data.scalars().all()
 
     @classmethod
     async def get_previous_week(
@@ -416,8 +426,7 @@ class Item(Base):
             .order_by(cls.rating)
         )
         result = await session.execute(query)
-        items = list(result.all())
-        return items
+        return result.all()
 
 
 class Title(Base):

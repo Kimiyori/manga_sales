@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import patch
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.db_handle import DBWriter
-from manga_sales.data_scraping.web_scraper import (
+from src.data_scraping.dataclasses import Content
+from src.data_scraping.db_handle import DBWriter
+from src.data_scraping.web_scraper import (
     OriconWeeklyScraper,
     ShosekiWeeklyScraper,
 )
-from manga_sales.test.test_db import AbstractTestDatabase
-from manga_sales.models import (
+from src.test.test_db import AbstractTestDatabase
+from src.manga_sales.db.models import (
     Author,
     Item,
     PreviousRank,

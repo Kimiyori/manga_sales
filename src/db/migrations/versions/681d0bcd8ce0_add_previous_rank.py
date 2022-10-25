@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from manga_sales.models import PreviousRank
+from src.manga_sales.db.models import PreviousRank
 
 
 # revision identifiers, used by Alembic.

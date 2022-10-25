@@ -3,8 +3,8 @@ import datetime
 from pathlib import Path
 from bs4 import BeautifulSoup
 from aiohttp import ClientResponse
-from manga_sales.data_scraping.dataclasses import Content
-from manga_sales.data_scraping.session_context_manager import Session
+from src.data_scraping.dataclasses import Content
+from src.data_scraping.session_context_manager import Session
 
 
 class AbstractBase(ABC):

@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   web:
     build: .
-    command: gunicorn manga_sales.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --reload
+    command: gunicorn src.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --reload
     working_dir: /aiohttp
     volumes:
       - .:/aiohttp
@@ -11,26 +9,11 @@ services:
       - 8080
     depends_on:
       - db
-  test:
-    build: .
-    command: python -m  unittest
-    working_dir: /aiohttp
-    profiles: ["test_profile"]
-    volumes:
-      - .:/aiohttp
-    depends_on:
-      - db
-  lint:
-    build: .
-    command: bash -c "mypy manga_sales ; pylint manga_sales ; flake8"
-    working_dir: /aiohttp
-    profiles: ["test_profile"]
-    volumes:
-      - .:/aiohttp
+    restart: on-failure
   db:
     image: postgres:14
     env_file:
-      - postgres.env 
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
@@ -48,6 +31,22 @@ services:
       - 8080:8080
     volumes:
       - ./config/nginx:/etc/nginx/conf.d
+      - .:/aiohttp
+  test:
+    build: .
+    command: python -m  unittest
+    working_dir: /aiohttp
+    profiles: ["test_profile"]
+    volumes:
+      - .:/aiohttp
+    depends_on:
+      - db
+  lint:
+    build: .
+    command: bash -c "mypy manga_sales ; pylint manga_sales ; flake8"
+    working_dir: /aiohttp
+    profiles: ["test_profile"]
+    volumes:
       - .:/aiohttp
 volumes:
   postgres_data:

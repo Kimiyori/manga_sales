@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Callable
 import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from manga_sales.data_scraping.meta import ChartItemDataParserAbstract
-from manga_sales.db import AsyncDatabaseSession
-from manga_sales.models import (
+from src.data_scraping.meta import ChartItemDataParserAbstract
+from src.manga_sales.db.models import (
     Author,
     Item,
     PreviousRank,
@@ -23,10 +22,10 @@ class DBWriter:
 
     def __init__(
         self,
-        app: AsyncDatabaseSession,
+        session: Callable[[], AsyncSession],
         scraper: Callable[[], ChartItemDataParserAbstract],
     ) -> None:
-        self.database_session = app
+        self.database_session = session
         self.scraper = scraper()
         self.image_path: str = "manga_sales/static/images/oricon/"
 
@@ -115,7 +114,7 @@ class DBWriter:
         return valid_date
 
     async def write_data(self) -> None:
-        async with self.database_session.get_session() as session:
+        async with self.database_session() as session:
             date: datetime.date | None = await self.get_date(session)
             while date:
                 datestr: str = date.strftime("%Y-%m-%d")
