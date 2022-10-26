@@ -1,7 +1,7 @@
 import aiohttp_jinja2
 from sqlalchemy.engine.row import Row
 from aiohttp import web
-from dependency_injector.wiring import Provide, inject
+from dependency_injector.wiring import Provide, inject, Closing
 from src.manga_sales.containers import DatabaseContainer
 from src.manga_sales.db.data_access_layers.abc import DAOType
 from src.manga_sales.db.models import SourceType, Week
@@ -11,7 +11,7 @@ from src.manga_sales.db.models import SourceType, Week
 @inject
 async def source(
     request: web.Request,  # pylint: disable = unused-argument
-    service: DAOType = Provide[DatabaseContainer.source_session],
+    service: DAOType = Closing[Provide[DatabaseContainer.source_session]],
 ) -> dict[str, list[Row]]:
     """View for page with sources
 
@@ -21,7 +21,6 @@ async def source(
     Returns:
         dict[str, list[Row]]: json with all sources
     """
-
     data = await service.get_all()
     return {"data": data}
 
@@ -30,7 +29,7 @@ async def source(
 @inject
 async def source_type(
     request: web.Request,
-    service: DAOType = Provide[DatabaseContainer.sourcetype_session],
+    service: DAOType = Closing[Provide[DatabaseContainer.sourcetype_session]],
 ) -> dict[str, list[SourceType | None]]:
     """View for page with source types
 
@@ -48,7 +47,8 @@ async def source_type(
 @aiohttp_jinja2.template("source_type_detail.html")
 @inject
 async def source_type_detail(
-    request: web.Request, service: DAOType = Provide[DatabaseContainer.week_session]
+    request: web.Request,
+    service: DAOType = Closing[Provide[DatabaseContainer.week_session]],
 ) -> dict[str, list[Week]]:
     """View for page with weeks from given source type and source
 
@@ -67,7 +67,8 @@ async def source_type_detail(
 @aiohttp_jinja2.template("detail.html")
 @inject
 async def detail(
-    request: web.Request, service: DAOType = Provide[DatabaseContainer.item_session]
+    request: web.Request,
+    service: DAOType = Closing[Provide[DatabaseContainer.item_session]],
 ) -> dict[str, list[Row]]:
     """View for page with items from given week
 

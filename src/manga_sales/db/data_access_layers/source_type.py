@@ -17,9 +17,7 @@ class SourceTypeDAO(AbstractDAO):
             list[Row]: list of sourcetype rows
         """
         query = (
-            select(self.model)
-            .join(Source)
-            .where(Source.name == source.capitalize())
+            select(self.model).join(Source).where(Source.name == source.capitalize())
         )
         result = await self.session.execute(query)
         return [x[0] for x in result.all()]

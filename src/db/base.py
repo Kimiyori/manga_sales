@@ -1,21 +1,26 @@
+from asyncio import current_task
 from typing import TYPE_CHECKING, TypeAlias
 from src.config import get_postgres_uri
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    AsyncEngine,
+    AsyncSession,
+    async_scoped_session,
+)
 
 if TYPE_CHECKING:
-    TSession: TypeAlias = sessionmaker[  # pylint: disable=unsubscriptable-object
-        AsyncSession
-    ]
+    TSession: TypeAlias = async_scoped_session
 else:
     # anything that doesn't raise an exception
     TSession: TypeAlias = AsyncSession
 
 
 Base = declarative_base()
-engine: AsyncEngine = create_async_engine(
+async_engine: AsyncEngine = create_async_engine(
     get_postgres_uri(),
     future=True,
     echo=True,
 )
-Session: TSession = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+# async_session_factory = sessionmaker(async_engine, class_=AsyncSession)
+Session: TSession = sessionmaker(async_engine, class_=AsyncSession)

@@ -41,5 +41,6 @@ async def main() -> web.Application:
     env.globals.update(convert_date=convert_date, file_exist=file_exist)
     redis_pool = await setup_redis(app)
     setup_session(app, RedisStorage(redis_pool))
-    DatabaseContainer()
+    containter = DatabaseContainer()
+    app.container = containter
     return app

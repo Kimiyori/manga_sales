@@ -45,6 +45,23 @@ class Session:
         await self.session.close()
         self.session = None
 
+    @staticmethod
+    async def _apply_commands(
+        response: aiohttp.ClientResponse, commands: list[str]
+    ) -> aiohttp.ClientResponse:
+        for command in commands:
+            try:
+                response: Any = getattr(response, command)  # type: ignore
+                try:
+                    response = await response()  # type: ignore
+                except TypeError:
+                    pass
+            except AttributeError as error:
+                raise IncorrectMethod(
+                    "Response object does not have" f"given attribute - {command}"
+                ) from error
+        return response
+
     async def fetch(
         self, url: str, retries: int = 5, commands: list[str] | None = None
     ) -> Any:
@@ -68,20 +85,7 @@ class Session:
             async with self.session.get(url) as response:
                 if response.status == 200:
                     if commands:
-                        for command in commands:
-                            try:
-                                response: Any = getattr(  # type: ignore
-                                    response, command
-                                )
-                                try:
-                                    response = await response()  # type: ignore
-                                except TypeError:
-                                    pass
-                            except AttributeError as error:
-                                raise IncorrectMethod(
-                                    "Response object does not have"
-                                    f"given attribute - {command}"
-                                ) from error
+                        response = await self._apply_commands(response, commands)
                     return response
                 if response.status == 404:
                     raise NotFound("Can't find given page")

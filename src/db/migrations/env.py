@@ -30,8 +30,10 @@ target_metadata = models.Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from src.config import get_postgres_uri
+
 DSN = get_postgres_uri()
 config.set_main_option("sqlalchemy.url", DSN)
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

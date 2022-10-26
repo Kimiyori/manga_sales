@@ -21,6 +21,7 @@ lib/
 lib64/
 parts/
 sdist/
+src/db/migrations/versions/
 var/
 wheels/
 share/python-wheels/
@@ -52,6 +53,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+.mypy_cache/
 cover/
 
 # Translations
@@ -139,3 +141,4 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+

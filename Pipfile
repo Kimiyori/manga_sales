@@ -30,6 +30,7 @@ dependency-injector = "*"
 environs = "*"
 pytest-asyncio = "*"
 pytest-aiohttp = "*"
+pytest-mock = "*"
 
 [dev-packages]
 
