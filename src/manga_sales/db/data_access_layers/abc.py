@@ -14,3 +14,9 @@ class AbstractDAO(ABC):
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+
+    def add(self, item):
+        self.session.add(item)
+
+    def add_all(self, items):
+        self.session.add_all(items)

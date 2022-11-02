@@ -1,4 +1,5 @@
 from __future__ import annotations
+from types import TracebackType
 from typing import Any
 import asyncio
 import aiohttp
@@ -36,11 +37,16 @@ class Session:
             "(KHTML, like Gecko) Chrome/99.0.4844.84 Safari/537.36 OPR/85.0.4341.75",
         }
 
-    async def __aenter__(self, *args: Any) -> Session:
+    async def __aenter__(self) -> Session:
         self.session = aiohttp.ClientSession(headers=self.headers, timeout=self.timeout)
         return self
 
-    async def __aexit__(self, *args: Any) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: type[BaseException],
+        exc_tb: type[TracebackType],
+    ) -> None:
         assert isinstance(self.session, aiohttp.ClientSession)
         await self.session.close()
         self.session = None
@@ -48,7 +54,7 @@ class Session:
     @staticmethod
     async def _apply_commands(
         response: aiohttp.ClientResponse, commands: list[str]
-    ) -> aiohttp.ClientResponse:
+    ) -> Any:
         for command in commands:
             try:
                 response: Any = getattr(response, command)  # type: ignore

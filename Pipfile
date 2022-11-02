@@ -31,6 +31,8 @@ environs = "*"
 pytest-asyncio = "*"
 pytest-aiohttp = "*"
 pytest-mock = "*"
+coverage = "*"
+redis = ">=4.2.0rc1"
 
 [dev-packages]
 

@@ -4,7 +4,7 @@ import aiohttp_jinja2
 import jinja2
 from aiohttp_session import setup as setup_session
 from aiohttp_session.redis_storage import RedisStorage
-import aioredis
+from redis import asyncio as aioredis
 from aioredis.client import Redis
 from aiohttp import web
 from src.middlewares import setup_middlewares
@@ -40,7 +40,7 @@ async def main() -> web.Application:
     env = aiohttp_jinja2.get_env(app)
     env.globals.update(convert_date=convert_date, file_exist=file_exist)
     redis_pool = await setup_redis(app)
-    setup_session(app, RedisStorage(redis_pool))
-    containter = DatabaseContainer()
-    app.container = containter
+    storage = RedisStorage(redis_pool)
+    setup_session(app, storage)
+    app.container = DatabaseContainer()
     return app

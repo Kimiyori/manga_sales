@@ -36,3 +36,4 @@ class TitleDAO(AbstractDAO):
         row = item.first()
         result: Title | None = row[0] if row else None
         return result
+    

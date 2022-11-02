@@ -1,4 +1,5 @@
-import unittest
+import pytest
+import pytest_asyncio
 from src.data_scraping.exceptions import IncorrectMethod, NotFound, Unsuccessful
 from src.data_scraping.session_context_manager import Session
 from aioresponses import aioresponses
@@ -6,67 +7,68 @@ from aioresponses import aioresponses
 TEST_URL = "http://example.com"
 
 
-class TestSession(unittest.IsolatedAsyncioTestCase):
-    @aioresponses()
-    async def test_200(self, mocked):
-        async with Session() as session:
-            mocked.get(TEST_URL, status=200)
-            response = await session.fetch(TEST_URL)
+@pytest_asyncio.fixture
+async def client_session():
+    async with Session() as session:
+        yield session
 
-        self.assertTrue(response.status, 200)
 
-    @aioresponses()
-    async def test_correct_method_error(self, mocked):
-        corrert_methods = ["content", "read"]
-        body_text = "test"
-        async with Session() as session:
-            mocked.get(TEST_URL, status=200, body=body_text)
-            response = await session.fetch(TEST_URL, commands=corrert_methods)
-            self.assertIsInstance(response.decode("ascii"), str)
-            self.assertEqual(response.decode("ascii"), body_text)
+@pytest.fixture
+def aioresponse():
+    with aioresponses() as m:
+        yield m
 
-    @aioresponses()
-    async def test_incorrect_method_error(self, mocked):
-        wrong_method = ["something"]
-        async with Session() as session:
-            with self.assertRaises(IncorrectMethod) as context:
-                mocked.get(TEST_URL, status=200)
-                await session.fetch(TEST_URL, commands=wrong_method)
-                self.assertTrue(
-                    f"Response object does not have given attribute - {wrong_method}"
-                    in str(context.exception)
-                )
+@pytest.mark.asyncio
+async def test_200(aioresponse, client_session):
+    aioresponse.get(TEST_URL, status=200)
+    response = await client_session.fetch(TEST_URL)
+    assert response.status == 200
 
-    @aioresponses()
-    async def test_429_error(self, mocked):
-        with self.assertRaises(Unsuccessful) as context:
-            async with Session(1) as session:
-                mocked.get(TEST_URL, status=429, body="test", repeat=True)
-                await session.fetch(TEST_URL)
+@pytest.mark.asyncio
+async def test_correct_method_error(aioresponse, client_session):
+    corrert_methods = ["content", "read"]
+    body_text = "test"
+    aioresponse.get(TEST_URL, status=200, body=body_text)
+    response = await client_session.fetch(TEST_URL, commands=corrert_methods)
+    assert isinstance(response.decode("ascii"), str)
+    assert response.decode("ascii") == body_text
 
-            self.assertTrue("Get 429 error too often" in str(context.exception))
+@pytest.mark.asyncio
+async def test_incorrect_method_error(aioresponse, client_session):
+    wrong_method = ["something"]
+    with pytest.raises(IncorrectMethod) as context:
+        aioresponse.get(TEST_URL, status=200)
+        await client_session.fetch(TEST_URL, commands=wrong_method)
+        assert f"Response object does not have given attribute - {wrong_method}" in str(
+            context.exception
+        )
 
-    @aioresponses()
-    async def test_404_error(self, mocked):
-        with self.assertRaises(NotFound) as context:
-            async with Session() as session:
-                mocked.get(TEST_URL, status=404)
-                await session.fetch(TEST_URL)
-
-            self.assertTrue("Can't find given page" in str(context.exception))
-
-    @aioresponses()
-    async def test_500_error(self, mocked):
-        with self.assertRaises(Unsuccessful) as context:
-            async with Session() as session:
-                mocked.get(TEST_URL, status=500)
-                await session.fetch(TEST_URL)
-
-            self.assertTrue("Status code is 500" in str(context.exception))
-
-    @aioresponses()
-    async def test_without_context(self, mocked):
-        with self.assertRaises(AssertionError):
-            session = Session()
-            mocked.get(TEST_URL, status=200)
+@pytest.mark.asyncio
+async def test_429_error(aioresponse):
+    with pytest.raises(Unsuccessful) as context:
+        aioresponse.get(TEST_URL, status=429, body="test", repeat=True)
+        async with Session(sleep_time=.1) as session:
             await session.fetch(TEST_URL)
+
+        assert "Get 429 error too often" in str(context.exception)
+
+@pytest.mark.asyncio
+async def test_404_error(aioresponse, client_session):
+    with pytest.raises(NotFound) as context:
+        aioresponse.get(TEST_URL, status=404)
+        await client_session.fetch(TEST_URL)
+        assert "Can't find given page" in str(context.exception)
+
+@pytest.mark.asyncio
+async def test_500_error(aioresponse, client_session):
+    with pytest.raises(Unsuccessful) as context:
+        aioresponse.get(TEST_URL, status=500)
+        await client_session.fetch(TEST_URL)
+        assert "Status code is 500" in str(context.exception)
+
+@pytest.mark.asyncio
+async def test_without_context(aioresponse):
+    with pytest.raises(AssertionError):
+        session=Session()
+        aioresponse.get(TEST_URL, status=200)
+        await session.fetch(TEST_URL)

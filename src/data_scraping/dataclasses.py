@@ -1,20 +1,19 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 
-@dataclass
+@dataclass(frozen=True)
 class Content:
     """
     Common base class for representation title
     """
-
     # pylint: disable=too-many-instance-attributes
     # Eight is reasonable in this case.
     name: str
     volume: int | None
     image: str | None
     authors: list[str]
-    publisher: list[str]
-    release_date: date | None
+    publishers: list[str]
     rating: int
-    sold: int | None
+    release_date: date | None = field(default=None)
+    sales: int | None = field(default=None)
