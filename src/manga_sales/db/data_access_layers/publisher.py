@@ -4,6 +4,8 @@ from src.manga_sales.db.models import Publisher
 
 
 class PublisherDAO(AbstractDAO):
+    """Data Acess Layer for publisher table"""
+
     model = Publisher
 
     async def filter_by_name(self, publishers: list[str]) -> list[Publisher]:

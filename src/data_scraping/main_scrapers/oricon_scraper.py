@@ -75,23 +75,29 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             return original_title, [], []
         return name, authors, publishers
 
+    async def create_content_item(
+        self, index: int, item: BeautifulSoup, date: str
+    ) -> Content:
+        rating = self.get_rating(item)
+        image = await self.get_image(item, date)
+        name, authors, publishers = await self._get_aux_data(item)
+        content = Content(
+            name=name,
+            volume=self.get_volume(item),
+            image=image,
+            authors=authors,
+            publishers=publishers,
+            release_date=self.get_release_date(item),
+            rating=rating if rating else index,
+            sales=self.get_sales(item),
+        )
+        return content
+
     async def _retrieve_data(self, url: str, date: str) -> list[Content]:
         list_items = await self._get_list_raw_data(url)
         lst = []
         for i, item in enumerate(list_items, start=1):
-            rating = self.get_rating(item)
-            image = await self.get_image(item, date)
-            name, authors, publishers = await self._get_aux_data(item)
-            content = Content(
-                name=name,
-                volume=self.get_volume(item),
-                image=image,
-                authors=authors,
-                publishers=publishers,
-                release_date=self.get_release_date(item),
-                rating=rating if rating else i,
-                sales=self.get_sales(item),
-            )
+            content = await self.create_content_item(i, item, date)
             lst.append(content)
         return lst
 

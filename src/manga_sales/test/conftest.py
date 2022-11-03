@@ -62,7 +62,7 @@ async def session_factory(test_engine):
 @pytest_asyncio.fixture
 async def dao_session(session_factory, dao):
     async with session_factory() as session:
-        yield dao(session)
+        yield dao(session) if dao else session
 
 
 async def create_db(engine) -> None:

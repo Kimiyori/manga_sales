@@ -1,10 +1,9 @@
 from __future__ import annotations
 import difflib
 from types import TracebackType
-from .abc import _Self
 from bs4 import BeautifulSoup
 from src.data_scraping.exceptions import ConnectError
-from .abc import AuxDataParserAbstract
+from .abc import _Self, AuxDataParserAbstract
 
 
 class MangaUpdatesParser(AuxDataParserAbstract):

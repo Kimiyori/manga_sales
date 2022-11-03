@@ -1,15 +1,15 @@
 import datetime
-
 from sqlalchemy import TEXT, cast, func
-from src.manga_sales.db.data_access_layers.abc import AbstractDAO
 from sqlalchemy.future import select
-from src.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
-from src.manga_sales.db.models import SourceType, Week
 from sqlalchemy.engine.row import Row
 from sqlalchemy.dialects.postgresql import aggregate_order_by
+from src.manga_sales.db.data_access_layers.abc import AbstractDAO
+from src.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
+from src.manga_sales.db.models import SourceType, Week
 
 
 class WeekDAO(AbstractDAO):
+    """Data Acess Layer for week table"""
 
     model = Week
 

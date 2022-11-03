@@ -1,10 +1,10 @@
 # pyright: reportMissingModuleSource=false
 from __future__ import annotations
-from dependency_injector.wiring import Provide, inject, Closing
 import datetime
+from dependency_injector.wiring import Provide, inject, Closing
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.data_scraping.containers import DBSessionContainer
-from src.data_scraping.meta import ChartItemDataParserAbstract
+from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
 from src.data_scraping.dataclasses import Content
 from src.manga_sales.db.data_access_layers.author import AuthorDAO
 from src.manga_sales.db.data_access_layers.item import ItemDAO
@@ -25,14 +25,14 @@ from src.manga_sales.db.models import (
 
 class DatabaseConnector:
     """
-    Class for handling scraped data and write it into db
+    Class for handling scraped data and insert it into db
     """
 
     @inject
     def __init__(
         self,
-        scraper: ChartItemDataParserAbstract,
-        session: AsyncSession = Closing[Provide[DBSessionContainer.session]],
+        scraper: MainDataAbstractScraper,
+        session: AsyncSession = Closing[Provide[DBSessionContainer.session]],  # type: ignore
     ) -> None:
         self.session = session
         self.scraper = scraper
@@ -43,12 +43,13 @@ class DatabaseConnector:
         authors: list[str],
         author_session: AuthorDAO = Closing[Provide[DBSessionContainer.authors]],
     ) -> list[Author]:
-        """Function fo detecting whether given authors already exist in db or not
+        """Method fo detecting whether given authors already exist in db or not
             and converting author names to instances of author model
 
         Args:
-            session (AsyncSession): sql session
             authors (list[str]): list of strings with author names
+            author_session (AuthorDAO, optional): Instance of Data object layer for author table.
+                Defaults to Closing[Provide[DBSessionContainer.authors]].
 
         Returns:
             list[Author]: list with Authors either new or already existing in db
@@ -68,6 +69,17 @@ class DatabaseConnector:
     async def handle_title(
         name: str, title_session: TitleDAO = Closing[Provide[DBSessionContainer.title]]
     ) -> Title:
+        """Method fo detecting whether given title name already exist in db or not
+            and converting it to instances of title model
+
+        Args:
+            name (str): title name
+            title_session (TitleDAO, optional): Instance of Data object layer for title table.
+                Defaults to Closing[Provide[DBSessionContainer.title]].
+
+        Returns:
+            Title: Instance of title table
+        """
         title = await title_session.filter_by_name(name)
         if not title:
             title = Title(name=name)
@@ -76,12 +88,23 @@ class DatabaseConnector:
 
     @staticmethod
     @inject
-    async def handle_publisher(
+    async def handle_publishers(
         publishers: list[str],
         publishers_session: PublisherDAO = Closing[
             Provide[DBSessionContainer.publishers]
         ],
     ) -> list[Publisher]:
+        """Method fo detecting whether given publishers already exist in db or not
+            and converting publisher names to instances of publisher model
+
+        Args:
+            publishers (list[str]):list of strings with publishers names
+            publishers_session (PublisherDAO, optional): Instance of Data object layer
+            for publisher table.Defaults to Closing[ Provide[DBSessionContainer.publishers] ].
+
+        Returns:
+            list[Publisher]:  list with Publishers either new or already existing in db
+        """
         existed_publishers = await publishers_session.filter_by_name(publishers)
         new_publishers = [
             Publisher(name=publisher)
@@ -99,6 +122,19 @@ class DatabaseConnector:
             Provide[DBSessionContainer.source_type]
         ],
     ) -> SourceType | None:
+        """Method for getting instance of source_type that used in scraper for connecting week
+            that will be created with its source type. If method fail to find given source type
+            for given source, then it throws assertion exception.
+
+
+        Args:
+            source_type_session (SourceTypeDAO, optional): Instance of Data object
+            layer for source type table.
+             Defaults to Closing[ Provide[DBSessionContainer.source_type] ].
+
+        Returns:
+            SourceType | None: Instance of source type table
+        """
         source_type = await source_type_session.get_by_source(
             self.scraper.SOURCE, self.scraper.SOURCE_TYPE
         )
@@ -112,15 +148,32 @@ class DatabaseConnector:
         title: str,
         item_session: ItemDAO = Closing[Provide[DBSessionContainer.item]],
     ) -> PreviousRank | None:
+        """Method for getting rating place in previous week for given title.
+
+        Args:
+            prev_week (Week): Week instance
+            current_rank (int): rank that title has in current week
+            title (str): name of title
+            item_session (ItemDAO, optional): Instance of Data object layer for item table.
+             Defaults to Closing[Provide[DBSessionContainer.item]].
+
+        Returns:
+            PreviousRank | None: return previous rank enum object.
+        """
         prev_rank_item = await item_session.get_previous_rank(
             prev_week, current_rank, title
         )
         return prev_rank_item.rank if prev_rank_item else None
 
-    async def create_item(self, content: Content, prev_week: Week | None) -> Item:
+    async def create_item(
+        self,
+        content: Content,
+        prev_week: Week | None,
+        item_session: ItemDAO = Closing[Provide[DBSessionContainer.item]],
+    ) -> Item:
         authors = await self.handle_authors(content.authors)
-        title = await self.handle_title(content.name) 
-        publishers = await self.handle_publisher(content.publishers)
+        title = await self.handle_title(content.name)
+        publishers = await self.handle_publishers(content.publishers)
         item = Item(
             rating=content.rating,
             volume=content.volume,
@@ -136,22 +189,23 @@ class DatabaseConnector:
         item.title = title
         item.author.extend(authors)
         item.publisher.extend(publishers)
+        item_session.add(item)
         return item
 
     @staticmethod
     async def get_previous_week(
-        week: Week, source_type: SourceType, week_session : WeekDAO
+        week: Week, source_type: SourceType, week_session: WeekDAO
     ) -> Week | None:
         prev_week = await week_session.get_previous_week(week, source_type)
         return prev_week
 
-    async def write_data(
+    async def insert_data(
         self,
         date: datetime.date,
         week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
     ) -> None:
-        datestr: str = date.strftime("%Y-%m-%d")
-        data = await self.scraper.get_data(datestr)
+        date_str: str = date.strftime("%Y-%m-%d")
+        data = await self.scraper.get_data(date_str)
         if data:
             source_type = await self.get_source_type()
             assert source_type is not None

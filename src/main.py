@@ -1,11 +1,11 @@
+from __future__ import annotations
 import logging
 import pathlib
 import aiohttp_jinja2
 import jinja2
 from aiohttp_session import setup as setup_session
 from aiohttp_session.redis_storage import RedisStorage
-from redis import asyncio as aioredis
-from aioredis.client import Redis
+import redis
 from aiohttp import web
 from src.middlewares import setup_middlewares
 from src.manga_sales.routes import setup_routes
@@ -13,8 +13,10 @@ from src.template_functions import convert_date, file_exist
 from src.manga_sales.containers import DatabaseContainer
 
 
-async def setup_redis(app_obj: web.Application) -> Redis:
-    pool: Redis = await aioredis.from_url("redis://redis:6379")
+async def setup_redis(app_obj: web.Application) -> redis.asyncio.client.Redis[bytes]:
+    pool: redis.asyncio.client.Redis[bytes] = await redis.asyncio.from_url(
+        "redis://redis:6379"
+    )
 
     async def close_redis(
         app_obj: web.Application,  # pylint: disable=unused-argument
@@ -43,4 +45,5 @@ async def main() -> web.Application:
     storage = RedisStorage(redis_pool)
     setup_session(app, storage)
     app.container = DatabaseContainer()
+
     return app

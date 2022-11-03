@@ -62,7 +62,7 @@ class MainDataAbstractScraper(AbstractBase):
     @abstractmethod
     async def find_latest_date(
         self, date: datetime.date, date_convert: bool = True
-    ) -> datetime.date |str | None:
+    ) -> datetime.date | str | None:
         """Find last date from page
 
         Args:

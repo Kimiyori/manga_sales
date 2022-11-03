@@ -1,11 +1,5 @@
 from pathlib import Path
 from typing import Any
-from contextlib import asynccontextmanager
-from src.data_scraping.session_context_manager import Session
-from src.manga_sales.db.data_access_layers.title import TitleDAO
-from dependency_injector.wiring import Provide, inject, Closing
-from src.manga_sales.containers import DatabaseContainer
-from src.manga_sales.db.models import Title
 
 
 def save_image(
@@ -28,7 +22,7 @@ def save_image(
         and isinstance(date, str)
     )
     image_path = (
-        f"manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
+        f"src/manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
     )
     if file and name:
         path = Path(image_path)
@@ -41,8 +35,6 @@ def save_image(
 async def session_factory(scraper: Any, *args: Any, **kwargs: Any) -> Any:
     async with scraper(*args, **kwargs) as obj:
         yield obj
-
-
 
 
 # async def get_date(
@@ -63,5 +55,8 @@ async def session_factory(scraper: Any, *args: Any, **kwargs: Any) -> Any:
 #     return valid_date
 
 
-async def execute_scraper():
-    pass
+# async def execute_scraper():
+#     d=DataScrapingContaiter()
+#     w=await d.oricon_scraper()
+#     a = DatabaseConnector(w)
+#     print(a.session)

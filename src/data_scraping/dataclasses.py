@@ -7,6 +7,7 @@ class Content:
     """
     Common base class for representation title
     """
+
     # pylint: disable=too-many-instance-attributes
     # Eight is reasonable in this case.
     name: str

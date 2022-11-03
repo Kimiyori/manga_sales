@@ -10,6 +10,8 @@ from src.db.session import session
 
 
 class DatabaseContainer(containers.DeclarativeContainer):
+    """Container for dao layer"""
+
     wiring_config = containers.WiringConfiguration(packages=["src.manga_sales.views"])
     source_session = providers.Resource(session, SourceDAO)
     sourcetype_session = providers.Resource(session, SourceTypeDAO)

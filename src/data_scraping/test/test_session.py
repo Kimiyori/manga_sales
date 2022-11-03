@@ -18,11 +18,13 @@ def aioresponse():
     with aioresponses() as m:
         yield m
 
+
 @pytest.mark.asyncio
 async def test_200(aioresponse, client_session):
     aioresponse.get(TEST_URL, status=200)
     response = await client_session.fetch(TEST_URL)
     assert response.status == 200
+
 
 @pytest.mark.asyncio
 async def test_correct_method_error(aioresponse, client_session):
@@ -32,6 +34,7 @@ async def test_correct_method_error(aioresponse, client_session):
     response = await client_session.fetch(TEST_URL, commands=corrert_methods)
     assert isinstance(response.decode("ascii"), str)
     assert response.decode("ascii") == body_text
+
 
 @pytest.mark.asyncio
 async def test_incorrect_method_error(aioresponse, client_session):
@@ -43,14 +46,16 @@ async def test_incorrect_method_error(aioresponse, client_session):
             context.exception
         )
 
+
 @pytest.mark.asyncio
 async def test_429_error(aioresponse):
     with pytest.raises(Unsuccessful) as context:
         aioresponse.get(TEST_URL, status=429, body="test", repeat=True)
-        async with Session(sleep_time=.1) as session:
+        async with Session(sleep_time=0.1) as session:
             await session.fetch(TEST_URL)
 
         assert "Get 429 error too often" in str(context.exception)
+
 
 @pytest.mark.asyncio
 async def test_404_error(aioresponse, client_session):
@@ -59,6 +64,7 @@ async def test_404_error(aioresponse, client_session):
         await client_session.fetch(TEST_URL)
         assert "Can't find given page" in str(context.exception)
 
+
 @pytest.mark.asyncio
 async def test_500_error(aioresponse, client_session):
     with pytest.raises(Unsuccessful) as context:
@@ -66,9 +72,10 @@ async def test_500_error(aioresponse, client_session):
         await client_session.fetch(TEST_URL)
         assert "Status code is 500" in str(context.exception)
 
+
 @pytest.mark.asyncio
 async def test_without_context(aioresponse):
     with pytest.raises(AssertionError):
-        session=Session()
+        session = Session()
         aioresponse.get(TEST_URL, status=200)
         await session.fetch(TEST_URL)

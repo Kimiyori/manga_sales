@@ -1,9 +1,12 @@
 import aiohttp_jinja2
 from sqlalchemy.engine.row import Row
-from aiohttp import web
 from dependency_injector.wiring import Provide, inject, Closing
+from aiohttp import web
 from src.manga_sales.containers import DatabaseContainer
-from src.manga_sales.db.data_access_layers.abc import DAOType
+from src.manga_sales.db.data_access_layers.item import ItemDAO
+from src.manga_sales.db.data_access_layers.source import SourceDAO
+from src.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
+from src.manga_sales.db.data_access_layers.week import WeekDAO
 from src.manga_sales.db.models import SourceType, Week
 
 
@@ -11,7 +14,7 @@ from src.manga_sales.db.models import SourceType, Week
 @inject
 async def source(
     request: web.Request,  # pylint: disable = unused-argument
-    service: DAOType = Closing[Provide[DatabaseContainer.source_session]],
+    service: SourceDAO = Closing[Provide[DatabaseContainer.source_session]],  # type: ignore
 ) -> dict[str, list[Row]]:
     """View for page with sources
 
@@ -29,7 +32,7 @@ async def source(
 @inject
 async def source_type(
     request: web.Request,
-    service: DAOType = Closing[Provide[DatabaseContainer.sourcetype_session]],
+    service: SourceTypeDAO = Closing[Provide[DatabaseContainer.sourcetype_session]],  # type: ignore
 ) -> dict[str, list[SourceType | None]]:
     """View for page with source types
 
@@ -48,7 +51,7 @@ async def source_type(
 @inject
 async def source_type_detail(
     request: web.Request,
-    service: DAOType = Closing[Provide[DatabaseContainer.week_session]],
+    service: WeekDAO = Closing[Provide[DatabaseContainer.week_session]],  # type: ignore
 ) -> dict[str, list[Week]]:
     """View for page with weeks from given source type and source
 
@@ -68,7 +71,7 @@ async def source_type_detail(
 @inject
 async def detail(
     request: web.Request,
-    service: DAOType = Closing[Provide[DatabaseContainer.item_session]],
+    service: ItemDAO = Closing[Provide[DatabaseContainer.item_session]],  # type: ignore
 ) -> dict[str, list[Row]]:
     """View for page with items from given week
 

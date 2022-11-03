@@ -1,10 +1,11 @@
-from src.manga_sales.db.data_access_layers.abc import AbstractDAO
 from sqlalchemy.engine.row import Row
 from sqlalchemy.future import select
 from src.manga_sales.db.models import Source
+from src.manga_sales.db.data_access_layers.abc import AbstractDAO
 
 
 class SourceDAO(AbstractDAO):
+    """Data Acess Layer for source table"""
 
     model = Source
 

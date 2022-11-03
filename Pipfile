@@ -33,6 +33,8 @@ pytest-aiohttp = "*"
 pytest-mock = "*"
 coverage = "*"
 redis = ">=4.2.0rc1"
+faker = "*"
+types-redis = "*"
 
 [dev-packages]
 

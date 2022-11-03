@@ -1,8 +1,8 @@
 from types import TracebackType
-from bs4 import BeautifulSoup
-from ..meta import AbstractBase
 from abc import abstractmethod
 from typing import TypeVar
+from bs4 import BeautifulSoup
+from ..meta import AbstractBase
 
 _Self = TypeVar("_Self", bound="AuxDataParserAbstract")
 
@@ -39,9 +39,7 @@ class AuxDataParserAbstract(AbstractBase):
             is not setted in subclass
         """
         if not cls.__subclasses__():
-            required_class_variables = [
-                variable for variable in cls.__annotations__.keys()
-            ]
+            required_class_variables = list(cls.__annotations__.keys())
             for var in required_class_variables:
                 if not hasattr(cls, var):
                     raise NotImplementedError(

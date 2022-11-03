@@ -6,6 +6,8 @@ from src.manga_sales.db.models import Author
 
 
 class AuthorDAO(AbstractDAO):
+    """Data Acess Layer for author table"""
+
     model = Author
 
     async def get_all(self) -> list[Row]:

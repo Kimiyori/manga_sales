@@ -2,14 +2,13 @@ from abc import ABC
 from bs4 import BeautifulSoup
 from aiohttp import ClientResponse
 from src.data_scraping.session_context_manager import Session
-from dependency_injector.wiring import Closing, Provide, inject
+
 
 class AbstractBase(ABC):
     """Abstract class for scraping"""
-    
+
     def __init__(self, session: Session) -> None:
         self.session = session
-
 
     async def fetch(
         self, url: str, commands: list[str] | None = None, return_bs: bool = True

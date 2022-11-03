@@ -34,7 +34,7 @@ services:
       - .:/aiohttp
   test:
     build: .
-    command: python -m  unittest
+    command: python -m  pytest 
     working_dir: /aiohttp
     profiles: ["test_profile"]
     volumes:
@@ -43,7 +43,7 @@ services:
       - db
   lint:
     build: .
-    command: bash -c "mypy manga_sales ; pylint manga_sales ; flake8"
+    command: bash -c "mypy src ; pylint src ; flake8"
     working_dir: /aiohttp
     profiles: ["test_profile"]
     volumes:

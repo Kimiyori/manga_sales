@@ -14,7 +14,9 @@ from src.manga_sales.db.data_access_layers.week import WeekDAO
 from src.db.session import session as db_session
 
 
-class DataScrapingContaiter(containers.DeclarativeContainer):
+class DataScrapingContainer(containers.DeclarativeContainer):
+    """Container for scrap dependencies"""
+
     web_session = providers.Resource(session_factory, Session)
     manga_updates = providers.Factory(MangaUpdatesParser, web_session)
     oricon_scraper = providers.Factory(
@@ -26,15 +28,23 @@ class DataScrapingContaiter(containers.DeclarativeContainer):
 
 
 class DBSessionContainer(containers.DeclarativeContainer):
+    """Container for database dependensies with common session
+            for all table layers
+
+    _
+    """
+
     wiring_config = containers.WiringConfiguration(
-        packages=["src.data_scraping.services", "src.data_scraping.database_saver"]
+        packages=[
+            "src.data_scraping.database_saver",
+            "src.data_scraping.test.test_db_handler",
+        ]
     )
     session = providers.Resource(db_session)
-    source=providers.Factory(SourceDAO, session),
-    source_type=providers.Factory(SourceTypeDAO, session),
-    authors=providers.Factory(AuthorDAO, session),
-    item=providers.Factory(ItemDAO, session),
-    publishers=providers.Factory(PublisherDAO, session),
-    title=providers.Factory(TitleDAO, session),
-    week=providers.Factory(WeekDAO, session),
-
+    source = providers.Factory(SourceDAO, session)
+    source_type = providers.Factory(SourceTypeDAO, session)
+    authors = providers.Factory(AuthorDAO, session)
+    item = providers.Factory(ItemDAO, session)
+    publishers = providers.Factory(PublisherDAO, session)
+    title = providers.Factory(TitleDAO, session)
+    week = providers.Factory(WeekDAO, session)

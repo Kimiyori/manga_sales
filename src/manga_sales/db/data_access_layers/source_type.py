@@ -4,6 +4,8 @@ from src.manga_sales.db.models import Source, SourceType
 
 
 class SourceTypeDAO(AbstractDAO):
+    """Data Acess Layer for source type table"""
+
     model = SourceType
 
     async def get(self, source: str) -> list[SourceType | None]:

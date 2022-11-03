@@ -81,9 +81,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         ]
         return list_items
 
-    async def _get_aux_data(
-        self, item: str
-    ) -> tuple[str, list[str], list[str]]:
+    async def _get_aux_data(self, item: str) -> tuple[str, list[str], list[str]]:
         original_title = self._get_original_title(item)
         try:
             async with self.main_info_parser(title=original_title):
@@ -94,22 +92,28 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
             return original_title, [], []
         return name, authors, publishers
 
+    async def create_content_item(
+        self, index: int, row: list[str], date: str
+    ) -> Content:
+        rating = self.get_rating(row[0])
+        name, authors, publishers = await self._get_aux_data(row[2])
+        image = await self.get_image(row[1], date)
+        content = Content(
+            name=name,
+            volume=self.get_volume(row[2]),
+            image=image,
+            authors=authors,
+            publishers=publishers,
+            release_date=self.get_release_date(row[2]),
+            rating=rating if rating else index,
+        )
+        return content
+
     async def _retrieve_data(self, url: str, date: str) -> list[Content]:
         list_items = await self._get_list_raw_data(url)
         lst = []
         for i, row in enumerate(list_items):
-            rating = self.get_rating(row[0])
-            name, authors, publishers = await self._get_aux_data(row[2])
-            image = await self.get_image(row[1], date)
-            content = Content(
-                name=name,
-                volume=self.get_volume(row[2]),
-                image=image,
-                authors=authors,
-                publishers=publishers,
-                release_date=self.get_release_date(row[2]),
-                rating=rating if rating else i,
-            )
+            content = await self.create_content_item(i, row, date)
             lst.append(content)
         return lst
 

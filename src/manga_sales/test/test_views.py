@@ -23,7 +23,6 @@ async def main_app(aiohttp_client, app):
     return client
 
 
-
 @pytest.mark.usefixtures("create_data")
 @pytest.mark.parametrize("dao", [SourceDAO])
 async def test_source_view(main_app, app, dao_session):
@@ -32,7 +31,6 @@ async def test_source_view(main_app, app, dao_session):
         assert resp.status == 200
         text = await resp.text()
         assert all(x.name in text for x in pytest.sources)
-
 
 
 @pytest.mark.usefixtures("create_data")
@@ -46,7 +44,6 @@ async def test_source_type_view(main_app, app, dao_session):
         assert pytest.source_types[0].type in text
 
 
-
 @pytest.mark.usefixtures("create_data")
 @pytest.mark.parametrize("dao", [WeekDAO])
 async def test_week_view(main_app, app, dao_session):
@@ -56,7 +53,6 @@ async def test_week_view(main_app, app, dao_session):
         assert resp.status == 200
         text = await resp.text()
         assert all(str(x.date.day) in text for x in pytest.weeks)
-
 
 
 @pytest.mark.usefixtures("create_data")

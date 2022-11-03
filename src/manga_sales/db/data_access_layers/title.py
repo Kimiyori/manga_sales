@@ -1,9 +1,10 @@
-from src.manga_sales.db.data_access_layers.abc import AbstractDAO
 from sqlalchemy.future import select
 from src.manga_sales.db.models import Title
+from src.manga_sales.db.data_access_layers.abc import AbstractDAO
 
 
 class TitleDAO(AbstractDAO):
+    """Data Acess Layer for title table"""
 
     model = Title
 
@@ -36,4 +37,3 @@ class TitleDAO(AbstractDAO):
         row = item.first()
         result: Title | None = row[0] if row else None
         return result
-    

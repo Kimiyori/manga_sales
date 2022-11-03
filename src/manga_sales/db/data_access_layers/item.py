@@ -8,7 +8,22 @@ from src.manga_sales.db.models import Author, Item, PreviousRank, Publisher, Tit
 
 
 class ItemDAO(AbstractDAO):
+    """Data Acess Layer for item table"""
+
     model = Item
+
+    async def get_all(self) -> list[Row]:
+        """Get all authors form table
+
+        Args:
+            session (AsyncSession): sql session
+
+        Returns:
+            list[Row]: list of rows
+        """
+        query = select(self.model)
+        results = await self.session.execute(query)
+        return results.all()
 
     async def get(self, **kwargs: str) -> list[Item]:
 
@@ -64,6 +79,7 @@ class ItemDAO(AbstractDAO):
                 self.model.release_date,
                 self.model.image,
                 self.model.sold,
+                self.model.previous_rank,
                 Week.date.label("week_date"),
                 Title.name.label("title"),
                 func.array_agg(distinct(Author.name)).label("authors"),

@@ -108,7 +108,9 @@ class TestOriconScraper:
         assert sales == None
 
     @pytest.mark.asyncio
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
+    )
     @mock.patch(
         "src.data_scraping.meta.AbstractBase.fetch", return_value=bytes("img", "utf-8")
     )
@@ -182,7 +184,9 @@ class TestOriconScraper:
         assert publishers == []
         assert name == "暁のARIA"
 
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
+    )
     @mock.patch(
         "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
     )
@@ -210,7 +214,9 @@ class TestOriconScraper:
                 assert x.rating == i
                 assert x.name == "Akatsuki no Aria"
 
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
+    )
     @mock.patch(
         "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
     )
@@ -342,7 +348,9 @@ class TestShosekiScraper:
         assert res3 == "怪獣８号"
 
     @pytest.mark.asyncio
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
+    )
     async def test_get_image(self, mock_img, shoseki_container, amazon, aioresponse):
         aioresponse.get(
             "https://www.amazon.co.jp/s?i=stripbooks&ref=nb_sb_noss&k=111",
@@ -488,7 +496,9 @@ class TestShosekiScraper:
     @mock.patch(
         "src.data_scraping.main_scrapers.shoseki_scraper.ShosekiWeeklyScraper._get_original_title"
     )
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
+    )
     @mock.patch(
         "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
     )
@@ -518,7 +528,9 @@ class TestShosekiScraper:
     @mock.patch(
         "src.data_scraping.main_scrapers.shoseki_scraper.ShosekiWeeklyScraper._get_original_title"
     )
-    @mock.patch("src.data_scraping.services.save_image", return_value=None)
+    @mock.patch(
+        "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
+    )
     @mock.patch(
         "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
     )
@@ -538,9 +550,10 @@ class TestShosekiScraper:
         with mock.patch.object(
             ShosekiWeeklyScraper,
             "fetch",
-            side_effect=[shoseki_list,shoseki_weekly_list] + [bytes("img", "utf-8")] * 30,
+            side_effect=[shoseki_list, shoseki_weekly_list]
+            + [bytes("img", "utf-8")] * 30,
         ):
-            res = await shoseki_container.get_data( "2022-10-04")
+            res = await shoseki_container.get_data("2022-10-04")
             assert len(res) == 30
             for i, x in enumerate(res, start=1):
                 assert x.rating == i

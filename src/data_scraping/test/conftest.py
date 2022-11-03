@@ -1,8 +1,18 @@
 from bs4 import BeautifulSoup
 import pytest
 import pytest_asyncio
-from src.data_scraping.containers import DataScrapingContaiter
+import sqlalchemy
+from src.data_scraping.containers import DBSessionContainer, DataScrapingContainer
 from aioresponses import aioresponses
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+from src.config import get_postgres_uri, TEST_DATABASE_NAME
+from src.db.base import Base
+from src.manga_sales.db.models import (
+    Source,
+    SourceType,
+)
 
 
 @pytest.fixture
@@ -57,21 +67,21 @@ def manga_updates_title():
 
 @pytest_asyncio.fixture
 async def manga_updates_container():
-    container = DataScrapingContaiter()
+    container = DataScrapingContainer()
     yield await container.manga_updates()
     await container.shutdown_resources()
 
 
 @pytest_asyncio.fixture
 async def oricon_container():
-    container = DataScrapingContaiter()
+    container = DataScrapingContainer()
     yield await container.oricon_scraper()
     await container.shutdown_resources()
 
 
 @pytest_asyncio.fixture
 async def shoseki_container():
-    container = DataScrapingContaiter()
+    container = DataScrapingContainer()
     yield await container.shoseki_scraper()
     await container.shutdown_resources()
 
@@ -80,3 +90,97 @@ async def shoseki_container():
 def aioresponse():
     with aioresponses() as m:
         yield m
+
+
+@pytest_asyncio.fixture
+async def session(
+    session_factory,
+):
+    async with session_factory() as session:
+        yield session
+
+
+@pytest_asyncio.fixture
+async def session_factory(test_engine):
+    yield sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
+
+
+@pytest_asyncio.fixture
+async def db_session_container(session):
+    container = DBSessionContainer()
+    container.session.override(session)
+    yield container
+
+
+@pytest_asyncio.fixture
+async def test_engine():
+    engine_aux = create_async_engine(
+        get_postgres_uri(database_name=False),
+        future=True,
+    )
+    await create_db(engine_aux)
+    engine = create_async_engine(
+        get_postgres_uri(test=True),
+        future=True,
+        echo=False,
+    )
+    try:
+        yield engine
+    finally:
+        await drop_db(engine_aux)
+
+
+@pytest_asyncio.fixture
+async def class_session_factory(test_engine):
+    await create_tables(test_engine)
+    try:
+        yield sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
+    finally:
+        await drop_tables(test_engine)
+
+
+async def create_tables(engine) -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def drop_tables(engine) -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+async def create_db(engine) -> None:
+    async with engine.connect() as conn:
+        await conn.execution_options(isolation_level="AUTOCOMMIT")
+        try:
+            await conn.execute(text(f"create database {TEST_DATABASE_NAME}"))
+        except sqlalchemy.exc.ProgrammingError:
+            await conn.execute(
+                text(f"drop database if exists {TEST_DATABASE_NAME} WITH (FORCE)")
+            )
+            await conn.execute(text(f"create database {TEST_DATABASE_NAME}"))
+
+
+async def drop_db(engine) -> None:
+    async with engine.connect() as conn:
+        await conn.execution_options(isolation_level="AUTOCOMMIT")
+        await conn.execute(
+            text(f"drop database if exists {TEST_DATABASE_NAME} WITH (FORCE)")
+        )
+        await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def create_data_scraper(class_session_factory) -> None:
+    async with class_session_factory() as session:
+        pytest.sources = [Source(name="Oricon"), Source(name="Shoseki")]
+        pytest.source_types = [
+            SourceType(type="Weekly"),
+            SourceType(type="Weekly"),
+        ]
+        for x in range(2):
+            pytest.source_types[x].source = pytest.sources[x]
+
+        session.add_all(pytest.sources)
+        session.add_all(pytest.source_types)
+        await session.commit()
