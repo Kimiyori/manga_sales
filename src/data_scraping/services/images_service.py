@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+import shutil
 
 
 def save_image(
@@ -32,31 +32,13 @@ def save_image(
             open_file.write(file)
 
 
-async def session_factory(scraper: Any, *args: Any, **kwargs: Any) -> Any:
-    async with scraper(*args, **kwargs) as obj:
-        yield obj
+def delete_images(source: str, source_type: str, date: str) -> None:
+    # exception handler
+    def handler(func, path, exc_info) -> None:  # type: ignore
+        print(exc_info)
 
-
-# async def get_date(
-#     self,
-#     session: AsyncSession,
-#     date: datetime.date | None = None,
-# ) -> datetime.date | None:
-#     if not date:
-#         check_date = await Week.get_last_date(
-#             session, self.scraper.SOURCE, self.scraper.SOURCE_TYPE
-#         )
-#         date = check_date if check_date else datetime.date.today()
-#     valid_date: datetime.date | None = await self.scraper.find_latest_date(date)
-#     if valid_date:
-#         check = await Week.get(session, valid_date)
-#         if check:
-#             return await self.get_date(session, valid_date)
-#     return valid_date
-
-
-# async def execute_scraper():
-#     d=DataScrapingContaiter()
-#     w=await d.oricon_scraper()
-#     a = DatabaseConnector(w)
-#     print(a.session)
+    path = (
+        f"src/manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
+    )
+    # remove if exists
+    shutil.rmtree(path, onerror=handler)

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.data_scraping.containers import DBSessionContainer
 from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
 from src.data_scraping.dataclasses import Content
+from src.data_scraping.services.images_service import delete_images
 from src.manga_sales.db.data_access_layers.author import AuthorDAO
 from src.manga_sales.db.data_access_layers.item import ItemDAO
 from src.manga_sales.db.data_access_layers.publisher import PublisherDAO
@@ -165,6 +166,7 @@ class DatabaseConnector:
         )
         return prev_rank_item.rank if prev_rank_item else None
 
+    @inject
     async def create_item(
         self,
         content: Content,
@@ -199,22 +201,42 @@ class DatabaseConnector:
         prev_week = await week_session.get_previous_week(week, source_type)
         return prev_week
 
+    @inject
     async def insert_data(
         self,
         date: datetime.date,
         week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
     ) -> None:
+        """Main methof for inserting scraper data in database.
+
+        Args:
+            date (datetime.date): date from with need to scrape and get data
+            for given site
+            week_session (WeekDAO, optional): Instance of Data object layer for week table.
+             Defaults to Closing[Provide[DBSessionContainer.week]].
+
+        Raises:
+            exc: raises an exception and deletes already saved images (if any)
+            if something went wrong during the process of writing
+            data to the database or scraping.
+        """
         date_str: str = date.strftime("%Y-%m-%d")
-        data = await self.scraper.get_data(date_str)
-        if data:
-            source_type = await self.get_source_type()
-            assert source_type is not None
-            week = Week(date=date, source_type_id=source_type.id)
-            items = []
-            prev_week = await self.get_previous_week(week, source_type, week_session)
-            for content in data:
-                item = await self.create_item(content, prev_week)
-                items.append(item)
-            week.items.extend(items)
-            week_session.add(week)
-            await self.session.commit()
+        try:
+            data = await self.scraper.get_data(date_str)
+            if data:
+                source_type = await self.get_source_type()
+                assert source_type is not None
+                week = Week(date=date, source_type_id=source_type.id)
+                items = []
+                prev_week = await self.get_previous_week(
+                    week, source_type, week_session
+                )
+                for content in data:
+                    item = await self.create_item(content, prev_week)
+                    items.append(item)
+                week.items.extend(items)
+                week_session.add(week)
+                await self.session.commit()
+        except Exception as exc:
+            delete_images(self.scraper.SOURCE, self.scraper.SOURCE_TYPE, date_str)
+            raise exc

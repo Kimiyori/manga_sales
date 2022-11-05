@@ -110,6 +110,7 @@ async def db_session_container(session):
     container = DBSessionContainer()
     container.session.override(session)
     yield container
+    container.unwire()
 
 
 @pytest_asyncio.fixture

@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
 from src.data_scraping.dataclasses import Content
 from src.data_scraping.exceptions import BSError, ConnectError, NotFound
-from src.data_scraping.services import save_image
+from src.data_scraping.services.images_service import save_image
 from src.data_scraping.session_context_manager import Session
 from .abc import MainDataAbstractScraper
 
@@ -193,15 +193,15 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
     # ------------methods that can be invoked somewhere outside------------
     async def find_latest_date(
         self, date: datetime.date, date_convert: bool = True
-    ) -> datetime.date | None:
+    ) -> datetime.date | str | None:
         count_days = 1
         while count_days <= 7:
             guess_date = date + datetime.timedelta(days=count_days)
             url = self.MAIN_URL + guess_date.strftime("%Y-%m-%d") + "/"
             try:
                 await self.fetch(url, return_bs=False)
-            except NotFound:
+            except (ConnectionError, NotFound):
                 count_days += 1
                 continue
-            return guess_date if date_convert else guess_date
+            return guess_date if date_convert else guess_date.strftime("%Y-%m-%d")
         return None

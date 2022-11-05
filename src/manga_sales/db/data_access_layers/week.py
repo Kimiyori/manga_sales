@@ -40,7 +40,9 @@ class WeekDAO(AbstractDAO):
         )
         return week.first()
 
-    async def get_last_date(self, source: str, source_type: str) -> Row | None:
+    async def get_last_date(
+        self, source: str, source_type: str
+    ) -> datetime.date | None:
         """Get latest week in table based in desc date filter
 
         Args:
@@ -52,13 +54,14 @@ class WeekDAO(AbstractDAO):
         tpe = await SourceTypeDAO(self.session).get_by_source(source, source_type)
         assert tpe is not None
         query = (
-            select(self.model)
+            select(self.model.date)
             .where(self.model.source_type_id == tpe.id)
             .order_by(self.model.date.desc())
             .limit(1)
         )
         results = await self.session.execute(query)
-        return results.first()
+        dte = results.first()
+        return dte.date if dte else None
 
     async def get_all_groupby(self, source: str, source_type: str) -> list[Week]:
         """
