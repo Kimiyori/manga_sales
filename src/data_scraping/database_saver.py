@@ -29,13 +29,11 @@ class DatabaseConnector:
     Class for handling scraped data and insert it into db
     """
 
-    @inject
     def __init__(
         self,
         scraper: MainDataAbstractScraper,
-        session: AsyncSession = Closing[Provide[DBSessionContainer.session]],  # type: ignore
     ) -> None:
-        self.session = session
+
         self.scraper = scraper
 
     @staticmethod
@@ -206,6 +204,7 @@ class DatabaseConnector:
         self,
         date: datetime.date,
         week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
+        session: AsyncSession = Closing[Provide[DBSessionContainer.session]],  # type: ignore
     ) -> None:
         """Main methof for inserting scraper data in database.
 
@@ -236,7 +235,7 @@ class DatabaseConnector:
                     items.append(item)
                 week.items.extend(items)
                 week_session.add(week)
-                await self.session.commit()
+                await session.commit()
         except Exception as exc:
             delete_images(self.scraper.SOURCE, self.scraper.SOURCE_TYPE, date_str)
             raise exc

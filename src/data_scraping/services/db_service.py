@@ -23,8 +23,10 @@ def create_db_container(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
         db_cont = return_db_cont()
-        await func(*args, **kwargs)
-        db_cont.unwire()  # pylint: disable=no-member
+        try:
+            await func(*args, **kwargs)
+        finally:
+            db_cont.unwire()  # pylint: disable=no-member
 
     return wrapper
 
@@ -37,8 +39,10 @@ def create_scraper_container(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
         scrap_cont = DataScrapingContainer()
-        await func(*args, **kwargs)
-        await scrap_cont.shutdown_resources()  # type: ignore  # pylint: disable=no-member
+        try:
+            await func(*args, **kwargs)
+        finally:
+            await scrap_cont.shutdown_resources()  # type: ignore  # pylint: disable=no-member
 
     return wrapper
 
@@ -81,11 +85,9 @@ async def get_date(
 @create_scraper_container
 async def execute_scraper(scraper_name: str, date: datetime.date | None = None) -> None:
     scraper = await scraper_factory(scraper_name)
+    db_conn = DatabaseConnector(scraper)
     if date is None:
         date = await get_date(scraper)
-    if date:
-        db_conn = DatabaseConnector(scraper)
+    while date:
         await db_conn.insert_data(date)
-        date_new = await get_date(scraper, date)
-        if date_new:
-            await execute_scraper(scraper_name, date_new)
+        date = await get_date(scraper, date)

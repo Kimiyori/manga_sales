@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import logging
 import pathlib
 import aiohttp_jinja2
@@ -9,6 +10,7 @@ import redis
 from aiohttp import web
 from src.middlewares import setup_middlewares
 from src.manga_sales.routes import setup_routes
+from src.schedule import run_schedule
 from src.template_functions import convert_date, file_exist
 from src.manga_sales.containers import DatabaseContainer
 
@@ -28,6 +30,11 @@ async def setup_redis(app_obj: web.Application) -> redis.asyncio.client.Redis[by
     return pool
 
 
+async def on_startup(app):
+    task=asyncio.create_task(run_schedule())
+    await task
+
+
 async def main() -> web.Application:
     logging.basicConfig(level=logging.DEBUG)
     app = web.Application()
@@ -45,5 +52,5 @@ async def main() -> web.Application:
     storage = RedisStorage(redis_pool)
     setup_session(app, storage)
     app.container = DatabaseContainer()
-
+    #app.on_startup.append(on_startup)
     return app
