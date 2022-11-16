@@ -67,16 +67,20 @@ async def get_date(
     date: datetime.date | None = None,
     week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
 ) -> datetime.date | None:
+    action = "backward"
     if date is None:
-        check_date = await week_session.get_last_date(
+        last_db_date = await week_session.get_last_date(
             scraper.SOURCE, scraper.SOURCE_TYPE
         )
-        date = check_date if check_date else datetime.date.today()
-    valid_date = await scraper.find_latest_date(date)
+        if last_db_date:
+            date, action = last_db_date, "forward"
+        else:
+            date = datetime.date.today()
+    valid_date = await scraper.find_latest_date(date, action)
+
     assert valid_date is None or isinstance(valid_date, datetime.date)
     if valid_date:
-        check = await week_session.get(valid_date)
-        if check:
+        if await week_session.get(valid_date):
             return await get_date(scraper, valid_date)
     return valid_date
 

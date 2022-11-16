@@ -1,5 +1,6 @@
 from __future__ import annotations
 import datetime
+import operator
 import re
 import unicodedata
 import uuid
@@ -141,9 +142,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
     @staticmethod
     def _get_original_title(item: str) -> str:
         reg = re.search(r"^(\S+|\D+)\s\d+", item)
-        assert reg is not None
-        japanese_name = reg.group(1)
-        return japanese_name
+        return reg.group(1) if reg else item
 
     # ------------main methods for collecting gata that invokes inside class------------
     async def get_data(self, date: str) -> list[Content] | None:
@@ -201,8 +200,9 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
 
     # ------------methods that can be invoked somewhere outside------------
     async def find_latest_date(
-        self, date: datetime.date, date_convert: bool = True
-    ) -> datetime.date | str | None:
+        self, date: datetime.date, action: str
+    ) -> datetime.date | None:
+        assert action in ("forward", "backward")
         main_page: BeautifulSoup = await self.fetch(
             self.MAIN_URL, commands=["content", "read"]
         )
@@ -212,9 +212,20 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
             ).find_all("li")
         except AttributeError as error:
             raise error
-        date -= datetime.timedelta(days=1)
+        date = (
+            operator.add(date, datetime.timedelta(days=1))
+            if action == "forward"
+            else operator.sub(date, datetime.timedelta(days=1))
+        )
+        operator_action = operator.ge if action == "forward" else operator.le
         for i, row in enumerate(dates):
             guessed_date = self.convert_str_to_date(str(row.text))
-            if guessed_date <= date:
-                return guessed_date if date_convert else dates[i].text
+            if (
+                operator_action(guessed_date, date)
+                and self.convert_str_to_date(
+                    str(dates[min(i + 1, len(dates) - 1)].text)
+                )
+                <= date
+            ):
+                return guessed_date
         return None

@@ -42,9 +42,9 @@ class ItemDAO(AbstractDAO):
         query = (
             select(
                 case(
-                    (self.model.rating > rank, int(PreviousRank.UP)),
-                    (self.model.rating == rank, int(PreviousRank.SAME)),
-                    (self.model.rating < rank, int(PreviousRank.DOWN)),
+                    (self.model.rating > rank, PreviousRank.UP.name),
+                    (self.model.rating == rank, PreviousRank.SAME.name),
+                    (self.model.rating < rank, PreviousRank.DOWN.name),
                 ).label("rank")
             )
             .join(Title)
@@ -87,9 +87,9 @@ class ItemDAO(AbstractDAO):
             )
             .join(Week)
             .join(Title)
-            .join(self.model.author)
-            .join(self.model.publisher)
-            .filter(Week.date == date)
+            .join(self.model.author, isouter=True)
+            .join(self.model.publisher, isouter=True)
+            .where(Week.date == date)
             .group_by(self.model.id, Week.date, Title.name)
             .order_by(self.model.rating)
         )

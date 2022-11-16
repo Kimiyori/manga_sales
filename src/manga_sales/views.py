@@ -14,7 +14,7 @@ from src.manga_sales.db.models import SourceType, Week
 @inject
 async def source(
     request: web.Request,  # pylint: disable = unused-argument
-    service: SourceDAO = Closing[Provide[DatabaseContainer.source_session]],  # type: ignore
+    service: SourceDAO = Closing[Provide[DatabaseContainer.source_session]],
 ) -> dict[str, list[Row]]:
     """View for page with sources
 
@@ -32,7 +32,7 @@ async def source(
 @inject
 async def source_type(
     request: web.Request,
-    service: SourceTypeDAO = Closing[Provide[DatabaseContainer.sourcetype_session]],  # type: ignore
+    service: SourceTypeDAO = Closing[Provide[DatabaseContainer.sourcetype_session]],
 ) -> dict[str, list[SourceType | None]]:
     """View for page with source types
 
@@ -51,7 +51,7 @@ async def source_type(
 @inject
 async def source_type_detail(
     request: web.Request,
-    service: WeekDAO = Closing[Provide[DatabaseContainer.week_session]],  # type: ignore
+    service: WeekDAO = Closing[Provide[DatabaseContainer.week_session]],
 ) -> dict[str, list[Week]]:
     """View for page with weeks from given source type and source
 
@@ -71,7 +71,7 @@ async def source_type_detail(
 @inject
 async def detail(
     request: web.Request,
-    service: ItemDAO = Closing[Provide[DatabaseContainer.item_session]],  # type: ignore
+    service: ItemDAO = Closing[Provide[DatabaseContainer.item_session]],
 ) -> dict[str, list[Row]]:
     """View for page with items from given week
 

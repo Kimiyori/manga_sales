@@ -13,10 +13,11 @@ class DatabaseContainer(containers.DeclarativeContainer):
     """Container for dao layer"""
 
     wiring_config = containers.WiringConfiguration(packages=["src.manga_sales.views"])
-    source_session = providers.Resource(session, SourceDAO)
-    sourcetype_session = providers.Resource(session, SourceTypeDAO)
-    author_session = providers.Resource(session, AuthorDAO)
-    item_session = providers.Resource(session, ItemDAO)
-    publisher_session = providers.Resource(session, PublisherDAO)
-    title_session = providers.Resource(session, TitleDAO)
-    week_session = providers.Resource(session, WeekDAO)
+    session_db = providers.Resource(session)
+    source_session = providers.Factory(SourceDAO, session_db)
+    sourcetype_session = providers.Factory(SourceTypeDAO, session_db)
+    author_session = providers.Factory(AuthorDAO, session_db)
+    item_session = providers.Factory(ItemDAO, session_db)
+    publisher_session = providers.Factory(PublisherDAO, session_db)
+    title_session = providers.Factory(TitleDAO, session_db)
+    week_session = providers.Factory(WeekDAO, session_db)

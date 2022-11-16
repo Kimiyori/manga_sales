@@ -32,7 +32,7 @@ async def test_scraper_factory(containers):
 @pytest.mark.usefixtures("create_data_scraper")
 async def test_get_date(aioresponse, db_session_container, containers):
     scraper = await scraper_factory("oricon_scraper")
-    dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(1, 5)]
+    dates = [datetime.date.today() - datetime.timedelta(days=x) for x in range(1, 5)]
     for x in dates[:-1]:
         aioresponse.get(scraper.MAIN_URL + x.strftime("%Y-%m-%d") + "/", status=404)
     aioresponse.get(scraper.MAIN_URL + dates[-1].strftime("%Y-%m-%d") + "/", status=200)
@@ -43,7 +43,7 @@ async def test_get_date(aioresponse, db_session_container, containers):
 @pytest.mark.usefixtures("create_data_scraper")
 async def test_get_date_none(aioresponse, db_session_container, containers):
     scraper = await scraper_factory("oricon_scraper")
-    dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(1, 9)]
+    dates = [datetime.date.today() - datetime.timedelta(days=x) for x in range(1, 9)]
     for x in dates:
         aioresponse.get(scraper.MAIN_URL + x.strftime("%Y-%m-%d") + "/", status=404)
     res = await get_date(scraper)
@@ -98,7 +98,7 @@ async def test_get_date_full(
     mock.side_effect = [contents[:30], contents[30:]]
     mock_db.return_value = db_session_container
     scraper = await scraper_factory("oricon_scraper")
-    dates = [datetime.date.today() + datetime.timedelta(days=x) for x in range(1, 22)]
+    dates = [datetime.date.today() - datetime.timedelta(days=x) for x in range(1, 22)]
     for x in dates[:6]:
         aioresponse.get(scraper.MAIN_URL + x.strftime("%Y-%m-%d") + "/", status=404)
     aioresponse.get(scraper.MAIN_URL + dates[6].strftime("%Y-%m-%d") + "/", status=200)

@@ -10,7 +10,7 @@ from src.data_scraping.test.conftest import (
 )
 import pytest
 
-from src.manga_sales.db.models import Author, Item, Publisher, Week
+from src.manga_sales.db.models import Author, Item, PreviousRank, Publisher, Week
 
 
 @pytest.mark.usefixtures("create_data_scraper")
@@ -100,7 +100,7 @@ class TestDatabaseSaver:
         count = await items.get_count()
         assert count == 2
         assert res[0].rating == 2
-        assert res[0].previous_rank == 0
+        assert res[0].previous_rank == PreviousRank.DOWN
 
     async def test_prev_week(self, db_session_container, oricon_container, faker):
         cont = DatabaseConnector(oricon_container)
@@ -123,8 +123,8 @@ class TestDatabaseSaver:
         week_session.add(week)
         session = db_session_container.session()
         await session.commit()
-        res = await cont.get_previous_place(week, 2, "test")
-        assert res == 0
+        res = await cont.get_previous_place(week, 1, "test")
+        assert res == PreviousRank.SAME.name
 
     async def test_handle_authors(self, db_session_container, oricon_container):
         cont = DatabaseConnector(oricon_container)

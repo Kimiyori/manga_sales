@@ -6,7 +6,7 @@ from src.manga_sales.db.data_access_layers.source import SourceDAO
 from src.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
 from src.manga_sales.db.data_access_layers.title import TitleDAO
 from src.manga_sales.db.data_access_layers.week import WeekDAO
-from src.manga_sales.db.models import Title
+from src.manga_sales.db.models import PreviousRank, Title
 import datetime
 from src.manga_sales.test.conftest import *
 
@@ -123,7 +123,7 @@ class TestItem:
             pytest.items[0].rating,
             pytest.items[0].title.name,
         )
-        assert result.rank == 2
+        assert result.rank == PreviousRank.UP.name
 
     @pytest.mark.parametrize("dao", [ItemDAO])
     async def test_get_prev_rank_none(self, dao_session):

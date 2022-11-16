@@ -140,13 +140,17 @@ class TestOriconScraper:
         side_effect=[NotFound, NotFound, "bingo"],
     )
     async def test_find_latest_date(self, mock, oricon_container):
-        date = await oricon_container.find_latest_date(datetime.date(2022, 10, 11))
+        date = await oricon_container.find_latest_date(
+            datetime.date(2022, 10, 11), "forward"
+        )
         assert date == datetime.date(2022, 10, 14)
 
     @pytest.mark.asyncio
     @mock.patch("src.data_scraping.meta.AbstractBase.fetch", side_effect=[NotFound] * 9)
     async def test_find_latest_date_none(self, mock, oricon_container):
-        date = await oricon_container.find_latest_date(datetime.date(2022, 10, 11))
+        date = await oricon_container.find_latest_date(
+            datetime.date(2022, 10, 11), "forward"
+        )
         assert date == None
 
     @mock.patch("src.data_scraping.meta.AbstractBase.fetch")
@@ -429,15 +433,19 @@ class TestShosekiScraper:
     @pytest.mark.asyncio
     async def test_find_latest_date(self, aioresponse, shoseki_container, shoseki_list):
         aioresponse.get(shoseki_container.MAIN_URL, status=200, body=str(shoseki_list))
-        date = await shoseki_container.find_latest_date(datetime.date(2022, 10, 11))
-        assert date == datetime.date(2022, 10, 4)
+        date = await shoseki_container.find_latest_date(
+            datetime.date(2022, 10, 11), "forward"
+        )
+        assert date == datetime.date(2022, 10, 18)
 
     @pytest.mark.asyncio
     async def test_find_latest_date_first(
         self, aioresponse, shoseki_container, shoseki_list
     ):
         aioresponse.get(shoseki_container.MAIN_URL, status=200, body=str(shoseki_list))
-        date = await shoseki_container.find_latest_date(datetime.date(2022, 11, 11))
+        date = await shoseki_container.find_latest_date(
+            datetime.date(2022, 11, 11), "backward"
+        )
         assert date == datetime.date(2022, 11, 1)
 
     @pytest.mark.asyncio
@@ -445,20 +453,10 @@ class TestShosekiScraper:
         self, aioresponse, shoseki_container, shoseki_list
     ):
         aioresponse.get(shoseki_container.MAIN_URL, status=200, body=str(shoseki_list))
-        date = await shoseki_container.find_latest_date(datetime.date(2020, 11, 11))
-        assert date == None
-
-    @pytest.mark.asyncio
-    async def test_find_latest_date_convert(
-        self, aioresponse, shoseki_container, shoseki_list
-    ):
-        aioresponse.get(shoseki_container.MAIN_URL, status=200, body=str(shoseki_list))
         date = await shoseki_container.find_latest_date(
-            datetime.date(2022, 11, 11), False
+            datetime.date(2020, 11, 11), "forward"
         )
-        assert (
-            "2022/11/01 : 2022年10/24-10/30 漫画ランキング コミック売上BEST500【SPY×FAMILY10】" == date
-        )
+        assert date == None
 
     @pytest.mark.asyncio
     async def test_find_latest_date_exception(
@@ -467,7 +465,9 @@ class TestShosekiScraper:
         shoseki_list.find("ul", {"class": "list_body"})["class"] = "wrong"
         aioresponse.get(shoseki_container.MAIN_URL, status=200, body=str(shoseki_list))
         with pytest.raises(AttributeError):
-            await shoseki_container.find_latest_date(datetime.date(2022, 11, 11), False)
+            await shoseki_container.find_latest_date(
+                datetime.date(2022, 11, 11), "forward"
+            )
 
     async def test_get_aux_data(
         self,

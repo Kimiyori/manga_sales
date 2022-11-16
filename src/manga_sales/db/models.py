@@ -51,9 +51,9 @@ class SourceType(Base):
     __tablename__ = "source_type"
     id = Column(Integer, primary_key=True)
     type = Column(String(256), nullable=False)
-    weeks: list[Week] = relationship("Week", back_populates="source_type")
     source_id = Column(Integer, ForeignKey("source.id", ondelete="CASCADE"))
     source: Source = relationship("Source", back_populates="source_type")
+    weeks: list[Week] = relationship("Week", back_populates="source_type")
     __table_args__ = (
         UniqueConstraint("type", "source_id", name="_source_sourcetype_const"),
     )
@@ -96,7 +96,7 @@ association_item_publisher = Table(
 )
 
 
-class PreviousRank(enum.IntEnum):
+class PreviousRank(enum.Enum):
     """Types for column Previous_rank
 
     Args:
@@ -105,9 +105,9 @@ class PreviousRank(enum.IntEnum):
         DOWN : new rank lower that preivous
     """
 
-    UP = 2
-    SAME = 1
-    DOWN = 0
+    UP = "UP"
+    SAME = "SAME"
+    DOWN = "DOWN"
 
 
 class Item(Base):

@@ -24,7 +24,6 @@ class MangaUpdatesParser(AuxDataParserAbstract):
         exc_val: type[BaseException],
         exc_tb: type[TracebackType],
     ) -> None:
-        del self.title
         del self.page
         return await super().__aexit__(exc_type, exc_val, exc_tb)
 

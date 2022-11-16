@@ -69,7 +69,7 @@ class Session:
         return response
 
     async def fetch(
-        self, url: str, retries: int = 5, commands: list[str] | None = None
+        self, url: str, retries: int = 10, commands: list[str] | None = None
     ) -> Any:
         """
         Method for handling requests/responses
@@ -95,8 +95,9 @@ class Session:
                     return response
                 if response.status == 404:
                     raise NotFound("Can't find given page")
-                if response.status == 429:
+                if response.status in (429, 503):
                     await asyncio.sleep(self.sleep_time)
+                    self.sleep_time *= 2
                     return await self.fetch(url, retries - 1, commands)
                 raise Unsuccessful(f"Status code is {response.status}")
         except (aiohttp.ClientError, asyncio.TimeoutError) as exc:

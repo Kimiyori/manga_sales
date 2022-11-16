@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 import asyncio
+import operator
 import re
 import uuid
 from bs4 import BeautifulSoup
@@ -192,16 +193,22 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
 
     # ------------methods that can be invoked somewhere outside------------
     async def find_latest_date(
-        self, date: datetime.date, date_convert: bool = True
-    ) -> datetime.date | str | None:
+        self,
+        date: datetime.date,
+        action: str,
+    ) -> datetime.date | None:
         count_days = 1
+        assert action in ("forward", "backward")
+        operator_action = operator.add if action == "forward" else operator.sub
         while count_days <= 7:
-            guess_date = date + datetime.timedelta(days=count_days)
+            guess_date: datetime.date = operator_action(
+                date, datetime.timedelta(days=count_days)
+            )
             url = self.MAIN_URL + guess_date.strftime("%Y-%m-%d") + "/"
             try:
                 await self.fetch(url, return_bs=False)
             except (ConnectionError, NotFound):
                 count_days += 1
                 continue
-            return guess_date if date_convert else guess_date.strftime("%Y-%m-%d")
+            return guess_date
         return None

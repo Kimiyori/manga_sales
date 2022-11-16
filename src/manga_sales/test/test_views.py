@@ -1,18 +1,20 @@
 from unittest import mock
 import pytest
 import pytest_asyncio
+from src.manga_sales.containers import DatabaseContainer
 from src.manga_sales.db.data_access_layers.item import ItemDAO
 
 from src.manga_sales.db.data_access_layers.source import SourceDAO
 from src.manga_sales.db.data_access_layers.week import WeekDAO
 from .conftest import dao_session
-from src.main import main
+from src.main import create_app
 from src.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
 
 
 @pytest_asyncio.fixture
 async def app():
-    app = await main()
+    app = await create_app()
+    app.container = DatabaseContainer()
     yield app
     app.container.unwire()
 
