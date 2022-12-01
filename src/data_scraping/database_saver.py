@@ -162,7 +162,7 @@ class DatabaseConnector:
         prev_rank_item = await item_session.get_previous_rank(
             prev_week, current_rank, title
         )
-        return prev_rank_item.rank if prev_rank_item else None
+        return prev_rank_item
 
     @inject
     async def create_item(

@@ -38,7 +38,9 @@ class ItemDAO(AbstractDAO):
         count: int = row.count if row else 0  # type: ignore
         return count
 
-    async def get_previous_rank(self, week: Week, rank: int, title: str) -> Row | None:
+    async def get_previous_rank(
+        self, week: Week, rank: int, title: str
+    ) -> PreviousRank | None:
         query = (
             select(
                 case(
@@ -52,7 +54,9 @@ class ItemDAO(AbstractDAO):
             .order_by(self.model.rating)
         )
         result = await self.session.execute(query)
-        return result.first()
+        row = result.first()
+        rank_obj: PreviousRank | None = row.rank if row else None
+        return rank_obj
 
     async def get_instance(self, date_str: str) -> list[Row]:
         """Get item instance

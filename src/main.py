@@ -29,7 +29,9 @@ async def setup_redis(app_obj: web.Application) -> redis.asyncio.client.Redis[by
     return pool
 
 
-async def on_startup(app: web.Application):  # type:ignore # pylint: disable=unused-argument
+async def on_startup(
+    app: web.Application,
+):  # type:ignore # pylint: disable=unused-argument
     task = asyncio.create_task(run_schedule())
     await task
 
