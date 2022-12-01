@@ -52,7 +52,8 @@ class ItemDAO(AbstractDAO):
             .order_by(self.model.rating)
         )
         result = await self.session.execute(query)
-        return result.first()
+        row=result.first()
+        return row.rank if row else None
 
     async def get_instance(self, date_str: str) -> list[Row]:
         """Get item instance

@@ -49,7 +49,7 @@ async def create_app() -> web.Application:
     redis_pool = await setup_redis(app)
     storage = RedisStorage(redis_pool)
     setup_session(app, storage)
-    # app.on_startup.append(on_startup)
+    #app.on_startup.append(on_startup)
     return app
 
 

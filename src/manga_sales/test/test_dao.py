@@ -123,7 +123,7 @@ class TestItem:
             pytest.items[0].rating,
             pytest.items[0].title.name,
         )
-        assert result.rank == PreviousRank.UP.name
+        assert result == PreviousRank.UP.name
 
     @pytest.mark.parametrize("dao", [ItemDAO])
     async def test_get_prev_rank_none(self, dao_session):
