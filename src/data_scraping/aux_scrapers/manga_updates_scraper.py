@@ -3,13 +3,15 @@ import difflib
 from types import TracebackType
 from bs4 import BeautifulSoup
 from src.data_scraping.exceptions import ConnectError
+from src.data_scraping.services.image_service import get_most_close
 from .abc import _Self, AuxDataParserAbstract
 
 
 class MangaUpdatesParser(AuxDataParserAbstract):
     """Class for collecting data about title from MangaUpdates site"""
 
-    _MAIN_URL: str = "https://www.mangaupdates.com/series.html?search="
+    _MAIN_URL: str = "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search="
+
 
     # ------------helper methods for main methods------------
 
@@ -49,11 +51,11 @@ class MangaUpdatesParser(AuxDataParserAbstract):
             except (KeyError, AttributeError):
                 continue
         assert len(titles) > 0
-        most_similar = difflib.get_close_matches(self.title, titles.keys())
+        most_similar = get_most_close(self.title, titles.keys())
         # return link to most similar if it exist
         # else return first in list of titles
         return (
-            titles[most_similar[0]] if most_similar else titles[list(titles.keys())[0]]
+            titles[most_similar] if most_similar else titles[list(titles.keys())[0]]
         )
 
     # ------------main methods for collecting gata that invokes inside class------------

@@ -63,12 +63,25 @@ def manga_updates_list():
 def manga_updates_title():
     with open("src/data_scraping/test/test_files/mangaupdates_title.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
-
+@pytest.fixture
+def cdjapan_list():
+    with open("src/data_scraping/test/test_files/cdjapan_list.html", "rb") as fp:
+        yield BeautifulSoup(fp.read(), "html.parser")
+@pytest.fixture
+def cdjapan_item():
+    with open("src/data_scraping/test/test_files/cdjapan_item.html", "rb") as fp:
+        yield BeautifulSoup(fp.read(), "html.parser")
 
 @pytest_asyncio.fixture
 async def manga_updates_container():
     container = DataScrapingContainer()
     yield await container.manga_updates()
+    await container.shutdown_resources()
+
+@pytest_asyncio.fixture
+async def cdjapan_container():
+    container = DataScrapingContainer()
+    yield await container.cdjapan()
     await container.shutdown_resources()
 
 

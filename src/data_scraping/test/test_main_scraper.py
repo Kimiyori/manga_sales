@@ -42,21 +42,29 @@ class TestOriconScraper:
             oricon_container._get_original_title(oricon_item)
 
     @pytest.mark.asyncio
-    @mock.patch("src.data_scraping.meta.AbstractBase.fetch")
-    async def test_get_list_raw_data_success(self, mock, oricon_container, oricon_list):
-        mock.side_effect = [oricon_list]
-        lst = await oricon_container._get_list_raw_data("2022-11=11")
+    async def test_get_list_raw_data_success(
+        self, aioresponse, oricon_container, oricon_list
+    ):
+        aioresponse.get(
+            "2022-11-11",
+            body=str(oricon_list),
+        )
+        lst = await oricon_container._get_list_raw_data("2022-11-11")
         assert len(lst) == 10
 
     @pytest.mark.asyncio
-    @mock.patch("src.data_scraping.meta.AbstractBase.fetch")
-    async def test_get_list_raw_data_error(self, mock, oricon_container, oricon_list):
+    async def test_get_list_raw_data_error(
+        self, aioresponse, oricon_container, oricon_list
+    ):
         lst = oricon_list.find_all("section", {"class": "box-rank-entry"})
         for x in lst:
             x["class"] = "something"
-        mock.side_effect = [oricon_list]
+        aioresponse.get(
+            "2022-11-11",
+            body=str(oricon_list),
+        )
         with pytest.raises(BSError):
-            await oricon_container._get_list_raw_data("2022-11=11")
+            await oricon_container._get_list_raw_data("2022-11-11")
 
     def test_get_rating(self, oricon_container, oricon_item):
         rating = oricon_container.get_rating(oricon_item)
@@ -108,46 +116,45 @@ class TestOriconScraper:
         assert sales == None
 
     @pytest.mark.asyncio
-    @mock.patch(
-        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
-    )
-    @mock.patch(
-        "src.data_scraping.meta.AbstractBase.fetch", return_value=bytes("img", "utf-8")
-    )
-    async def test_get_image(self, mock, mock_img, oricon_container, oricon_item):
-        img_name = await oricon_container.get_image(oricon_item, "date")
-        assert isinstance(img_name, str)
+    async def test_get_image(self, aioresponse, oricon_container, oricon_item):
+        aioresponse.get(
+            "https://m.media-amazon.com/images/I/41DRrJAiurL._SL160_.jpg",
+            body=bytes("img", "utf-8"),
+        )
+        img = await oricon_container._get_image(oricon_item)
+        assert isinstance(img, bytes)
 
     @pytest.mark.asyncio
-    @mock.patch(
-        "src.data_scraping.meta.AbstractBase.fetch", return_value="not bytes type"
-    )
-    async def test_get_image_wrong_img_type(
-        self, mock_img, oricon_container, oricon_item
-    ):
-        with pytest.raises(AssertionError):
-            await oricon_container.get_image(oricon_item, "date")
-
-    @pytest.mark.asyncio
-    async def test_get_image_wrong_class(self, oricon_container, oricon_item):
-        oricon_item.find("p", {"class": "image"})["class"] = "not img"
-        img_name = await oricon_container.get_image(oricon_item, "date")
-        assert img_name == None
-
-    @pytest.mark.asyncio
-    @mock.patch(
-        "src.data_scraping.meta.AbstractBase.fetch",
-        side_effect=[NotFound, NotFound, "bingo"],
-    )
-    async def test_find_latest_date(self, mock, oricon_container):
+    async def test_find_latest_date(self, aioresponse, oricon_container):
+        date = [datetime.date(2022, 10, 11)+datetime.timedelta(days=x) for x in range(1,4)]
+        for x in date[:-1]:
+            aioresponse.get(
+                oricon_container.MAIN_URL
+                + x.strftime("%Y-%m-%d")
+                + "/",
+                status=404,
+            )
+        aioresponse.get(
+            oricon_container.MAIN_URL
+            + date[-1].strftime("%Y-%m-%d")
+            + "/",
+            body="bingo",
+        )
         date = await oricon_container.find_latest_date(
             datetime.date(2022, 10, 11), "forward"
         )
         assert date == datetime.date(2022, 10, 14)
 
     @pytest.mark.asyncio
-    @mock.patch("src.data_scraping.meta.AbstractBase.fetch", side_effect=[NotFound] * 9)
-    async def test_find_latest_date_none(self, mock, oricon_container):
+    async def test_find_latest_date_none(self, aioresponse, oricon_container):
+        date = [datetime.date(2022, 10, 11)+datetime.timedelta(days=x) for x in range(1,11)]
+        for x in date:
+            aioresponse.get(
+                oricon_container.MAIN_URL
+                + x.strftime("%Y-%m-%d")
+                + "/",
+                status=404,
+            )
         date = await oricon_container.find_latest_date(
             datetime.date(2022, 10, 11), "forward"
         )
@@ -188,69 +195,7 @@ class TestOriconScraper:
         assert publishers == []
         assert name == "暁のARIA"
 
-    @mock.patch(
-        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
-    )
-    @mock.patch(
-        "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
-    )
-    async def test_retrieve_data(
-        self,
-        mock_mangaupdates,
-        mock_img,
-        oricon_container,
-        oricon_list,
-        manga_updates_list,
-        manga_updates_title,
-    ):
-        list_items = oricon_list.find_all("section", {"class": "box-rank-entry"})
-        for x in list_items:
-            x.find("h2", {"class": "title"}).string = "暁のARIA"
-        mock_mangaupdates.side_effect = [manga_updates_list, manga_updates_title] * 10
-        with mock.patch.object(
-            OriconWeeklyScraper,
-            "fetch",
-            side_effect=[oricon_list] + [bytes("img", "utf-8")] * 30,
-        ):
-            res = await oricon_container._retrieve_data("url", "date")
-            assert len(res) == 10
-            for i, x in enumerate(res, start=1):
-                assert x.rating == i
-                assert x.name == "Akatsuki no Aria"
 
-    @mock.patch(
-        "src.data_scraping.main_scrapers.oricon_scraper.save_image", return_value=None
-    )
-    @mock.patch(
-        "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
-    )
-    async def test_get_data(
-        self,
-        mock_mangaupdates,
-        mock_img,
-        oricon_container,
-        oricon_list,
-        manga_updates_list,
-        manga_updates_title,
-    ):
-        list_items = oricon_list.find_all("section", {"class": "box-rank-entry"})
-        for x in list_items:
-            x.find("h2", {"class": "title"}).string = "暁のARIA"
-        mock_mangaupdates.side_effect = [manga_updates_list, manga_updates_title] * 30
-        with mock.patch.object(
-            OriconWeeklyScraper,
-            "fetch",
-            side_effect=([oricon_list] + [bytes("img", "utf-8")] * 10) * 3,
-        ):
-            res = await oricon_container.get_data("date")
-            assert len(res) == 30
-            for i, x in enumerate(res, start=1):
-                if i % 10 == 0:
-                    i = 10
-                else:
-                    i %= 10
-                assert x.rating == i
-                assert x.name == "Akatsuki no Aria"
 
 
 class TestShosekiScraper:

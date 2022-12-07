@@ -8,7 +8,10 @@ from bs4 import BeautifulSoup
 from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
 from src.data_scraping.dataclasses import Content
 from src.data_scraping.exceptions import BSError, ConnectError, NotFound
-from src.data_scraping.services.images_service import save_image
+from src.data_scraping.image_scrapers.abc import AbstractImageScraper
+from src.data_scraping.image_scrapers.cdjapan import CDJapanImageScraper
+from src.data_scraping.services.files_service import save_image
+
 from src.data_scraping.session_context_manager import Session
 from .abc import MainDataAbstractScraper
 
@@ -24,14 +27,19 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
     _NUMBER_PAGES: int = 4
 
     def __init__(
-        self, session: Session, main_info_parser: AuxDataParserAbstract
+        self,
+        session: Session,
+        main_info_parser: AuxDataParserAbstract,
     ) -> None:
         self.main_info_parser = main_info_parser
         super().__init__(session)
 
     # ------------helper methods for main methods------------
     @staticmethod
-    def _get_original_title(item: BeautifulSoup) -> str:
+    def get_string_info(item: BeautifulSoup) -> str:
+        return item.find("h2", {"class": "title"}).string
+
+    def _get_original_title(self, item: BeautifulSoup) -> str:
         """Function for caputring name of title
 
         Args:
@@ -44,17 +52,14 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             str: name of title
         """
         try:
-            split_name: list[str] = item.find("h2", {"class": "title"}).string.split()
+            title_string = self.get_string_info(item)
+            title_match = re.search(r"(?P<title>.+?)((?<=\s)\d+)", title_string)
             # as a rule, in Oricon, the volume number is always put at the end of the name,
             # so we capture everything that comes before it
-            japanese_name = (
-                " ".join(x for x in split_name[:-1])
-                if len(split_name) > 1
-                else split_name[0]
-            )
+            title_name = title_match["title"] if title_match else title_string
         except (AttributeError, IndexError) as error:
             raise BSError("Can't parse item to find title name") from error
-        return japanese_name
+        return title_name
 
     async def _get_list_raw_data(self, url: str) -> BeautifulSoup:
         data: BeautifulSoup = await self.fetch(url, commands=["content", "read"])
@@ -80,11 +85,12 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
         self, index: int, item: BeautifulSoup, date: str
     ) -> Content:
         rating = self.get_rating(item)
-        image = await self.get_image(item, date)
+        volume = self.get_volume(item)
         name, authors, publishers = await self._get_aux_data(item)
+        image = await self.get_image(item, date, name, volume)
         content = Content(
             name=name,
-            volume=self.get_volume(item),
+            volume=volume,
             image=image,
             authors=authors,
             publishers=publishers,
@@ -172,23 +178,22 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             return None
         return sold
 
-    async def get_image(self, item: BeautifulSoup, date: str) -> str | None:
-        def create_name(url: str) -> str:
-            reg = re.search(r".(\w+)$", url)
-            extension = reg.group(1) if reg else "jpg"
-            name = f"{uuid.uuid4()}.{extension}"
-            return name
+    async def _get_image(self, item: BeautifulSoup) -> bytes:
+        img_url = item.find("p", {"class": "image"}).find("img").get("src")
+        image_file = await self.fetch(img_url, ["read"], False)
+        return image_file
 
+    async def get_image(
+        self, item: BeautifulSoup, date: str, name: str, volume: int
+    ) -> str | None:
+        str_info = self.get_string_info(item)
+        image_parser = CDJapanImageScraper(self.session, str_info, name, volume)
         try:
-            img_url = item.find("p", {"class": "image"}).find("img").get("src")
-            if img_url is None:
-                return None
-            name = create_name(img_url)
-            image_file = await self.fetch(img_url, ["read"], False)
-        except (ConnectError, AttributeError):
-            return None
-        assert isinstance(image_file, bytes)
-        save_image(self.SOURCE, self.SOURCE_TYPE, image_file, name, date)
+            image = await image_parser.get_image()
+        except NotFound:
+            image = await self._get_image(item)
+        name = f"{uuid.uuid4()}.jpg"
+        save_image(self.SOURCE, self.SOURCE_TYPE, image, name, date)
         return name
 
     # ------------methods that can be invoked somewhere outside------------

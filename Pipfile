@@ -36,6 +36,7 @@ redis = ">=4.2.0rc1"
 faker = "*"
 types-redis = "*"
 aioschedule = "*"
+jellyfish = "*"
 
 [dev-packages]
 

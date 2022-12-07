@@ -1,7 +1,6 @@
 from pathlib import Path
 import shutil
 
-
 def save_image(
     source: str, source_type: str, file: bytes, name: str, date: str
 ) -> None:

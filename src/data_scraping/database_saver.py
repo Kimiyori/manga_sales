@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.data_scraping.containers import DBSessionContainer
 from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
 from src.data_scraping.dataclasses import Content
-from src.data_scraping.services.images_service import delete_images
+from src.data_scraping.services.files_service import delete_images
 from src.manga_sales.db.data_access_layers.author import AuthorDAO
 from src.manga_sales.db.data_access_layers.item import ItemDAO
 from src.manga_sales.db.data_access_layers.publisher import PublisherDAO

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
 from src.data_scraping.dataclasses import Content
 from src.data_scraping.exceptions import ConnectError, Unsuccessful
-from src.data_scraping.services.images_service import save_image
+from src.data_scraping.services.files_service import save_image
 from src.data_scraping.session_context_manager import Session
 from .abc import MainDataAbstractScraper
 

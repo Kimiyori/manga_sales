@@ -1,5 +1,6 @@
 from dependency_injector import containers, providers
 from src.data_scraping.aux_scrapers.manga_updates_scraper import MangaUpdatesParser
+from src.data_scraping.image_scrapers.cdjapan import CDJapanImageScraper
 from src.data_scraping.main_scrapers.oricon_scraper import OriconWeeklyScraper
 from src.data_scraping.main_scrapers.shoseki_scraper import ShosekiWeeklyScraper
 from src.data_scraping.services.session_service import session_factory
@@ -29,7 +30,9 @@ class DataScrapingContainer(containers.DeclarativeContainer):
     )
     manga_updates = providers.Factory(MangaUpdatesParser, web_session)
     oricon_scraper = providers.Factory(
-        OriconWeeklyScraper, session=web_session, main_info_parser=manga_updates
+        OriconWeeklyScraper,
+        session=web_session,
+        main_info_parser=manga_updates,
     )
     shoseki_scraper = providers.Factory(
         ShosekiWeeklyScraper, session=web_session, main_info_parser=manga_updates

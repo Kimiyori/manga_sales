@@ -102,7 +102,7 @@ class Session:
                 raise Unsuccessful(f"Status code is {response.status}")
         except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
             raise ConnectError(
-                f"Failed to connect with following error - {exc}"
+                f"Failed to connect with following error - {exc} - {url}"
             ) from exc
         except AttributeError as error:
             raise Unsuccessful("Use this object as context manager") from error
