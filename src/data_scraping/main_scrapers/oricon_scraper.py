@@ -1,20 +1,22 @@
 from __future__ import annotations
 import datetime
 import asyncio
+import logging
 import operator
 import re
 import uuid
 from bs4 import BeautifulSoup
+
 from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
+from src.data_scraping.aux_scrapers.manga_updates_scraper import MangaUpdatesParser
 from src.data_scraping.dataclasses import Content
-from src.data_scraping.exceptions import BSError, ConnectError, NotFound
-from src.data_scraping.image_scrapers.abc import AbstractImageScraper
+from src.data_scraping.exceptions import BSError, NotFound, Unsuccessful
 from src.data_scraping.image_scrapers.cdjapan import CDJapanImageScraper
+from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
 from src.data_scraping.services.files_service import save_image
-
 from src.data_scraping.session_context_manager import Session
-from .abc import MainDataAbstractScraper
-
+from src.data_scraping.utils.url import build_url, update_url
+logger = logging.getLogger('file_log')
 
 class OriconWeeklyScraper(MainDataAbstractScraper):
     """
@@ -23,23 +25,22 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
 
     SOURCE = "Oricon"
     SOURCE_TYPE = "Weekly"
-    MAIN_URL: str = "https://www.oricon.co.jp/rank/obc/w/"
+    MAIN_URL: str = build_url(
+        scheme="https",
+        netloc="www.oricon.co.jp",
+        path=["rank", "obc", "w"],
+    )
     _NUMBER_PAGES: int = 4
 
     def __init__(
         self,
         session: Session,
-        main_info_parser: AuxDataParserAbstract,
     ) -> None:
-        self.main_info_parser = main_info_parser
         super().__init__(session)
 
     # ------------helper methods for main methods------------
     @staticmethod
-    def get_string_info(item: BeautifulSoup) -> str:
-        return item.find("h2", {"class": "title"}).string
-
-    def _get_original_title(self, item: BeautifulSoup) -> str:
+    def _get_original_title(item: BeautifulSoup) -> str:
         """Function for caputring name of title
 
         Args:
@@ -52,16 +53,28 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             str: name of title
         """
         try:
-            title_string = self.get_string_info(item)
-            title_match = re.search(r"(?P<title>.+?)((?<=\s)\d+)", title_string)
+            title_string: str = item.find("h2", {"class": "title"}).string
+            title_match = re.search(r"(?P<title>.+)\s\d+", title_string)
             # as a rule, in Oricon, the volume number is always put at the end of the name,
             # so we capture everything that comes before it
             title_name = title_match["title"] if title_match else title_string
+            title_name = title_name.replace("。", "")
         except (AttributeError, IndexError) as error:
             raise BSError("Can't parse item to find title name") from error
         return title_name
 
     async def _get_list_raw_data(self, url: str) -> BeautifulSoup:
+        """Fetches page with all titles
+
+        Args:
+            url (str): oricon url
+
+        Raises:
+            BSError: raises if bs fails to parse fetched data
+
+        Returns:
+            BeautifulSoup: page
+        """
         data: BeautifulSoup = await self.fetch(url, commands=["content", "read"])
         list_items = data.find_all("section", {"class": "box-rank-entry"})
         if not list_items:
@@ -71,19 +84,42 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
     async def _get_aux_data(
         self, item: BeautifulSoup
     ) -> tuple[str, list[str], list[str]]:
+        """Fetch and parse additional data about given title,
+        including its name in english(romaji) and authors and publishers
+
+        Args:
+            item (BeautifulSoup): page
+
+        Returns:
+            tuple[str, list[str], list[str]]: name, authors, publishers
+        """
         original_title = self._get_original_title(item)
+        main_info_parser=MangaUpdatesParser(self.session)
         try:
-            async with self.main_info_parser(title=original_title):
-                name = self.main_info_parser.get_title()
-                authors = self.main_info_parser.get_authors()
-                publishers = self.main_info_parser.get_publishers()
+            async with main_info_parser(title=original_title):
+                name = main_info_parser.get_title()
+                authors = main_info_parser.get_authors()
+                publishers = main_info_parser.get_publishers()
         except Exception:  # pylint: disable = broad-except
             return original_title, [], []
+        logger.debug(f"{original_title},{name}")
         return name, authors, publishers
 
     async def create_content_item(
         self, index: int, item: BeautifulSoup, date: str
     ) -> Content:
+        """Collect all data about given title
+
+        Args:
+            index (int): index that passed from  _retrieve_data method.
+            Used to put in place a rating if it can't be obtained
+
+            item (BeautifulSoup): page
+            date (str): date current chart
+
+        Returns:
+            Content: dataclass that contains all fetched data
+        """
         rating = self.get_rating(item)
         volume = self.get_volume(item)
         name, authors, publishers = await self._get_aux_data(item)
@@ -101,6 +137,15 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
         return content
 
     async def _retrieve_data(self, url: str, date: str) -> list[Content]:
+        """Method for collecting all data about all titles for given page in single list
+
+        Args:
+            url (str): url from witch need to collect data
+            date (str): date current chart
+
+        Returns:
+            list[Content]: list fo contents
+        """
         list_items = await self._get_list_raw_data(url)
         lst = []
         for i, item in enumerate(list_items, start=1):
@@ -111,36 +156,33 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
     # ------------main methods for collecting gata that invokes inside class------------
     async def get_data(self, date: str) -> list[Content]:
         pages: list[str] = [
-            self.MAIN_URL + date + f"/p/{x}/" for x in range(1, self._NUMBER_PAGES)
+            update_url(self.MAIN_URL, path=[date, "p", str(x)], trailing_slash=True)
+            for x in range(1, self._NUMBER_PAGES)
         ]
         tasks = [asyncio.create_task(self._retrieve_data(page, date)) for page in pages]
         rating_list = await asyncio.gather(*tasks)
         return [x for y in rating_list for x in y] if rating_list else []
 
-    def get_rating(self, item: BeautifulSoup) -> int | None:
+    @staticmethod
+    def get_rating(item: BeautifulSoup) -> int | None:
         try:
             rating = int(item.find("p", {"class": "num"}).string)
         except (AttributeError, ValueError):
             return None
         return rating
 
-    def get_volume(self, item: BeautifulSoup) -> int | None:
+    @staticmethod
+    def get_volume(item: BeautifulSoup) -> int | None:
         volume = None
         try:
-            lst = item.find("h2", {"class": "title"}).string.split()
+            full_name = item.find("h2", {"class": "title"}).string
         except AttributeError:
             return volume
-        # iterate over all space-separated words from the title and
-        # catch the first integer (usually this will be the volume)
-        for piece in lst:
-            try:
-                volume = int(piece)
-                break
-            except ValueError:
-                continue
-        return volume
+        re_match = re.search(r"\d+(?!.*\d+)", full_name)
+        return int(re_match[0]) if re_match else None
 
-    def get_release_date(self, item: BeautifulSoup) -> datetime.date | None:
+    @staticmethod
+    def get_release_date(item: BeautifulSoup) -> datetime.date | None:
         try:
             text = (
                 item.find("ul", {"class": "list"})
@@ -181,19 +223,19 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
     async def _get_image(self, item: BeautifulSoup) -> bytes:
         img_url = item.find("p", {"class": "image"}).find("img").get("src")
         image_file = await self.fetch(img_url, ["read"], False)
+        assert isinstance(image_file, bytes)
         return image_file
 
     async def get_image(
-        self, item: BeautifulSoup, date: str, name: str, volume: int
+        self, item: BeautifulSoup, date: str, name: str, volume: int | None
     ) -> str | None:
-        str_info = self.get_string_info(item)
+        str_info = item.find("h2", {"class": "title"}).string
         image_parser = CDJapanImageScraper(self.session, str_info, name, volume)
         try:
             image = await image_parser.get_image()
-        except NotFound:
+        except (Unsuccessful, NotFound) as error:
             image = await self._get_image(item)
-        name = f"{uuid.uuid4()}.jpg"
-        save_image(self.SOURCE, self.SOURCE_TYPE, image, name, date)
+        name = save_image(self.SOURCE, self.SOURCE_TYPE, image, date)
         return name
 
     # ------------methods that can be invoked somewhere outside------------
@@ -209,7 +251,11 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             guess_date: datetime.date = operator_action(
                 date, datetime.timedelta(days=count_days)
             )
-            url = self.MAIN_URL + guess_date.strftime("%Y-%m-%d") + "/"
+            url = update_url(
+                self.MAIN_URL,
+                path=[guess_date.strftime("%Y-%m-%d")],
+                trailing_slash=True,
+            )
             try:
                 await self.fetch(url, return_bs=False)
             except (ConnectionError, NotFound):

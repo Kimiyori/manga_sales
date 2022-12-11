@@ -26,16 +26,13 @@ class DataScrapingContainer(containers.DeclarativeContainer):
         ]
     )
     web_session: providers.Resource[Session] = providers.Resource(
-        session_factory, Session
-    )
-    manga_updates = providers.Factory(MangaUpdatesParser, web_session)
+        session_factory, Session)
     oricon_scraper = providers.Factory(
         OriconWeeklyScraper,
         session=web_session,
-        main_info_parser=manga_updates,
     )
     shoseki_scraper = providers.Factory(
-        ShosekiWeeklyScraper, session=web_session, main_info_parser=manga_updates
+        ShosekiWeeklyScraper, session=web_session
     )
 
 

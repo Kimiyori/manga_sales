@@ -89,6 +89,7 @@ class Session:
         try:
             assert isinstance(self.session, aiohttp.ClientSession)
             async with self.session.get(url) as response:
+                await asyncio.sleep(1)
                 if response.status == 200:
                     if commands:
                         response = await self._apply_commands(response, commands)

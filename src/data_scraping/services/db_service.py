@@ -73,7 +73,7 @@ async def get_date(
             scraper.SOURCE, scraper.SOURCE_TYPE
         )
         if last_db_date:
-            date, action = last_db_date, "backward"
+            date, action = last_db_date, "forward"
         else:
             date = datetime.date.today()
     valid_date = await scraper.find_latest_date(date, action)
@@ -92,7 +92,8 @@ async def execute_scraper(scraper_name: str, date: datetime.date | None = None) 
     db_conn = DatabaseConnector(scraper)
     if date is None:
         date = await get_date(scraper)
+    #date = datetime.date(2022, 11, 21)
     while date:
         await db_conn.insert_data(date)
         date = await get_date(scraper, date)
-        #date=None
+

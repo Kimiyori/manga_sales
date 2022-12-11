@@ -10,8 +10,7 @@ from .abc import _Self, AuxDataParserAbstract
 class MangaUpdatesParser(AuxDataParserAbstract):
     """Class for collecting data about title from MangaUpdates site"""
 
-    _MAIN_URL: str = "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search="
-
+    _MAIN_URL: str = "https://www.mangaupdates.com/series.html?type=manga&perpage=5&search="
 
     # ------------helper methods for main methods------------
 
@@ -44,19 +43,17 @@ class MangaUpdatesParser(AuxDataParserAbstract):
         items = link.find_all("div", {"class": "col-12 col-lg-6 p-3 text"})
         assert len(items) > 0
         titles: dict[str, str] = {}
-        for item in items:
-            item = item.find("div", {"class": "text"})
+        for i, item in enumerate(items):
+            title_element = item.find("div", {"class": "text"})
             try:
-                titles[item.find("b").string] = item.find("a")["href"]
+                titles[tuple([i, title_element.find("b").string])] = title_element.find("a")["href"]
             except (KeyError, AttributeError):
                 continue
         assert len(titles) > 0
         most_similar = get_most_close(self.title, titles.keys())
         # return link to most similar if it exist
         # else return first in list of titles
-        return (
-            titles[most_similar] if most_similar else titles[list(titles.keys())[0]]
-        )
+        return titles[most_similar] if most_similar else titles[list(titles.keys())[0]]
 
     # ------------main methods for collecting gata that invokes inside class------------
     async def get_main_info_page(self) -> BeautifulSoup:

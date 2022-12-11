@@ -1,8 +1,9 @@
 from pathlib import Path
 import shutil
+import uuid
 
 def save_image(
-    source: str, source_type: str, file: bytes, name: str, date: str
+    source: str, source_type: str, file: bytes,  date: str
 ) -> None:
     """Saves image in path defined with source and data_type arguments with following path:
         Path: 'manga_sales/static/images/{source}/{data_type}/'
@@ -23,13 +24,13 @@ def save_image(
     image_path = (
         f"src/manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
     )
-    if file and name:
-        path = Path(image_path)
-        # ensure that given path exist or create it
-        path.mkdir(parents=True, exist_ok=True)
-        with open(path / f"{name}", "wb") as open_file:
-            open_file.write(file)
-
+    name = f"{uuid.uuid4()}.jpg"
+    path = Path(image_path)
+    # ensure that given path exist or create it
+    path.mkdir(parents=True, exist_ok=True)
+    with open(path / f"{name}", "wb") as open_file:
+        open_file.write(file)
+    return name
 
 def delete_images(source: str, source_type: str, date: str) -> None:
     # exception handler

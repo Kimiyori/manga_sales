@@ -18,5 +18,5 @@ class AbstractImageScraper(AbstractBase):
         super().__init__(session)
 
     @abstractmethod
-    async def get_image(self, name: str, volume: int) -> bytes:
+    async def get_image(self, tries: int = 5) -> bytes:
         pass

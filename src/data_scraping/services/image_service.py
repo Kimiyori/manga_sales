@@ -1,4 +1,8 @@
 from functools import lru_cache
+import json
+import logging
+
+logger = logging.getLogger("file_log2")
 
 
 def lev_dist(a, b):
@@ -25,8 +29,11 @@ def get_most_close(word: str, list_words: list[str]) -> str | None:
     min_distance = float("inf")
     most_similar_word = None
     for guessed_word in list_words:
-        curr_distance = lev_dist(word, guessed_word)
+        curr_distance = lev_dist(word.lower(), guessed_word[1].lower())
         if curr_distance < min_distance:
             most_similar_word = guessed_word
             min_distance = curr_distance
+        logger.debug(
+            f"{word.lower()},{guessed_word[1].lower()},{curr_distance},{ min_distance} , {most_similar_word},"
+        )
     return most_similar_word

@@ -24,8 +24,9 @@ class MainDataAbstractScraper(AbstractBase):
             list[Content] | None: list of Contents with data
         """
 
+    @staticmethod
     @abstractmethod
-    def get_rating(self, item: BeautifulSoup | str) -> int | None:
+    def get_rating(item: BeautifulSoup | str) -> int | None:
         """Get rating from given item
 
         Args:
@@ -35,8 +36,9 @@ class MainDataAbstractScraper(AbstractBase):
             int: rating
         """
 
+    @staticmethod
     @abstractmethod
-    def get_volume(self, item: BeautifulSoup | str) -> int | None:
+    def get_volume(item: BeautifulSoup | str) -> int | None:
         """
         Get volume from given item
 
@@ -47,8 +49,9 @@ class MainDataAbstractScraper(AbstractBase):
             int | None: volume
         """
 
+    @staticmethod
     @abstractmethod
-    def get_release_date(self, item: BeautifulSoup | str) -> datetime.date | None:
+    def get_release_date(item: BeautifulSoup | str) -> datetime.date | None:
         """
         Get release date from given item
 
@@ -75,7 +78,9 @@ class MainDataAbstractScraper(AbstractBase):
         """
 
     @abstractmethod
-    async def get_image(self, item: BeautifulSoup | str, date: str) -> str | None:
+    async def get_image(
+        self, item: BeautifulSoup, date: str, name: str, volume: int
+    ) -> str | None:
         """Get image file from item and save it
 
         Args:
