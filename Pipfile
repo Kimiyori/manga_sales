@@ -37,6 +37,7 @@ faker = "*"
 types-redis = "*"
 aioschedule = "*"
 jellyfish = "*"
+python-json-logger = "*"
 
 [dev-packages]
 
