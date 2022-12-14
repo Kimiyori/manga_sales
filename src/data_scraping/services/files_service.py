@@ -2,9 +2,8 @@ from pathlib import Path
 import shutil
 import uuid
 
-def save_image(
-    source: str, source_type: str, file: bytes,  date: str
-) -> None:
+
+def save_image(source: str, source_type: str, file: bytes, date: str) -> str:
     """Saves image in path defined with source and data_type arguments with following path:
         Path: 'manga_sales/static/images/{source}/{data_type}/'
 
@@ -31,6 +30,7 @@ def save_image(
     with open(path / f"{name}", "wb") as open_file:
         open_file.write(file)
     return name
+
 
 def delete_images(source: str, source_type: str, date: str) -> None:
     # exception handler

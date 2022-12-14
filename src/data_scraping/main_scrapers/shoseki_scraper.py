@@ -3,14 +3,18 @@ import datetime
 import operator
 import re
 import unicodedata
-import uuid
 from bs4 import BeautifulSoup
-from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
+from dependency_injector.wiring import Provide, inject, Closing
+
+from src.data_scraping.main_scrapers.meta import MainDataAbstractScraper
+from src.data_scraping.aux_scrapers.meta import AuxDataParserAbstract
+from src.data_scraping.containers.aux_scrapers import AuxScrapingContainer
+from src.data_scraping.containers.image_scrapers import ImageScrapingContainer
 from src.data_scraping.dataclasses import Content
-from src.data_scraping.exceptions import ConnectError, Unsuccessful
+from src.data_scraping.exceptions import NotFound, Unsuccessful
+from src.data_scraping.image_scrapers.meta import AbstractImageScraper
 from src.data_scraping.services.files_service import save_image
-from src.data_scraping.session_context_manager import Session
-from .abc import MainDataAbstractScraper
+from src.data_scraping.utils.url import build_url
 
 
 class ShosekiWeeklyScraper(MainDataAbstractScraper):
@@ -20,13 +24,13 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
 
     SOURCE = "Shoseki"
     SOURCE_TYPE = "Weekly"
-    MAIN_URL: str = "http://shosekiranking.blog.fc2.com/blog-category-6.html"
-
-    def __init__(
-        self, session: Session, main_info_parser: AuxDataParserAbstract
-    ) -> None:
-        self.main_info_parser = main_info_parser
-        super().__init__(session)
+    MAIN_URL: str = build_url(
+        scheme="http",
+        netloc="shosekiranking.blog.fc2.com",
+        path=[
+            "blog-category-6.html",
+        ],
+    )
 
     # ------------helper methods for main methods------------
     @staticmethod
@@ -82,13 +86,29 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         ]
         return list_items
 
-    async def _get_aux_data(self, item: str) -> tuple[str, list[str], list[str]]:
+    @inject
+    async def _get_aux_data(
+        self,
+        item: BeautifulSoup,
+        aux_scraper: AuxDataParserAbstract = Closing[
+            Provide[AuxScrapingContainer.manga_updates_scraper]
+        ],
+    ) -> tuple[str, list[str], list[str]]:
+        """Fetch and parse additional data about given title,
+        including its name in english(romaji) and authors and publishers
+
+        Args:
+            item (BeautifulSoup): page
+
+        Returns:
+            tuple[str, list[str], list[str]]: name, authors, publishers
+        """
         original_title = self._get_original_title(item)
         try:
-            async with self.main_info_parser(title=original_title):
-                name = self.main_info_parser.get_title()
-                authors = self.main_info_parser.get_authors()
-                publishers = self.main_info_parser.get_publishers()
+            async with aux_scraper(title=original_title):
+                name = aux_scraper.get_title()
+                authors = aux_scraper.get_authors()
+                publishers = aux_scraper.get_publishers()
         except Exception:  # pylint: disable = broad-except
             return original_title, [], []
         return name, authors, publishers
@@ -96,12 +116,24 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
     async def create_content_item(
         self, index: int, row: list[str], date: str
     ) -> Content:
+        """Collect all data required for signle item and wrapp in 'Content' dataclass
+
+        Args:
+            index (int): index for indicate rating in case fail to catch it
+            row (list[str]): row with info about give title
+            in form: [id,ISBN,'title,volume,date and publisher']
+            date (str): current date
+
+        Returns:
+            Content: Content instance
+        """
         rating = self.get_rating(row[0])
+        volume = self.get_volume(row[2])
         name, authors, publishers = await self._get_aux_data(row[2])
-        image = await self.get_image(row[1], date)
+        image = await self.get_image(row, date=date, name=name, volume=volume)
         content = Content(
             name=name,
-            volume=self.get_volume(row[2]),
+            volume=volume,
             image=image,
             authors=authors,
             publishers=publishers,
@@ -111,6 +143,15 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         return content
 
     async def _retrieve_data(self, url: str, date: str) -> list[Content]:
+        """Method for iterating of list of data and collecting data for each of them
+
+        Args:
+            url (str): url from with need collect data
+            date (str): cureent date
+
+        Returns:
+            list[Content]: list with Contents instances
+        """
         list_items = await self._get_list_raw_data(url)
         lst = []
         for i, row in enumerate(list_items):
@@ -119,6 +160,18 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         return lst
 
     async def _get_data_url(self, date: str) -> str | None:
+        """method for finding url to ratign for either given date
+        or most close date that comes before ti
+
+        Args:
+            date (str)
+
+        Raises:
+            error:  raises Attribute error if an error occurs while parsing
+
+        Returns:
+            str | None: return url to found url or none, of that url doesnt exist
+        """
         main_page: BeautifulSoup = await self.fetch(
             self.MAIN_URL, commands=["content", "read"]
         )
@@ -141,6 +194,14 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
 
     @staticmethod
     def _get_original_title(item: str) -> str:
+        """Method for extracting title name from string
+
+        Args:
+            item (str): string with title name, volume, publisher and publication date
+
+        Returns:
+            str: title name
+        """
         reg = re.search(r"^(\S+|\D+)\s\d+", item)
         return reg.group(1) if reg else item
 
@@ -150,41 +211,54 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         rating_list = await self._retrieve_data(url, date) if url else None
         return rating_list
 
-    async def get_image(self, item: str, date: str) -> str | None:
-        def create_name(url: str) -> str:
-            reg = re.search(r".(\w+)$", url)
-            extension = reg.group(1) if reg else "jpg"
-            name = f"{uuid.uuid4()}.{extension}"
-            return name
-
-        amazon_url = f"https://www.amazon.co.jp/s?i=stripbooks&ref=nb_sb_noss&k={item}"
+    async def _get_image(self, item: str) -> bytes:
+        amazon_url = build_url(
+            scheme="https",
+            netloc="www.amazon.co.jp",
+            path=["s"],
+            query={"i": "stripbooks", "ref": "nb_sb_noss", "k": item},
+        )
         page_image: BeautifulSoup = await self.fetch(
             amazon_url, commands=["content", "read"]
         )
+        img_url = page_image.find("img", {"class": "s-image"})["src"]
+        image_file: bytes = await self.fetch(img_url, ["read"], False)
+        return image_file
+
+    @inject
+    async def get_image(  # pylint: disable=too-many-arguments
+        self,
+        item: list[str],
+        date: str,
+        name: str,
+        volume: int | None,
+        image_scraper: AbstractImageScraper = Closing[
+            Provide[ImageScrapingContainer.cdjapan_scraper]
+        ],
+    ) -> str | None:
+        str_info = f"{self._get_original_title(item[2])} {volume}"
         try:
-            img_url = page_image.find("img", {"class": "s-image"})["src"]
-            name = create_name(img_url)
-            image_file = await self.fetch(img_url, ["read"], False)
-        except (ConnectError, Unsuccessful, AttributeError, TypeError):
-            return None
-        assert isinstance(image_file, bytes)
-        save_image(self.SOURCE, self.SOURCE_TYPE, image_file, name, date)
+            image = await image_scraper.get_image(str_info, name, volume)
+        except (Unsuccessful, NotFound):
+            image = await self._get_image(item[1])
+        name = save_image(self.SOURCE, self.SOURCE_TYPE, image, date)
         return name
 
-    def get_rating(self, item: str) -> int | None:
+    @staticmethod
+    def get_rating(item: str) -> int | None:
         try:
             return int(item)
         except ValueError:
             return None
 
-    def get_volume(self, item: str) -> int | None:
-        regex = re.search(r"^[\S]+\s(\d+)\s\D+", item)
-        if regex:
-            volume = int(regex.group(1))
-            return volume
-        return None
+    @staticmethod
+    def get_volume(item: str) -> int | None:
+        regex = re.search(r"(?P<volume>\d+)\s[\s\w\d]+\s[\d.]+$", item)
+        volume = int(regex["volume"]) if regex else None
+        return volume
 
-    def get_release_date(self, item: str) -> datetime.date | None:
+    @staticmethod
+    def get_release_date(item: str) -> datetime.date | None:
         regex = re.search(r"(?P<year>[\d]+).(?P<month>[\d]+).(?P<day>[\d]+)$", item)
         try:
             date = (

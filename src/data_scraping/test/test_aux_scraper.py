@@ -1,5 +1,7 @@
 from unittest import mock
 import pytest
+
+from src.data_scraping.utils.url import build_url
 from .conftest import (
     manga_updates_container,
     manga_updates_list,
@@ -13,7 +15,12 @@ async def test_get_page_all_success(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
 ):
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -37,7 +44,12 @@ async def test_get_title_exception(
         "class"
     ] = "foo"
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -55,7 +67,12 @@ async def test_get_authors_error(
 ):
     manga_updates_title.find("b", string="Author(s)").replace_with("something")
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -73,7 +90,12 @@ async def test_get_publishers_error(
 ):
     manga_updates_title.find("b", string="Original Publisher").replace_with("something")
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -93,7 +115,12 @@ async def test_get_most_similar_title_empty_items(
     for x in lst:
         x["class"] = "something"
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -115,7 +142,12 @@ async def test_get_most_similar_title_empty_titles(
         for z in y:
             z["class"] = "not_text"
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -132,7 +164,12 @@ async def test_get_image_success(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
 ):
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -141,7 +178,7 @@ async def test_get_image_success(
     )
     aioresponse.get(
         "https://cdn.mangaupdates.com/image/i128641.png",
-        body=bytes('img','utf-8'),
+        body=bytes("img", "utf-8"),
     )
     async with manga_updates_container(title="Dawn Aria") as session:
         res = await session.get_image()
@@ -154,7 +191,12 @@ async def test_get_image__nof_found_img(
 ):
     manga_updates_title.find("img", {"class": "img-fluid"})["class"] = "sss"
     aioresponse.get(
-        "https://www.mangaupdates.com/series.html?filter=no_oneshots&type=manga&perpage=10&search=Dawn Aria",
+        build_url(
+            scheme="https",
+            netloc="www.mangaupdates.com",
+            path=["series.html"],
+            query={"type": "manga", "perpage": 5, "search": "Dawn Aria"},
+        ),
         body=str(manga_updates_list),
     )
     aioresponse.get(
@@ -163,7 +205,7 @@ async def test_get_image__nof_found_img(
     )
     aioresponse.get(
         "https://cdn.mangaupdates.com/image/i128641.png",
-        body=bytes('img','utf-8'),
+        body=bytes("img", "utf-8"),
     )
     async with manga_updates_container(title="Dawn Aria") as session:
         res = await session.get_image()

@@ -49,10 +49,10 @@ async def test_incorrect_method_error(aioresponse, client_session):
 
 
 @pytest.mark.asyncio
-@mock.patch('asyncio.sleep',return_value=0.1)
-async def test_429_error(mock,aioresponse):
+@mock.patch("asyncio.sleep", return_value=0.1)
+async def test_429_error(mock, aioresponse):
     with pytest.raises(Unsuccessful) as context:
-        aioresponse.get(TEST_URL, status=429,  repeat=True)
+        aioresponse.get(TEST_URL, status=429, repeat=True)
         async with Session(sleep_time=0.1) as session:
             await session.fetch(TEST_URL)
 

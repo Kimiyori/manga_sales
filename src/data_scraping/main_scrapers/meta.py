@@ -3,6 +3,7 @@ from abc import abstractmethod
 import datetime
 from bs4 import BeautifulSoup
 from src.data_scraping.dataclasses import Content
+from src.data_scraping.image_scrapers.meta import AbstractImageScraper
 from src.data_scraping.meta import AbstractBase
 
 
@@ -78,8 +79,13 @@ class MainDataAbstractScraper(AbstractBase):
         """
 
     @abstractmethod
-    async def get_image(
-        self, item: BeautifulSoup, date: str, name: str, volume: int
+    async def get_image(  # pylint: disable=too-many-arguments
+        self,
+        item: BeautifulSoup,
+        date: str,
+        name: str,
+        volume: int | None,
+        image_scraper: AbstractImageScraper,
     ) -> str | None:
         """Get image file from item and save it
 

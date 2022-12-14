@@ -4,6 +4,7 @@ import pytest
 from src.data_scraping.exceptions import BSError, NotFound
 from src.data_scraping.main_scrapers.oricon_scraper import OriconWeeklyScraper
 from src.data_scraping.main_scrapers.shoseki_scraper import ShosekiWeeklyScraper
+from src.data_scraping.utils.url import build_url, update_url
 from .conftest import (
     oricon_container,
     shoseki_container,
@@ -16,6 +17,8 @@ from .conftest import (
     shoseki_item,
     amazon,
     aioresponse,
+    manga_updates_container,
+    cdjapan_container,
 )
 
 
@@ -126,18 +129,25 @@ class TestOriconScraper:
 
     @pytest.mark.asyncio
     async def test_find_latest_date(self, aioresponse, oricon_container):
-        date = [datetime.date(2022, 10, 11)+datetime.timedelta(days=x) for x in range(1,4)]
+        date = [
+            datetime.date(2022, 10, 11) + datetime.timedelta(days=x)
+            for x in range(1, 4)
+        ]
         for x in date[:-1]:
             aioresponse.get(
-                oricon_container.MAIN_URL
-                + x.strftime("%Y-%m-%d")
-                + "/",
+                update_url(
+                    oricon_container.MAIN_URL,
+                    path=[x.strftime("%Y-%m-%d")],
+                    trailing_slash=True,
+                ),
                 status=404,
             )
         aioresponse.get(
-            oricon_container.MAIN_URL
-            + date[-1].strftime("%Y-%m-%d")
-            + "/",
+            update_url(
+                oricon_container.MAIN_URL,
+                path=[date[-1].strftime("%Y-%m-%d")],
+                trailing_slash=True,
+            ),
             body="bingo",
         )
         date = await oricon_container.find_latest_date(
@@ -147,12 +157,17 @@ class TestOriconScraper:
 
     @pytest.mark.asyncio
     async def test_find_latest_date_none(self, aioresponse, oricon_container):
-        date = [datetime.date(2022, 10, 11)+datetime.timedelta(days=x) for x in range(1,11)]
+        date = [
+            datetime.date(2022, 10, 11) + datetime.timedelta(days=x)
+            for x in range(1, 11)
+        ]
         for x in date:
             aioresponse.get(
-                oricon_container.MAIN_URL
-                + x.strftime("%Y-%m-%d")
-                + "/",
+                update_url(
+                    oricon_container.MAIN_URL,
+                    path=[x.strftime("%Y-%m-%d")],
+                    trailing_slash=True,
+                ),
                 status=404,
             )
         date = await oricon_container.find_latest_date(
@@ -165,6 +180,7 @@ class TestOriconScraper:
         self,
         mock,
         oricon_container,
+        manga_updates_container,
         oricon_item,
         manga_updates_title,
         manga_updates_list,
@@ -194,8 +210,6 @@ class TestOriconScraper:
         assert authors == []
         assert publishers == []
         assert name == "暁のARIA"
-
-
 
 
 class TestShosekiScraper:
@@ -300,7 +314,9 @@ class TestShosekiScraper:
     @mock.patch(
         "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
     )
-    async def test_get_image(self, mock_img, shoseki_container, amazon, aioresponse):
+    async def test_get_image(
+        self, mock_img, cdjapan_container, shoseki_container, amazon, aioresponse
+    ):
         aioresponse.get(
             "https://www.amazon.co.jp/s?i=stripbooks&ref=nb_sb_noss&k=111",
             status=200,
@@ -311,37 +327,8 @@ class TestShosekiScraper:
             status=200,
             body=bytes("img", "utf-8"),
         )
-        res = await shoseki_container.get_image("111", "date")
-        assert isinstance(res, str)
-
-    @pytest.mark.asyncio
-    async def test_get_image_wrong_class(self, shoseki_container, amazon, aioresponse):
-        amazon.find("img", {"class": "s-image"})["class"] = "test"
-        aioresponse.get(
-            "https://www.amazon.co.jp/s?i=stripbooks&ref=nb_sb_noss&k=url",
-            status=200,
-            body=str(amazon),
-        )
-        res = await shoseki_container.get_image("url", "date")
-        assert res == None
-
-    @pytest.mark.asyncio
-    @mock.patch("asyncio.sleep", return_value=1)
-    async def test_get_image_connect_fail(
-        self, mock_sleep, shoseki_container, amazon, aioresponse
-    ):
-        aioresponse.get(
-            "https://www.amazon.co.jp/s?i=stripbooks&ref=nb_sb_noss&k=url",
-            status=200,
-            body=str(amazon),
-        )
-        aioresponse.get(
-            "https://m.media-amazon.com/images/I/61Hph+T004L._AC_UY218_.jpg",
-            status=429,
-            repeat=True,
-        )
-        res = await shoseki_container.get_image("url", "date")
-        assert res == None
+        res = await shoseki_container._get_image("111")
+        assert isinstance(res, bytes)
 
     def test_get_rating(self, shoseki_container):
         res = shoseki_container.get_rating("33")
@@ -418,11 +405,17 @@ class TestShosekiScraper:
         self,
         aioresponse,
         shoseki_container,
+        manga_updates_container,
         manga_updates_title,
         manga_updates_list,
     ):
         aioresponse.get(
-            shoseki_container.main_info_parser._MAIN_URL + "暁のARIA",
+            build_url(
+                scheme="https",
+                netloc="www.mangaupdates.com",
+                path=["series.html"],
+                query={"type": "manga", "perpage": 5, "search": "暁のARIA"},
+            ),
             status=200,
             body=str(manga_updates_list),
         )
@@ -437,69 +430,3 @@ class TestShosekiScraper:
         assert authors == ["AKAISHI Michiyo"]
         assert publishers == ["Shogakukan"]
         assert name == "Akatsuki no Aria"
-
-    @mock.patch(
-        "src.data_scraping.main_scrapers.shoseki_scraper.ShosekiWeeklyScraper._get_original_title"
-    )
-    @mock.patch(
-        "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
-    )
-    @mock.patch(
-        "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
-    )
-    async def test_retrieve_data(
-        self,
-        mock_mangaupdates,
-        mock_img,
-        mock_title,
-        shoseki_container,
-        shoseki_weekly_list,
-        manga_updates_list,
-        manga_updates_title,
-    ):
-        mock_title.side_effect = ["暁のARIA"] * 30
-        mock_mangaupdates.side_effect = [manga_updates_list, manga_updates_title] * 30
-        with mock.patch.object(
-            ShosekiWeeklyScraper,
-            "fetch",
-            side_effect=[shoseki_weekly_list] + [bytes("img", "utf-8")] * 30,
-        ):
-            res = await shoseki_container._retrieve_data("url", "date")
-            assert len(res) == 30
-            for i, x in enumerate(res, start=1):
-                assert x.rating == i
-                assert x.name == "Akatsuki no Aria"
-
-    @mock.patch(
-        "src.data_scraping.main_scrapers.shoseki_scraper.ShosekiWeeklyScraper._get_original_title"
-    )
-    @mock.patch(
-        "src.data_scraping.main_scrapers.shoseki_scraper.save_image", return_value=None
-    )
-    @mock.patch(
-        "src.data_scraping.aux_scrapers.manga_updates_scraper.MangaUpdatesParser.fetch"
-    )
-    async def test_get_data(
-        self,
-        mock_mangaupdates,
-        mock_img,
-        mock_title,
-        shoseki_container,
-        shoseki_weekly_list,
-        shoseki_list,
-        manga_updates_list,
-        manga_updates_title,
-    ):
-        mock_title.side_effect = ["暁のARIA"] * 30
-        mock_mangaupdates.side_effect = [manga_updates_list, manga_updates_title] * 30
-        with mock.patch.object(
-            ShosekiWeeklyScraper,
-            "fetch",
-            side_effect=[shoseki_list, shoseki_weekly_list]
-            + [bytes("img", "utf-8")] * 30,
-        ):
-            res = await shoseki_container.get_data("2022-10-04")
-            assert len(res) == 30
-            for i, x in enumerate(res, start=1):
-                assert x.rating == i
-                assert x.name == "Akatsuki no Aria"

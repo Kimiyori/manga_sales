@@ -1,6 +1,6 @@
 from abc import ABC
+from typing import Any
 from bs4 import BeautifulSoup
-from aiohttp import ClientResponse
 from src.data_scraping.session_context_manager import Session
 
 
@@ -12,7 +12,7 @@ class AbstractBase(ABC):
 
     async def fetch(
         self, url: str, commands: list[str] | None = None, return_bs: bool = True
-    ) -> BeautifulSoup | ClientResponse | bytes:
+    ) -> Any:
         """
         Method for fetching given url
 

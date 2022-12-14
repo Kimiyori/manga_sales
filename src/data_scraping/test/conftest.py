@@ -2,7 +2,10 @@ from bs4 import BeautifulSoup
 import pytest
 import pytest_asyncio
 import sqlalchemy
-from src.data_scraping.containers import DBSessionContainer, DataScrapingContainer
+from src.data_scraping.containers.aux_scrapers import AuxScrapingContainer
+from src.data_scraping.containers.image_scrapers import ImageScrapingContainer
+from src.data_scraping.containers.main_scrapers import DataScrapingContainer
+from src.manga_sales.containers import DatabaseContainer
 from aioresponses import aioresponses
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -63,25 +66,31 @@ def manga_updates_list():
 def manga_updates_title():
     with open("src/data_scraping/test/test_files/mangaupdates_title.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
+
+
 @pytest.fixture
 def cdjapan_list():
     with open("src/data_scraping/test/test_files/cdjapan_list.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
+
+
 @pytest.fixture
 def cdjapan_item():
     with open("src/data_scraping/test/test_files/cdjapan_item.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
+
 @pytest_asyncio.fixture
 async def manga_updates_container():
-    container = DataScrapingContainer()
-    yield await container.manga_updates()
+    container = AuxScrapingContainer()
+    yield await container.manga_updates_scraper()
     await container.shutdown_resources()
+
 
 @pytest_asyncio.fixture
 async def cdjapan_container():
-    container = DataScrapingContainer()
-    yield await container.cdjapan()
+    container = ImageScrapingContainer()
+    yield await container.cdjapan_scraper()
     await container.shutdown_resources()
 
 
@@ -120,7 +129,7 @@ async def session_factory(test_engine):
 
 @pytest_asyncio.fixture
 async def db_session_container(session):
-    container = DBSessionContainer()
+    container = DatabaseContainer()
     container.session.override(session)
     yield container
     container.unwire()

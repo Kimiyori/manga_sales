@@ -1,22 +1,20 @@
 from __future__ import annotations
 import datetime
 import asyncio
-import logging
 import operator
 import re
-import uuid
 from bs4 import BeautifulSoup
-
-from src.data_scraping.aux_scrapers.abc import AuxDataParserAbstract
-from src.data_scraping.aux_scrapers.manga_updates_scraper import MangaUpdatesParser
+from dependency_injector.wiring import Provide, inject, Closing
+from src.data_scraping.aux_scrapers.meta import AuxDataParserAbstract
+from src.data_scraping.containers.aux_scrapers import AuxScrapingContainer
+from src.data_scraping.containers.image_scrapers import ImageScrapingContainer
 from src.data_scraping.dataclasses import Content
 from src.data_scraping.exceptions import BSError, NotFound, Unsuccessful
-from src.data_scraping.image_scrapers.cdjapan import CDJapanImageScraper
-from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
+from src.data_scraping.image_scrapers.meta import AbstractImageScraper
+from src.data_scraping.main_scrapers.meta import MainDataAbstractScraper
 from src.data_scraping.services.files_service import save_image
-from src.data_scraping.session_context_manager import Session
 from src.data_scraping.utils.url import build_url, update_url
-logger = logging.getLogger('file_log')
+
 
 class OriconWeeklyScraper(MainDataAbstractScraper):
     """
@@ -31,12 +29,6 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
         path=["rank", "obc", "w"],
     )
     _NUMBER_PAGES: int = 4
-
-    def __init__(
-        self,
-        session: Session,
-    ) -> None:
-        super().__init__(session)
 
     # ------------helper methods for main methods------------
     @staticmethod
@@ -59,7 +51,8 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             # so we capture everything that comes before it
             title_name = title_match["title"] if title_match else title_string
             title_name = title_name.replace("。", "")
-        except (AttributeError, IndexError) as error:
+            assert title_name
+        except (AssertionError, AttributeError, IndexError) as error:
             raise BSError("Can't parse item to find title name") from error
         return title_name
 
@@ -81,8 +74,13 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             raise BSError("Fail to find class with titles list")
         return list_items
 
+    @inject
     async def _get_aux_data(
-        self, item: BeautifulSoup
+        self,
+        item: BeautifulSoup,
+        aux_scraper: AuxDataParserAbstract = Closing[
+            Provide[AuxScrapingContainer.manga_updates_scraper]
+        ],
     ) -> tuple[str, list[str], list[str]]:
         """Fetch and parse additional data about given title,
         including its name in english(romaji) and authors and publishers
@@ -94,15 +92,13 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             tuple[str, list[str], list[str]]: name, authors, publishers
         """
         original_title = self._get_original_title(item)
-        main_info_parser=MangaUpdatesParser(self.session)
         try:
-            async with main_info_parser(title=original_title):
-                name = main_info_parser.get_title()
-                authors = main_info_parser.get_authors()
-                publishers = main_info_parser.get_publishers()
+            async with aux_scraper(title=original_title):
+                name = aux_scraper.get_title()
+                authors = aux_scraper.get_authors()
+                publishers = aux_scraper.get_publishers()
         except Exception:  # pylint: disable = broad-except
             return original_title, [], []
-        logger.debug(f"{original_title},{name}")
         return name, authors, publishers
 
     async def create_content_item(
@@ -226,14 +222,21 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
         assert isinstance(image_file, bytes)
         return image_file
 
-    async def get_image(
-        self, item: BeautifulSoup, date: str, name: str, volume: int | None
+    @inject
+    async def get_image(  # pylint: disable=too-many-arguments
+        self,
+        item: BeautifulSoup,
+        date: str,
+        name: str,
+        volume: int | None,
+        image_scraper: AbstractImageScraper = Closing[
+            Provide[ImageScrapingContainer.cdjapan_scraper]
+        ],
     ) -> str | None:
         str_info = item.find("h2", {"class": "title"}).string
-        image_parser = CDJapanImageScraper(self.session, str_info, name, volume)
         try:
-            image = await image_parser.get_image()
-        except (Unsuccessful, NotFound) as error:
+            image = await image_scraper.get_image(str_info, name, volume)
+        except (Unsuccessful, NotFound):
             image = await self._get_image(item)
         name = save_image(self.SOURCE, self.SOURCE_TYPE, image, date)
         return name

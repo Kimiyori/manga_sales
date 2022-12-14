@@ -1,19 +1,25 @@
 from functools import lru_cache
-import json
-import logging
-
-logger = logging.getLogger("file_log2")
 
 
-def lev_dist(a, b):
+def lev_dist(word1: str, word2: str) -> int:
+    """Function to calculate the Levenshtein distance
+
+    Args:
+        word1 (str):
+        word2 (str):
+
+    Returns:
+        int: distance between two words
+    """
+
     @lru_cache(None)  # for memorization
-    def min_dist(s1, s2):
+    def min_dist(s1: int, s2: int) -> int:  # pylint: disable=invalid-name
 
-        if s1 == len(a) or s2 == len(b):
-            return len(a) - s1 + len(b) - s2
+        if s1 == len(word1) or s2 == len(word2):
+            return len(word1) - s1 + len(word2) - s2
 
         # no change required
-        if a[s1] == b[s2]:
+        if word1[s1] == word2[s2]:
             return min_dist(s1 + 1, s2 + 1)
 
         return 1 + min(
@@ -25,7 +31,18 @@ def lev_dist(a, b):
     return min_dist(0, 0)
 
 
-def get_most_close(word: str, list_words: list[str]) -> str | None:
+def get_most_close(
+    word: str, list_words: list[tuple[int, str]]
+) -> tuple[int, str] | None:
+    """Finding most similar string from list of string
+
+    Args:
+        word (str): string that need to be matched
+        list_words (list[str]): list of potential strings
+
+    Returns:
+        str | None: most similar strins from list or None if list is empty
+    """
     min_distance = float("inf")
     most_similar_word = None
     for guessed_word in list_words:
@@ -33,7 +50,4 @@ def get_most_close(word: str, list_words: list[str]) -> str | None:
         if curr_distance < min_distance:
             most_similar_word = guessed_word
             min_distance = curr_distance
-        logger.debug(
-            f"{word.lower()},{guessed_word[1].lower()},{curr_distance},{ min_distance} , {most_similar_word},"
-        )
     return most_similar_word

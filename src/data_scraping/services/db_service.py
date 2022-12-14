@@ -2,17 +2,21 @@ import datetime
 import functools
 from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar
 from dependency_injector.wiring import Provide, inject, Closing
-from src.data_scraping.containers import DBSessionContainer, DataScrapingContainer
+from src.data_scraping.containers.aux_scrapers import AuxScrapingContainer
+from src.data_scraping.containers.image_scrapers import ImageScrapingContainer
+from src.data_scraping.containers.main_scrapers import DataScrapingContainer
 from src.data_scraping.database_saver import DatabaseConnector
-from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
+from src.data_scraping.main_scrapers.meta import MainDataAbstractScraper
 from src.manga_sales.db.data_access_layers.week import WeekDAO
+from src.manga_sales.containers import DatabaseContainer
 
 MainFuncParams = ParamSpec("MainFuncParams")
 MainFunc = TypeVar("MainFunc")
 
 
-def return_db_cont() -> DBSessionContainer:
-    return DBSessionContainer()
+def return_db_cont() -> DatabaseContainer:
+    """Function to invode container for database"""
+    return DatabaseContainer()
 
 
 def create_db_container(
@@ -38,11 +42,15 @@ def create_scraper_container(
     async def wrapper(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
-        scrap_cont = DataScrapingContainer()
+        main_scrap = DataScrapingContainer()
+        aux_scrap = AuxScrapingContainer()
+        image_scrap = ImageScrapingContainer()
         try:
             await func(*args, **kwargs)
         finally:
-            await scrap_cont.shutdown_resources()  # type: ignore  # pylint: disable=no-member
+            await main_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
+            await aux_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
+            await image_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
 
     return wrapper
 
@@ -65,7 +73,7 @@ async def scraper_factory(
 async def get_date(
     scraper: MainDataAbstractScraper,
     date: datetime.date | None = None,
-    week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
+    week_session: WeekDAO = Closing[Provide[DatabaseContainer.week]],
 ) -> datetime.date | None:
     action = "backward"
     if date is None:
@@ -92,8 +100,6 @@ async def execute_scraper(scraper_name: str, date: datetime.date | None = None) 
     db_conn = DatabaseConnector(scraper)
     if date is None:
         date = await get_date(scraper)
-    #date = datetime.date(2022, 11, 21)
     while date:
         await db_conn.insert_data(date)
         date = await get_date(scraper, date)
-

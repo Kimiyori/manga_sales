@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime
 from dependency_injector.wiring import Provide, inject, Closing
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.data_scraping.containers import DBSessionContainer
-from src.data_scraping.main_scrapers.abc import MainDataAbstractScraper
+from src.manga_sales.containers import DatabaseContainer
+from src.data_scraping.main_scrapers.meta import MainDataAbstractScraper
 from src.data_scraping.dataclasses import Content
 from src.data_scraping.services.files_service import delete_images
 from src.manga_sales.db.data_access_layers.author import AuthorDAO
@@ -40,7 +40,7 @@ class DatabaseConnector:
     @inject
     async def handle_authors(
         authors: list[str],
-        author_session: AuthorDAO = Closing[Provide[DBSessionContainer.authors]],
+        author_session: AuthorDAO = Closing[Provide[DatabaseContainer.authors]],
     ) -> list[Author]:
         """Method fo detecting whether given authors already exist in db or not
             and converting author names to instances of author model
@@ -48,7 +48,7 @@ class DatabaseConnector:
         Args:
             authors (list[str]): list of strings with author names
             author_session (AuthorDAO, optional): Instance of Data object layer for author table.
-                Defaults to Closing[Provide[DBSessionContainer.authors]].
+                Defaults to Closing[Provide[DatabaseContainer.authors]].
 
         Returns:
             list[Author]: list with Authors either new or already existing in db
@@ -66,7 +66,7 @@ class DatabaseConnector:
     @staticmethod
     @inject
     async def handle_title(
-        name: str, title_session: TitleDAO = Closing[Provide[DBSessionContainer.title]]
+        name: str, title_session: TitleDAO = Closing[Provide[DatabaseContainer.title]]
     ) -> Title:
         """Method fo detecting whether given title name already exist in db or not
             and converting it to instances of title model
@@ -74,7 +74,7 @@ class DatabaseConnector:
         Args:
             name (str): title name
             title_session (TitleDAO, optional): Instance of Data object layer for title table.
-                Defaults to Closing[Provide[DBSessionContainer.title]].
+                Defaults to Closing[Provide[DatabaseContainer.title]].
 
         Returns:
             Title: Instance of title table
@@ -90,7 +90,7 @@ class DatabaseConnector:
     async def handle_publishers(
         publishers: list[str],
         publishers_session: PublisherDAO = Closing[
-            Provide[DBSessionContainer.publishers]
+            Provide[DatabaseContainer.publishers]
         ],
     ) -> list[Publisher]:
         """Method fo detecting whether given publishers already exist in db or not
@@ -99,7 +99,7 @@ class DatabaseConnector:
         Args:
             publishers (list[str]):list of strings with publishers names
             publishers_session (PublisherDAO, optional): Instance of Data object layer
-            for publisher table.Defaults to Closing[ Provide[DBSessionContainer.publishers] ].
+            for publisher table.Defaults to Closing[ Provide[DatabaseContainer.publishers] ].
 
         Returns:
             list[Publisher]:  list with Publishers either new or already existing in db
@@ -118,7 +118,7 @@ class DatabaseConnector:
     async def get_source_type(
         self,
         source_type_session: SourceTypeDAO = Closing[
-            Provide[DBSessionContainer.source_type]
+            Provide[DatabaseContainer.source_type]
         ],
     ) -> SourceType | None:
         """Method for getting instance of source_type that used in scraper for connecting week
@@ -129,7 +129,7 @@ class DatabaseConnector:
         Args:
             source_type_session (SourceTypeDAO, optional): Instance of Data object
             layer for source type table.
-             Defaults to Closing[ Provide[DBSessionContainer.source_type] ].
+             Defaults to Closing[ Provide[DatabaseContainer.source_type] ].
 
         Returns:
             SourceType | None: Instance of source type table
@@ -145,7 +145,7 @@ class DatabaseConnector:
         prev_week: Week,
         current_rank: int,
         title: str,
-        item_session: ItemDAO = Closing[Provide[DBSessionContainer.item]],
+        item_session: ItemDAO = Closing[Provide[DatabaseContainer.item]],
     ) -> PreviousRank | None:
         """Method for getting rating place in previous week for given title.
 
@@ -154,7 +154,7 @@ class DatabaseConnector:
             current_rank (int): rank that title has in current week
             title (str): name of title
             item_session (ItemDAO, optional): Instance of Data object layer for item table.
-             Defaults to Closing[Provide[DBSessionContainer.item]].
+             Defaults to Closing[Provide[DatabaseContainer.item]].
 
         Returns:
             PreviousRank | None: return previous rank enum object.
@@ -169,7 +169,7 @@ class DatabaseConnector:
         self,
         content: Content,
         prev_week: Week | None,
-        item_session: ItemDAO = Closing[Provide[DBSessionContainer.item]],
+        item_session: ItemDAO = Closing[Provide[DatabaseContainer.item]],
     ) -> Item:
         authors = await self.handle_authors(content.authors)
         title = await self.handle_title(content.name)
@@ -203,8 +203,8 @@ class DatabaseConnector:
     async def insert_data(
         self,
         date: datetime.date,
-        week_session: WeekDAO = Closing[Provide[DBSessionContainer.week]],
-        session: AsyncSession = Closing[Provide[DBSessionContainer.session]],  # type: ignore
+        week_session: WeekDAO = Closing[Provide[DatabaseContainer.week]],
+        session: AsyncSession = Closing[Provide[DatabaseContainer.session]],  # type: ignore
     ) -> None:
         """Main methof for inserting scraper data in database.
 
@@ -212,7 +212,7 @@ class DatabaseConnector:
             date (datetime.date): date from with need to scrape and get data
             for given site
             week_session (WeekDAO, optional): Instance of Data object layer for week table.
-             Defaults to Closing[Provide[DBSessionContainer.week]].
+             Defaults to Closing[Provide[DatabaseContainer.week]].
 
         Raises:
             exc: raises an exception and deletes already saved images (if any)

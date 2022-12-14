@@ -1,5 +1,7 @@
 from unittest import mock
 import pytest
+
+from src.data_scraping.utils.url import build_url
 from .conftest import cdjapan_item, cdjapan_list, cdjapan_container, aioresponse
 
 
@@ -12,7 +14,12 @@ async def test_get_image_cdjapan(
     volume = 8
 
     aioresponse.get(
-        cdjapan_container.create_url(search_name, volume),
+        build_url(
+            scheme="https",
+            netloc="www.cdjapan.co.jp",
+            path=["searchuni"],
+            query={"term.media_format": "BOOK", "q": f"{search_name} {volume}"},
+        ),
         status=200,
         body=str(cdjapan_list),
     )
@@ -28,9 +35,3 @@ async def test_get_image_cdjapan(
     )
     image = await cdjapan_container.get_image(search_name, filter_name, volume)
     assert isinstance(image, bytes)
-
-
-def test_find_most_similar_title(cdjapan_container, cdjapan_list):
-    filter_name = "Kaiju No. 8"
-    result = cdjapan_container.find_most_similar_title(cdjapan_list, filter_name)
-    assert result == "https://www.cdjapan.co.jp/product/NEOBK-2788024"

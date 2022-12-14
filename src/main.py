@@ -30,39 +30,14 @@ async def setup_redis(app_obj: web.Application) -> redis.asyncio.client.Redis[by
 
 
 async def on_startup(
-    app: web.Application,
-):  # type:ignore # pylint: disable=unused-argument
+    app: web.Application,  # pylint: disable=unused-argument
+) -> None:
     task = asyncio.create_task(run_schedule())
     await task
 
-from pythonjsonlogger import jsonlogger
-from datetime import datetime
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
-    def add_fields(self, log_record, record, message_dict):
-        super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
-        if not log_record.get('timestamp'):
-            # this doesn't use record.created, so it is slightly off
-            log_record['timestamp'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        if log_record.get('level'):
-            log_record['level'] = log_record['level'].upper()
-        else:
-            log_record['level'] = record.levelname
 
 async def create_app() -> web.Application:
     logging.basicConfig(level=logging.DEBUG)
-    # formatter=logging.Formatter('%(message)s')
-    # file_logger = logging.getLogger('file_log')
-    # file_handler = logging.FileHandler('logs.log','w',
-    #                           encoding = 'utf-8')
-    # file_handler.setLevel(logging.DEBUG)
-    # file_handler.setFormatter(formatter)
-    # file_logger.addHandler(file_handler)
-    # file_logger = logging.getLogger('file_log2')
-    # file_handler = logging.FileHandler('logs2.log','w',
-    #                           encoding = 'utf-8')
-    # file_handler.setLevel(logging.DEBUG)
-    # file_handler.setFormatter(formatter)
-    # file_logger.addHandler(file_handler)
     app = web.Application()
     setup_routes(app)
     aiohttp_jinja2.setup(
@@ -76,7 +51,7 @@ async def create_app() -> web.Application:
     redis_pool = await setup_redis(app)
     storage = RedisStorage(redis_pool)
     setup_session(app, storage)
-    #app.on_startup.append(on_startup)
+    # app.on_startup.append(on_startup)
     return app
 
 
