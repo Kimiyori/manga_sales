@@ -11,9 +11,9 @@ class AuxScrapingContainer(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "src.data_scraping.main_scrapers.oricon_scraper",
-            "src.data_scraping.main_scrapers.shoseki_scraper",
-            "src.data_scraping.services.db_service",
+            "src.manga_scrapers.scrapers.rating_scrapers.oricon_scraper",
+            "src.manga_scrapers.scrapers.rating_scrapers.shoseki_scraper",
+            "src.manga_scrapers.services.db_service",
         ]
     )
     web_session: providers.Resource[Session] = providers.Resource(
