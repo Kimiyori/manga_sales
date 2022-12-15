@@ -14,9 +14,15 @@ class DataScrapingContainer(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(
         packages=[
+<<<<<<< HEAD:src/manga_scrapers/containers/rating_container.py
             "src.manga_scrapers.database_handler",
             "src.manga_scrapers.services.db_service",
             "src.manga_scrapers.test.test_db_handler",
+=======
+            "src.data_scraping.database_handler",
+            "src.data_scraping.services.db_service",
+            "src.data_scraping.test.test_db_handler",
+>>>>>>> 9fc37800311af0d2921a0e9862583c1c0c093483:src/data_scraping/containers/main_scrapers.py
         ]
     )
     web_session: providers.Resource[Session] = providers.Resource(

@@ -11,7 +11,11 @@ class ImageScrapingContainer(containers.DeclarativeContainer):
         packages=[
             "src.manga_scrapers.scrapers.rating_scrapers.oricon_scraper",
             "src.manga_scrapers.scrapers.rating_scrapers.shoseki_scraper",
+<<<<<<< HEAD:src/manga_scrapers/containers/image_container.py
             "src.manga_scrapers.services.db_service",
+=======
+            "src.data_scraping.services.db_service",
+>>>>>>> 9fc37800311af0d2921a0e9862583c1c0c093483:src/data_scraping/containers/image_scrapers.py
         ]
     )
     web_session: providers.Resource[Session] = providers.Resource(
