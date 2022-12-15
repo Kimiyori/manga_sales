@@ -13,6 +13,6 @@ def convert_date(date: str, date_type: str) -> str:
 
 def file_exist(date: datetime.date, name: str) -> bool:
     date_str = date.strftime("%Y-%m-%d")
-    if Path(f"manga_sales/static/images/oricon/{date_str}/{name}").is_file():
+    if Path(f"static/images/oricon/{date_str}/{name}").is_file():
         return True
     return False

@@ -14,9 +14,9 @@ class DatabaseContainer(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(
         packages=[
-            "src.data_scraping.database_saver",
-            "src.data_scraping.test.test_db_handler",
-            "src.data_scraping.services.db_service",
+            "src.manga_scrapers.database_handler",
+            "src.manga_scrapers.test.test_db_handler",
+            "src.manga_scrapers.services.db_service",
             "src.manga_sales.views",
         ]
     )
