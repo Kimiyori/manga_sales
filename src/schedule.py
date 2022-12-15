@@ -1,5 +1,5 @@
 import aioschedule as schedule
-from src.data_scraping.services.db_service import execute_scraper
+from src.manga_scrapers.services.db_service import execute_scraper
 
 
 async def run_schedule() -> None:
