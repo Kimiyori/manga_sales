@@ -1,6 +1,6 @@
 from types import TracebackType
 from abc import abstractmethod
-from typing import TypeVar
+from typing import Any, TypeVar
 from bs4 import BeautifulSoup
 from src.manga_scrapers.scrapers.meta import AbstractBase
 
@@ -12,8 +12,9 @@ class AuxDataParserAbstract(AbstractBase):
 
     _MAIN_URL: str
 
-    def __call__(self: _Self, title: str) -> _Self:
+    def __call__(self: _Self, title: str, **kwargs: Any) -> _Self:
         self.title = title
+        self.__dict__.update(kwargs)
         return self
 
     @abstractmethod

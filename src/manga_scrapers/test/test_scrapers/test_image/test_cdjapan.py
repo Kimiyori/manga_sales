@@ -2,7 +2,12 @@ from unittest import mock
 import pytest
 
 from src.manga_scrapers.utils.url_handler import build_url
-from .conftest import cdjapan_item, cdjapan_list, cdjapan_container, aioresponse
+from src.manga_scrapers.test.conftest import (
+    cdjapan_item,
+    cdjapan_list,
+    cdjapan_container,
+    aioresponse,
+)
 
 
 @pytest.mark.asyncio

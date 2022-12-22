@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from dependency_injector.wiring import Provide, inject, Closing
 
 from src.manga_scrapers.scrapers.rating_scrapers.meta import MainDataAbstractScraper
+from src.manga_scrapers.scrapers.title_data_scrapers.amazon_scraper import AmazonParser
 from src.manga_scrapers.scrapers.title_data_scrapers.meta import AuxDataParserAbstract
 from src.manga_scrapers.containers.title_data_container import AuxScrapingContainer
 from src.manga_scrapers.containers.image_container import ImageScrapingContainer
@@ -113,6 +114,24 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
             return original_title, [], []
         return name, authors, publishers
 
+    @inject
+    async def _get_volume_from_amazon(
+        self,
+        item: str,
+        isbn: int,
+        release_date: datetime.date | None,
+        aux_scraper: AmazonParser = Closing[
+            Provide[AuxScrapingContainer.amazon_scraper]
+        ],
+    ) -> int | None:
+        original_title = self._get_original_title(item)
+        async with aux_scraper(
+            title=original_title, volume=None, isbn=isbn, publication_date=release_date
+        ) as scraper:
+            volume = scraper.get_volume()
+        assert not volume or isinstance(volume, int)
+        return volume
+
     async def create_content_item(
         self, index: int, row: list[str], date: str
     ) -> Content:
@@ -129,6 +148,11 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         """
         rating = self.get_rating(row[0])
         volume = self.get_volume(row[2])
+        release_date = self.get_release_date(row[2])
+        if not volume:
+            volume = await self._get_volume_from_amazon(
+                row[2], int(row[1]), release_date
+            )
         name, authors, publishers = await self._get_aux_data(row[2])
         image = await self.get_image(row, date=date, name=name, volume=volume)
         content = Content(
@@ -137,7 +161,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
             image=image,
             authors=authors,
             publishers=publishers,
-            release_date=self.get_release_date(row[2]),
+            release_date=release_date,
             rating=rating if rating else index,
         )
         return content
@@ -202,7 +226,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         Returns:
             str: title name
         """
-        reg = re.search(r"^(\S+|\D+)\s\d+", item)
+        reg = re.search(r"^(\S+|\D+)\s(\d+|ＫＡＤＯＫ)", item)
         return reg.group(1) if reg else item
 
     # ------------main methods for collecting gata that invokes inside class------------

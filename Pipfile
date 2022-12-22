@@ -38,6 +38,7 @@ types-redis = "*"
 aioschedule = "*"
 jellyfish = "*"
 python-json-logger = "*"
+types-python-dateutil = "*"
 
 [dev-packages]
 

@@ -87,6 +87,7 @@ class MangaUpdatesParser(AuxDataParserAbstract):
             ).string
         except AttributeError:
             # if error occur, then return original name
+            assert isinstance(self.title, str)
             return self.title
         return title
 

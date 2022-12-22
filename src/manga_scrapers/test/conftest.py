@@ -20,63 +20,77 @@ from src.manga_sales.db.models import (
 
 @pytest.fixture
 def oricon_list():
-    with open("src/manga_scrapers/test/test_files/oricon_list_weeks.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/oricon/oricon_list_weeks.html", "rb") as fp:
+        yield BeautifulSoup(fp.read(), "html.parser")
+
+
+@pytest.fixture
+def amazon_list():
+    with open("src/manga_scrapers/test/test_files/amazon/amazon_list.html", "rb") as fp:
+        yield BeautifulSoup(fp.read(), "html.parser")
+
+
+@pytest.fixture
+def amazon_item():
+    with open("src/manga_scrapers/test/test_files/amazon/amazon_item.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def oricon_item():
-    with open("src/manga_scrapers/test/test_files/oricon_item.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/oricon/oricon_item.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def amazon():
-    with open("src/manga_scrapers/test/test_files/amazon.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/amazon/amazon.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def shoseki_weekly_list():
-    with open("src/manga_scrapers/test/test_files/shoseki_list_titles.html", "rb") as fp:
+    with open(
+        "src/manga_scrapers/test/test_files/shoseki/shoseki_list_titles.html", "rb"
+    ) as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def shoseki_list():
-    with open("src/manga_scrapers/test/test_files/shoseki_list.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/shoseki/shoseki_list.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def shoseki_item():
-    with open("src/manga_scrapers/test/test_files/shoseki_item.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/shoseki/shoseki_item.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def manga_updates_list():
     with open(
-        "src/manga_scrapers/test/test_files/mangaupdates_titles_list.html", "rb"
+        "src/manga_scrapers/test/test_files/mangaupdates/mangaupdates_titles_list.html", "rb"
     ) as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def manga_updates_title():
-    with open("src/manga_scrapers/test/test_files/mangaupdates_title.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/mangaupdates/mangaupdates_title.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def cdjapan_list():
-    with open("src/manga_scrapers/test/test_files/cdjapan_list.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/cdjapan/cdjapan_list.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
 @pytest.fixture
 def cdjapan_item():
-    with open("src/manga_scrapers/test/test_files/cdjapan_item.html", "rb") as fp:
+    with open("src/manga_scrapers/test/test_files/cdjapan/cdjapan_item.html", "rb") as fp:
         yield BeautifulSoup(fp.read(), "html.parser")
 
 
@@ -84,6 +98,13 @@ def cdjapan_item():
 async def manga_updates_container():
     container = AuxScrapingContainer()
     yield await container.manga_updates_scraper()
+    await container.shutdown_resources()
+
+
+@pytest_asyncio.fixture
+async def amazon_container():
+    container = AuxScrapingContainer()
+    yield await container.amazon_scraper()
     await container.shutdown_resources()
 
 

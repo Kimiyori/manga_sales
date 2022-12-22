@@ -1,7 +1,7 @@
 import pytest
 
 from src.manga_scrapers.utils.url_handler import build_url
-from .conftest import (
+from src.manga_scrapers.test.conftest import (
     manga_updates_container,
     manga_updates_list,
     manga_updates_title,

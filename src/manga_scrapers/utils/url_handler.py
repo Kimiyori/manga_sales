@@ -25,7 +25,7 @@ def deco(func: Callable[MainFuncParams, str]) -> Callable[MainFuncParams, str]:
 def build_url(  # pylint: disable=dangerous-default-value, too-many-arguments
     scheme: str,
     netloc: str,
-    path: list[str] = [],
+    path: list[str] = [""],
     parameters: str = "",
     query: dict[str, str | int] = {},
     anchor: str = "",
@@ -53,5 +53,7 @@ def update_url(  # pylint: disable=dangerous-default-value, too-many-arguments
     keys, _, _, _ = inspect.getargvalues(frame)  # type: ignore
     for index, part in enumerate(keys[1:-1], start=2):
         if locals()[part]:
-            url_parts[index] += PREFIX[part] + locals()[part]
+            url_parts[index] += (
+                PREFIX[part] + locals()[part] if url_parts[index] else locals()[part]
+            )
     return urlunparse(url_parts) + "/" if trailing_slash else urlunparse(url_parts)

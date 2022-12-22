@@ -20,9 +20,7 @@ def save_image(source: str, source_type: str, file: bytes, date: str) -> str:
         and isinstance(source_type, str)
         and isinstance(date, str)
     )
-    image_path = (
-        f"src/manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
-    )
+    image_path = f"src/static/images/{source.lower()}/{source_type.lower()}/{date}"
     name = f"{uuid.uuid4()}.jpg"
     path = Path(image_path)
     # ensure that given path exist or create it
@@ -37,8 +35,6 @@ def delete_images(source: str, source_type: str, date: str) -> None:
     def handler(func, path, exc_info) -> None:  # type: ignore
         print(exc_info)
 
-    path = (
-        f"src/manga_sales/static/images/{source.lower()}/{source_type.lower()}/{date}"
-    )
+    path = f"src/static/images/{source.lower()}/{source_type.lower()}/{date}"
     # remove if exists
     shutil.rmtree(path, onerror=handler)

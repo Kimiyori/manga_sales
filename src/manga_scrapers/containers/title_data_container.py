@@ -1,4 +1,5 @@
 from dependency_injector import containers, providers
+from src.manga_scrapers.scrapers.title_data_scrapers.amazon_scraper import AmazonParser
 from src.manga_scrapers.scrapers.title_data_scrapers.manga_updates_scraper import (
     MangaUpdatesParser,
 )
@@ -21,5 +22,9 @@ class AuxScrapingContainer(containers.DeclarativeContainer):
     )
     manga_updates_scraper = providers.Factory(
         MangaUpdatesParser,
+        session=web_session,
+    )
+    amazon_scraper = providers.Factory(
+        AmazonParser,
         session=web_session,
     )
