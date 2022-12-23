@@ -125,10 +125,16 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         ],
     ) -> int | None:
         original_title = self._get_original_title(item)
-        async with aux_scraper(
-            title=original_title, volume=None, isbn=isbn, publication_date=release_date
-        ) as scraper:
-            volume = scraper.get_volume()
+        try:
+            async with aux_scraper(
+                title=original_title,
+                volume=None,
+                isbn=isbn,
+                publication_date=release_date,
+            ) as scraper:
+                volume = scraper.get_volume()
+        except NotFound:
+            return None
         assert not volume or isinstance(volume, int)
         return volume
 
@@ -226,8 +232,8 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         Returns:
             str: title name
         """
-        reg = re.search(r"^(\S+|\D+)\s(\d+|ＫＡＤＯＫ)", item)
-        return reg.group(1) if reg else item
+        reg = re.search(r"^(?P<title>.+?)\s(?:\d+|ＫＡＤＯＫ)?[:\D]+\s[\d.]+$", item)
+        return reg.group("title") if reg else item
 
     # ------------main methods for collecting gata that invokes inside class------------
     async def get_data(self, date: str) -> list[Content] | None:

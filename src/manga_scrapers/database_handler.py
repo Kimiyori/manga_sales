@@ -33,7 +33,6 @@ class DatabaseConnector:
         self,
         scraper: MainDataAbstractScraper,
     ) -> None:
-
         self.scraper = scraper
 
     @staticmethod
@@ -236,6 +235,7 @@ class DatabaseConnector:
                 week.items.extend(items)
                 week_session.add(week)
                 await session.commit()
+
         except Exception as exc:
             delete_images(self.scraper.SOURCE, self.scraper.SOURCE_TYPE, date_str)
             raise exc

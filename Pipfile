@@ -26,7 +26,6 @@ flake8 = "*"
 black = "*"
 pylint = "*"
 aiohttp-debugtoolbar = "*"
-dependency-injector = "*"
 environs = "*"
 pytest-asyncio = "*"
 pytest-aiohttp = "*"
@@ -39,6 +38,7 @@ aioschedule = "*"
 jellyfish = "*"
 python-json-logger = "*"
 types-python-dateutil = "*"
+dependency-injector = "==4.40"
 
 [dev-packages]
 

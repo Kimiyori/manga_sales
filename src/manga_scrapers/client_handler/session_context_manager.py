@@ -103,7 +103,7 @@ class Session:
                     raise NotFound("Can't find given page")
                 if response.status in (429, 503):
                     await asyncio.sleep(self.sleep_time)
-                    self.sleep_time *= 2
+                    self.sleep_time += 1
                     return await self.fetch(url, retries - 1, commands)
                 raise Unsuccessful(f"Status code is {response.status}")
         except (aiohttp.ClientError, asyncio.TimeoutError) as exc:

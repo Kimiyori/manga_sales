@@ -57,9 +57,9 @@ class MangaUpdatesParser(AuxDataParserAbstract):
         for i, item in enumerate(items):
             title_element = item.find("div", {"class": "text"})
             try:
-                titles[(i, title_element.find("b").string)] = title_element.find("a")[
-                    "href"
-                ]
+                titles[
+                    (i, title_element.find("b").string[: len(self.title)])
+                ] = title_element.find("a")["href"]
             except (KeyError, AttributeError):
                 continue
         assert len(titles) > 0

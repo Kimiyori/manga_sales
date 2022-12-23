@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: gunicorn src.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --timeout 360 --reload
+    command: gunicorn src.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --timeout 1800 --reload
     working_dir: /aiohttp
     volumes:
       - .:/aiohttp
