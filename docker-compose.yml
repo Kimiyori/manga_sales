@@ -1,8 +1,8 @@
 services:
   web:
-    build: .
-    command: gunicorn src.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --timeout 1800 --reload
-    working_dir: /aiohttp
+    build: ./src/backend
+    command: gunicorn main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --timeout 1800 --reload
+    working_dir: /aiohttp/src/backend
     volumes:
       - .:/aiohttp
     expose:
@@ -10,10 +10,27 @@ services:
     depends_on:
       - db
     restart: on-failure
+  frontend:
+    build: ./src/frontend
+    container_name: dev-react
+    command: npm start --host 0.0.0.0 --port 3000
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src/frontend:/react-docker:delegated
+      - /react-docker/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true # create-ui-app >= 5.x
+
+    depends_on:
+      - web
+    restart: always
   db:
     image: postgres:14
+    working_dir: /aiohttp/src/backend/.
     env_file:
-      - .env
+      - ./src/backend/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
@@ -34,9 +51,9 @@ services:
       - .:/aiohttp
   test:
     build: .
-    command: python -m  pytest 
+    command: python -m  pytest
     working_dir: /aiohttp
-    profiles: ["test_profile"]
+    profiles: [ "test_profile" ]
     volumes:
       - .:/aiohttp
     depends_on:
@@ -45,7 +62,7 @@ services:
     build: .
     command: bash -c "mypy src ; pylint src ; flake8"
     working_dir: /aiohttp
-    profiles: ["test_profile"]
+    profiles: [ "test_profile" ]
     volumes:
       - .:/aiohttp
 volumes:
