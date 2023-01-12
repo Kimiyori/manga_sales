@@ -11,7 +11,6 @@ from manga_sales.db.data_access_layers.week import WeekDAO
 from manga_sales.db.models import SourceType, Week
 
 
-# @aiohttp_jinja2.template("source.html")
 @inject
 async def source(
     request: web.Request,  # pylint: disable = unused-argument
@@ -26,12 +25,10 @@ async def source(
         dict[str, list[Row]]: json with all sources
     """
     data = await service.get_all()
-    print(data)
     response = [{"name": source[0], "image": source[1]} for source in data]
     return web.Response(text=json.dumps(response), content_type="application/json")
 
 
-# @aiohttp_jinja2.template("source_type.html")
 @inject
 async def source_type(
     request: web.Request,
@@ -51,12 +48,11 @@ async def source_type(
     return web.Response(text=json.dumps(response), content_type="application/json")
 
 
-#@aiohttp_jinja2.template("source_type_detail.html")
 @inject
 async def source_type_detail(
     request: web.Request,
     service: WeekDAO = Closing[Provide[DatabaseContainer.week]],
-) -> dict[str, list[Week]]:
+) -> web.Response:
     """View for page with weeks from given source type and source
 
     Args:
@@ -76,7 +72,7 @@ async def source_type_detail(
 async def detail(
     request: web.Request,
     service: ItemDAO = Closing[Provide[DatabaseContainer.item]],
-) -> dict[str, list[Row]]:
+) -> web.Response:
     """View for page with items from given week
 
     Args:
@@ -87,4 +83,21 @@ async def detail(
     """
     date = request.match_info["date"]
     data = await service.get_instance(date)
-    return {"data": data}
+    formatted_data = [
+        {"title":item.title,
+            "rating": item.rating,
+            "volume": item.volume,
+            "release_date": item.release_date.strftime("%d-%m-%Y")
+            if item.release_date
+            else None,
+            "authors": item.authors,
+            "publishers": item.publishers,
+            "image": item.image,
+            "sales": item.sold,
+            "prev_rank": item.previous_rank.name if item.previous_rank else None,
+        }
+        for item in data
+    ]
+    return web.Response(
+        text=json.dumps(formatted_data), content_type="application/json"
+    )

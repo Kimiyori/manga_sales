@@ -8,7 +8,7 @@ const MonthsList = ({ year, months_list = {} }) => {
         <div class={styles["year"]}>{year}</div>
         <div class={styles["months"]}>
           {Object.entries(months_list).map(([k, v]) => (
-            <DateList key={k} month={k} dates_list={v} />
+            <DateList key={k} year={year} month={k} dates_list={v} />
           ))}
         </div>
       </div>

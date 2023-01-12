@@ -5,7 +5,7 @@ import About from './pages/about';
 import HomePage from './pages/SourceMainPage/App';
 import SourceTypePage from './pages/SourceTypesPage/App';
 import SourceTypeDatesPage from './pages/SourceTypeDatesPage/App';
-  
+import TitlesListMain from './pages/ListTitlesPage/App';
 function App() {
   return (
     <Router>
@@ -14,6 +14,7 @@ function App() {
         <Route path='/' element={<HomePage />} />
         <Route path='/:source' element={<SourceTypePage />} />
         <Route path='/:source/:type' element={<SourceTypeDatesPage />} />
+        <Route path='/:source/:type/:date' element={<TitlesListMain />} />
         <Route path='/about' element={<About/>} />
       </Routes>
     </Router>
