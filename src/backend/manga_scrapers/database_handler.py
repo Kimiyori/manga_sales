@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 from dependency_injector.wiring import Provide, inject, Closing
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.engine.row import Row
 
 from manga_scrapers.scrapers.rating_scrapers.meta import MainDataAbstractScraper
 from manga_scrapers.dataclasses import Content
@@ -121,7 +122,7 @@ class DatabaseConnector:
         source_type_session: SourceTypeDAO = Closing[
             Provide[DatabaseContainer.source_type]
         ],
-    ) -> SourceType | None:
+    ) -> Row | None:
         """Method for getting instance of source_type that used in scraper for connecting week
             that will be created with its source type. If method fail to find given source type
             for given source, then it throws assertion exception.
@@ -195,7 +196,7 @@ class DatabaseConnector:
 
     @staticmethod
     async def get_previous_week(
-        week: Week, source_type: SourceType, week_session: WeekDAO
+        week: Week, source_type: SourceType | Row, week_session: WeekDAO
     ) -> Week | None:
         prev_week = await week_session.get_previous_week(week, source_type)
         return prev_week

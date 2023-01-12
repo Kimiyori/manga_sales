@@ -1,4 +1,4 @@
-from src.backend.manga_scrapers.utils.url_handler import build_url, update_url
+from manga_scrapers.utils.url_handler import build_url, update_url
 
 
 def test_build_url():

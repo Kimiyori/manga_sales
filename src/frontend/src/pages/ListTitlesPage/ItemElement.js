@@ -7,7 +7,7 @@ import styles from "./SourceMainPage.module.css";
 const TitleElement = ({ item }) => {
   return (
     <>
-      <div class={styles['item']}>
+      <div class={styles["item"]}>
         <Rating rating={item.rating} />
         <Image image={item.image} />
         <div class="wrap-text">
@@ -16,7 +16,7 @@ const TitleElement = ({ item }) => {
           <AuthorsList data={item.publishers} name="Publishers" />
           <p>Release:{item.release_date}</p>
           <p>Volume: {item.volume}</p>
-          <p>Sold: {item.sold}</p>
+          {item.sales && <p>Sales: {item.sales}</p>}
         </div>
       </div>
     </>

@@ -83,7 +83,6 @@ class WeekDAO(AbstractDAO):
             list[Week]: list of weeks with json groupby
         """
         week_type = await SourceTypeDAO(self.session).get_by_source(source, source_type)
-        print(week_type)
 
         assert week_type is not None
         year = func.extract("year", self.model.date).label("year")
@@ -136,7 +135,7 @@ class WeekDAO(AbstractDAO):
         return data.scalars().all()
 
     async def get_previous_week(
-        self, week: Week, source_type: SourceType
+        self, week: Week, source_type: SourceType | Row
     ) -> Week | None:
         """Methof for getting previous week
 

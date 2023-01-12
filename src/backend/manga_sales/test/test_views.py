@@ -1,14 +1,14 @@
 from unittest import mock
 import pytest
 import pytest_asyncio
-from src.backend.manga_sales.containers import DatabaseContainer
-from src.backend.manga_sales.db.data_access_layers.item import ItemDAO
+from manga_sales.containers import DatabaseContainer
+from manga_sales.db.data_access_layers.item import ItemDAO
 
-from src.backend.manga_sales.db.data_access_layers.source import SourceDAO
-from src.backend.manga_sales.db.data_access_layers.week import WeekDAO
+from manga_sales.db.data_access_layers.source import SourceDAO
+from manga_sales.db.data_access_layers.week import WeekDAO
 from .conftest import dao_session
-from src.backend.main import create_app
-from src.backend.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
+from config.main import create_app
+from manga_sales.db.data_access_layers.source_type import SourceTypeDAO
 
 
 @pytest_asyncio.fixture

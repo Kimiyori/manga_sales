@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
 )
-from config import get_postgres_uri
+
+from config.config import get_postgres_uri
 
 if TYPE_CHECKING:
     TSession: TypeAlias = sessionmaker[  # pylint: disable = unsubscriptable-object

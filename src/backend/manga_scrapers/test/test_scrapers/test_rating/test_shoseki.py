@@ -51,18 +51,6 @@ class TestShosekiScraper:
         with pytest.raises(AttributeError):
             await shoseki_container._get_list_raw_data("url")
 
-    def test_convert_str_to_date(self, shoseki_container):
-        res = shoseki_container.convert_str_to_date("2022-11-11")
-        assert res == datetime.date(2022, 11, 11)
-
-    def test_convert_str_to_date_without_day(self, shoseki_container):
-        res = shoseki_container.convert_str_to_date("2022-11")
-        assert res == datetime.date(2022, 11, 1)
-
-    def test_convert_str_to_date_error(self, shoseki_container):
-        with pytest.raises(AssertionError):
-            shoseki_container.convert_str_to_date("11-11-2022")
-
     async def test_get_data_url(self, aioresponse, shoseki_container, shoseki_list):
         aioresponse.get(
             shoseki_container.MAIN_URL,

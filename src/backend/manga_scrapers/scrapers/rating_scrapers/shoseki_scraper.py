@@ -22,7 +22,7 @@ LIST_DATE_PATERN_MATCH = r"^([0-9]+)\/([0-9]+)\/([0-9]+)\s:\s.+"
 TITLE_NAME_PATTERN_MATCH = r"^(?P<title>.+?)\s(?:\d+|ＫＡＤＯＫ)?[:\D]+\s[\d.]+$"
 TITLE_VOLUME_PATTERN_MATCH = r"(?P<volume>\d+)\s[\s\w\d]+\s[\d.]+$"
 TITLE_DATE_PATERN_MATCH = (
-    r"^(?P<year>[0-9]{4})[-\/\.](?P<month>[0-9]{1,2})[-\/\.]?(?P<day>[0-9]{0,2})"
+    r"(?P<year>[0-9]{4})[-\/\.](?P<month>[0-9]{1,2})[-\/\.]?(?P<day>[0-9]{0,2})"
 )
 
 
@@ -99,7 +99,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         return name, authors, publishers
 
     @inject
-    async def _get_volume_from_amazon(
+    async def fetch_info_from_amazon(
         self,
         item: str,
         isbn: int,
@@ -107,7 +107,7 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         aux_scraper: AmazonParser = Closing[
             Provide[AuxScrapingContainer.amazon_scraper]
         ],
-    ) -> int | None:
+    ) -> AmazonParser | None:
         original_title = self._get_original_title(item)
         try:
             async with aux_scraper(
@@ -116,11 +116,10 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
                 isbn=isbn,
                 publication_date=release_date,
             ) as scraper:
-                volume = scraper.get_volume()
+                fetch_obj = scraper
         except NotFound:
             return None
-        assert not volume or isinstance(volume, int)
-        return volume
+        return fetch_obj
 
     async def create_content_item(
         self, index: int, row: list[str], date: str
@@ -139,10 +138,17 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
         rating = self.get_rating(row[0])
         volume = self.get_volume(row[2])
         release_date = self.get_release_date(row[2])
-        if not volume:
-            volume = await self._get_volume_from_amazon(
+        if not volume or release_date:
+            fetched_data = await self.fetch_info_from_amazon(
                 row[2], int(row[1]), release_date
             )
+            if fetched_data:
+                volume = volume if volume else fetched_data.get_volume()
+                release_date = (
+                    release_date
+                    if release_date
+                    else fetched_data.get_publication_date()
+                )
         name, authors, publishers = await self._get_aux_data(row[2])
         image = await self.get_image(row, date=date, name=name, volume=volume)
         content = Content(

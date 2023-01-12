@@ -77,13 +77,11 @@ async def get_date(
 ) -> datetime.date | None:
     action = "backward"
     if date is None:
-        last_db_date = await week_session.get_last_date(
-            scraper.SOURCE, scraper.SOURCE_TYPE
-        )
-        if last_db_date:
-            date, action = last_db_date, "forward"
-        else:
-            date = datetime.date.today()
+        date = await week_session.get_last_date(scraper.SOURCE, scraper.SOURCE_TYPE)
+    if date:
+        action = "forward"
+    else:
+        date = datetime.date.today()
     valid_date = await scraper.find_latest_date(date, action)
 
     assert valid_date is None or isinstance(valid_date, datetime.date)

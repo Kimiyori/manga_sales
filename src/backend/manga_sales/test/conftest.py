@@ -7,9 +7,9 @@ from sqlalchemy import text
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from src.backend.config import get_postgres_uri, TEST_DATABASE_NAME
-from src.backend.db.base import Base
-from src.backend.manga_sales.db.models import (
+from config.config import get_postgres_uri, TEST_DATABASE_NAME
+from db.base import Base
+from manga_sales.db.models import (
     Author,
     Item,
     Publisher,

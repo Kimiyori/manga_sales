@@ -49,7 +49,7 @@ class AmazonParser(AuxDataParserAbstract):
     # ------------helper methods for main methods------------
     def _get_most_similar_title(
         self, link: BeautifulSoup
-    ) -> dict[str, int | str | None] | None:
+    ) -> dict[str, int | str | None | date] | None:
         """Method for finding most similar title in list of titles.
 
         Args:
@@ -67,7 +67,7 @@ class AmazonParser(AuxDataParserAbstract):
                 "class": "a-section a-spacing-none puis-padding-right-small s-title-instructions-style"
             },
         )
-        titles_data: dict[tuple[int, str], dict[str, int | str | None]] = {}
+        titles_data: dict[tuple[int, str], dict[str, int | str | None | date]] = {}
         for index, title_element in enumerate(raw_titles_element):
             title_string = title_element.find(
                 "span", {"class": "a-size-medium a-color-base a-text-normal"}
@@ -82,15 +82,19 @@ class AmazonParser(AuxDataParserAbstract):
             title_publication_date = datetime.strptime(
                 data_line.findChildren()[-1].string, "%Y/%m/%d"
             ).date()
-            if (
-                self.publication_date - relativedelta(months=+2)
-                <= title_publication_date
-                <= self.publication_date + relativedelta(months=+2)
+            if not self.publication_date or (
+                self.publication_date
+                and (
+                    self.publication_date - relativedelta(months=+2)
+                    <= title_publication_date
+                    <= self.publication_date + relativedelta(months=+2)
+                )
             ):
                 assert isinstance(string_match.group("title"), str)
                 titles_data[(index, string_match.group("title"))] = {
                     "volume": volume,
                     "link": self._MAIN_URL + title_string.parent["href"],
+                    "publication_date": title_publication_date,
                 }
         most_similar = get_most_close(self.title, list(titles_data.keys()))
         if most_similar:
@@ -131,6 +135,9 @@ class AmazonParser(AuxDataParserAbstract):
         if not self.volume and most_similar_title["volume"]:
             assert isinstance(most_similar_title["volume"], int)
             self.volume = most_similar_title["volume"]
+        if not self.publication_date and most_similar_title["publication_date"]:
+            assert isinstance(most_similar_title["publication_date"], date)
+            self.publication_date = most_similar_title["publication_date"]
         assert isinstance(most_similar_title["link"], str)
         title_page: BeautifulSoup = await self.fetch(
             url=most_similar_title["link"], commands=["content", "read"]
@@ -157,6 +164,9 @@ class AmazonParser(AuxDataParserAbstract):
 
     def get_volume(self) -> int | None:
         return self.volume
+
+    def get_publication_date(self) -> date | None:
+        return self.publication_date
 
     # ------------methods that can be invoked somewhere outside------------
     async def get_image(self) -> bytes | None:

@@ -1,14 +1,13 @@
 import json
 import aiohttp_jinja2
-from sqlalchemy.engine.row import Row
 from dependency_injector.wiring import Provide, inject, Closing
 from aiohttp import web
+
 from manga_sales.containers import DatabaseContainer
 from manga_sales.db.data_access_layers.item import ItemDAO
 from manga_sales.db.data_access_layers.source import SourceDAO
 from manga_sales.db.data_access_layers.source_type import SourceTypeDAO
 from manga_sales.db.data_access_layers.week import WeekDAO
-from manga_sales.db.models import SourceType, Week
 
 
 @inject
@@ -44,7 +43,7 @@ async def source_type(
     """
     source_name = request.match_info["source"]
     data = await service.get(source_name)
-    response = [{"type": item.type} for item in data]
+    response = [{"type": item.type} for item in data] if data else None
     return web.Response(text=json.dumps(response), content_type="application/json")
 
 
@@ -84,7 +83,8 @@ async def detail(
     date = request.match_info["date"]
     data = await service.get_instance(date)
     formatted_data = [
-        {"title":item.title,
+        {
+            "title": item.title,
             "rating": item.rating,
             "volume": item.volume,
             "release_date": item.release_date.strftime("%d-%m-%Y")

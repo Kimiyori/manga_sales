@@ -4,7 +4,7 @@ export default function AuthorsList({ data,name }) {
   return (
     <>
       <p class="author"> {name}: 
-      {data.map((item) => ( item ))}
+       {data.map((item) => ( item ))}
       </p>
     </>
   );

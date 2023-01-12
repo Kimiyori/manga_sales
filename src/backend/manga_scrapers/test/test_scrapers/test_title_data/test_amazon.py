@@ -1,4 +1,5 @@
 from datetime import date
+import datetime
 import pytest
 
 from manga_scrapers.utils.url_handler import build_url
@@ -38,6 +39,7 @@ def test_get_most_similar_title_without_volume(amazon_list, amazon_container):
     assert title == {
         "volume": 20,
         "link": "https://www.amazon.co.jp/-/en/%E7%B7%92%E6%96%B9%E4%BF%8A%E8%BC%94-ebook/dp/B0BBZTP6XT/ref=sr_1_1?camp=247&creative=1211&keywords=9784041126202&linkCode=ur2&linkId=9f125b3efa3f20f629497ff6e3168289&qid=1671299756&s=books&sr=1-1",
+        "publication_date": datetime.date(2022, 9, 9),
     }
 
 
@@ -49,6 +51,7 @@ def test_get_most_similar_title_with_volume(amazon_list, amazon_container):
     assert title == {
         "volume": 14,
         "link": "https://www.amazon.co.jp/-/en/%E7%B7%92%E6%96%B9%E4%BF%8A%E8%BC%94-ebook/dp/B08BWZ5N9N/ref=sr_1_3?camp=247&creative=1211&keywords=9784041126202&linkCode=ur2&linkId=9f125b3efa3f20f629497ff6e3168289&qid=1671299756&s=books&sr=1-3",
+        "publication_date": datetime.date(2020, 8, 10),
     }
 
 

@@ -1,14 +1,14 @@
 import pytest
-from src.backend.manga_sales.db.data_access_layers.author import AuthorDAO
-from src.backend.manga_sales.db.data_access_layers.item import ItemDAO
-from src.backend.manga_sales.db.data_access_layers.publisher import PublisherDAO
-from src.backend.manga_sales.db.data_access_layers.source import SourceDAO
-from src.backend.manga_sales.db.data_access_layers.source_type import SourceTypeDAO
-from src.backend.manga_sales.db.data_access_layers.title import TitleDAO
-from src.backend.manga_sales.db.data_access_layers.week import WeekDAO
-from src.backend.manga_sales.db.models import PreviousRank, Title
+from manga_sales.db.data_access_layers.author import AuthorDAO
+from manga_sales.db.data_access_layers.item import ItemDAO
+from manga_sales.db.data_access_layers.publisher import PublisherDAO
+from manga_sales.db.data_access_layers.source import SourceDAO
+from manga_sales.db.data_access_layers.source_type import SourceTypeDAO
+from manga_sales.db.data_access_layers.title import TitleDAO
+from manga_sales.db.data_access_layers.week import WeekDAO
+from manga_sales.db.models import PreviousRank, Title
 import datetime
-from src.backend.manga_sales.test.conftest import *
+from manga_sales.test.conftest import *
 
 
 @pytest.mark.usefixtures("create_data")
@@ -30,7 +30,7 @@ class TestSourceType:
     @pytest.mark.parametrize("dao", [SourceTypeDAO])
     async def test_sourcetype_get_none(self, dao_session):
         data = await dao_session.get("something wrong")
-        assert data == []
+        assert data == None
 
     @pytest.mark.parametrize("dao", [SourceTypeDAO])
     async def test_sourcetype_get_by_source_success(self, dao_session):
