@@ -1,7 +1,8 @@
 import React from "react";
 import NavElement from "./NavElement";
 import styles from "./NavBar.module.css";
-const NavList = ({ items = [] }) => {
+import PropTypes from "prop-types";
+export default function NavList({ items = [] }) {
   return (
     <>
       <div className={styles["nav"]}>
@@ -13,6 +14,10 @@ const NavList = ({ items = [] }) => {
       </div>
     </>
   );
-};
+}
 
-export default NavList;
+NavList.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({ name: PropTypes.string, path: PropTypes.string })
+  ),
+};

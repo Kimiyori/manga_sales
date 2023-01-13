@@ -1,14 +1,22 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
 import styles from "./TitlesList.module.css";
+import PropTypes from "prop-types";
 
 export default function Image({ image }) {
   const { source, type, date } = useContext(Context);
   return (
-    <div class={styles["image"]}>
+    <div className={styles["image"]}>
       <span>
-        <img src={`http://127.0.0.1:8080/${source}/${type}/${date}/${image}`} />
+        <img
+          src={`http://127.0.0.1:8080/${source}/${type}/${date}/${image}`}
+          alt={image}
+        />
       </span>
     </div>
   );
 }
+
+Image.propTypes = {
+  image: PropTypes.string,
+};

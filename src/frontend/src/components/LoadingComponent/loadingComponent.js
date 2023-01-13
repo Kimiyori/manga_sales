@@ -1,10 +1,9 @@
 import React from "react";
 import styles from "./loading.css";
-const LoadingComponent = () => {
+export default function LoadingComponent() {
   return (
     <>
-      <div class="spin"></div>
+      <div className={styles["spin"]}></div>
     </>
   );
-};
-export default LoadingComponent;
+}

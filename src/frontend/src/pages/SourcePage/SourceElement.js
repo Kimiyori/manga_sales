@@ -2,6 +2,7 @@ import React from "react";
 import SourceImage from "./SourceImage";
 import SourceName from "./SourceName";
 import styles from "./Source.module.css";
+import PropTypes from "prop-types";
 export default function SourceElement({ source }) {
   return (
     <>
@@ -14,3 +15,9 @@ export default function SourceElement({ source }) {
     </>
   );
 }
+SourceElement.propTypes = {
+  source: PropTypes.shape({
+    image: PropTypes.string,
+    name: PropTypes.string,
+  }),
+};

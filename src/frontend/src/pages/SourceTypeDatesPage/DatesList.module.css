@@ -1,41 +1,34 @@
-
 .year-item {
   display: flex;
   flex-direction: column;
-    align-items: center;
+  align-items: center;
 }
 .year {
-  margin:20px;
+  margin: 20px;
 }
 .months {
   display: grid;
   grid-template-columns: repeat(3, 200px [col-start]);
   justify-items: center;
-  gap:15px 15px;
- 
+  gap: 15px 15px;
 }
 
 .month-item {
   display: flex;
-  flex-direction:column;
-    align-items: center;
-    
+  flex-direction: column;
+  align-items: center;
 }
 .date-list {
   display: grid;
   grid-template-columns: repeat(4, 20px [col-start]);
   justify-items: center;
-  gap:15px 15px;
-
+  gap: 15px 15px;
 }
 
 .date {
-  margin:10px;
+  margin: 10px;
 }
-.date a{
+.date a {
   text-decoration: none;
-  color:black;
+  color: black;
 }
-
-
-

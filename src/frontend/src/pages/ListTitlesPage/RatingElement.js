@@ -1,14 +1,17 @@
-import React, { useContext } from "react";
+import React from "react";
 import styles from "./TitlesList.module.css";
+import PropTypes from "prop-types";
 
-const Rating = ({ rating }) => {
+export default function Rating({ rating }) {
   return (
     <>
-      <div class={styles["rating"]}>
-        <h1>{ rating }</h1>
+      <div className={styles["rating"]}>
+        <h1>{rating}</h1>
       </div>
     </>
   );
-};
+}
 
-export default Rating;
+Rating.propTypes = {
+  rating: PropTypes.number,
+};
