@@ -3,72 +3,68 @@
   flex-direction: column;
   align-items: center;
   align-content: center;
-
 }
 .main-list {
   display: flex;
-    flex-direction: column;
-    align-items: center;
-    width:900px;
+  flex-direction: column;
+  align-items: center;
+  width: 900px;
 }
 .year-item {
   display: flex;
   flex-direction: column;
-    align-items: center;
+  align-items: center;
 }
 .month-item {
   display: flex;
-  flex-direction:column;
-    align-items: center;
-    
+  flex-direction: column;
+  align-items: center;
 }
 .date-list {
   display: grid;
   grid-template-columns: repeat(4, 20px [col-start]);
   justify-items: center;
-  gap:15px 15px;
-
+  gap: 15px 15px;
 }
 .year {
-  margin:20px;
+  margin: 20px;
 }
 .date {
-  margin:10px;
+  margin: 10px;
 }
-.date a{
+.date a {
   text-decoration: none;
-  color:black;
+  color: black;
 }
 
 .months {
   display: grid;
   grid-template-columns: repeat(3, 200px [col-start]);
   justify-items: center;
-  gap:15px 15px;
- 
+  gap: 15px 15px;
 }
 
 .item {
   display: flex;
   word-wrap: break-word;
-    word-break: break-all;
-    margin: 0 0 10px;
-    padding:  10px;
-    background: #fff;
-    border: 2px solid #eee;
-    width:100%;
+  word-break: break-all;
+  margin: 0 0 10px;
+  padding: 10px;
+  background: #fff;
+  border: 2px solid #eee;
+  width: 100%;
 }
-.item >  *{
-  padding-left:20px;
+.item > * {
+  padding-left: 20px;
 }
 .rating {
   word-wrap: normal;
-  word-break:normal;
+  word-break: normal;
   display: flex;
   align-items: center;
 }
 .image img {
   height: 160px;
-  width:102px;
+  width: 102px;
   object-fit: cover;
 }

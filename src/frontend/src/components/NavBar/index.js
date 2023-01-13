@@ -2,7 +2,8 @@ import React from "react";
 import NavList from "./NavList";
 import NavIcon from "./NavIcon";
 import styles from "./NavBar.module.css";
-const Navbar = () => {
+
+export default function Navbar() {
   const paths = [
     { path: "/", name: "Home" },
     { path: "about", name: "About" },
@@ -18,6 +19,4 @@ const Navbar = () => {
       </header>
     </>
   );
-};
-
-export default Navbar;
+}

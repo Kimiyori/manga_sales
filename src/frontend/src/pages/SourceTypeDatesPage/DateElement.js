@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
 import styles from "./DatesList.module.css";
+import PropTypes from "prop-types";
 
 function getMonthNumberFromName(monthName) {
   return String(new Date(`${monthName} 1, 2022`).getMonth() + 1).padStart(
@@ -8,13 +9,14 @@ function getMonthNumberFromName(monthName) {
     "0"
   );
 }
+
 export default function DateElement({ year, month, day }) {
   const { source } = useContext(Context);
   const { type } = useContext(Context);
   const month_num = getMonthNumberFromName(month);
   return (
     <>
-      <div class={styles["date"]}>
+      <div className={styles["date"]}>
         <a
           href={
             "/" +
@@ -35,3 +37,8 @@ export default function DateElement({ year, month, day }) {
     </>
   );
 }
+DateElement.propTypes = {
+  year: PropTypes.string,
+  month: PropTypes.string,
+  day: PropTypes.number,
+};

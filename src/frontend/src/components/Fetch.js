@@ -4,25 +4,20 @@ function useFetch(uri) {
   const [data, setData] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
-  function sleeper(ms) {
-    return function(x) {
-      return new Promise(resolve => setTimeout(() => resolve(x), ms));
-    };
-  }
+
   useEffect(() => {
     if (!uri) return;
     fetch(uri)
-      .then(data => data.json())
+      .then((data) => data.json())
       .then(setData)
       .then(() => setLoading(false))
       .catch(setError);
   }, [uri]);
 
-
   return {
     loading,
     data,
-    error
+    error,
   };
 }
 
@@ -30,7 +25,7 @@ export default function Fetch({
   uri,
   renderSuccess,
   loadingFallback = <p>loading...</p>,
-  renderError = error => <pre>{JSON.stringify(error, null, 2)}</pre>
+  renderError = (error) => <pre>{JSON.stringify(error, null, 2)}</pre>,
 }) {
   const { loading, data, error } = useFetch(uri);
   if (loading) return loadingFallback();

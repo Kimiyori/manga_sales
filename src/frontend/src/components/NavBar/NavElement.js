@@ -1,6 +1,7 @@
 import React from "react";
+import PropTypes from "prop-types";
 
-const NavElement = ({title, path}) => {
+export default function NavElement({ title, path }) {
   return (
     <>
       <li>
@@ -8,6 +9,9 @@ const NavElement = ({title, path}) => {
       </li>
     </>
   );
-};
+}
 
-export default NavElement;
+NavElement.propTypes = {
+  title: PropTypes.string,
+  path: PropTypes.string,
+};

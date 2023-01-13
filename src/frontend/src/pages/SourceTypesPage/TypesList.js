@@ -1,6 +1,6 @@
 import React from "react";
 import TypeElement from "./Type";
-
+import PropTypes from "prop-types";
 export default function TypesList({ data = [] }) {
   return (
     <>
@@ -10,3 +10,6 @@ export default function TypesList({ data = [] }) {
     </>
   );
 }
+TypesList.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.string),
+};
