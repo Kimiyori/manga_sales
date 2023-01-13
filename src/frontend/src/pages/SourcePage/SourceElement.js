@@ -1,11 +1,11 @@
 import React from "react";
 import SourceImage from "./SourceImage";
 import SourceName from "./SourceName";
-import styles from "./SourceMainPage.module.css";
-const SourceElement = ({ source }) => {
+import styles from "./Source.module.css";
+export default function SourceElement({ source }) {
   return (
     <>
-      <a href={'/'+source.name.toLowerCase()}>
+      <a href={"/" + source.name.toLowerCase()}>
         <div className={styles["item"]}>
           <SourceImage image={source.image} />
           <SourceName name={source.name} />
@@ -13,6 +13,4 @@ const SourceElement = ({ source }) => {
       </a>
     </>
   );
-};
-
-export default SourceElement;
+}

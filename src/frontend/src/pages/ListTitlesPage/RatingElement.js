@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import styles from "./SourceMainPage.module.css";
+import styles from "./TitlesList.module.css";
 
 const Rating = ({ rating }) => {
   return (

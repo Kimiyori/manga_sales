@@ -1,7 +1,7 @@
 import React from "react";
 import DateList from "./DatesList";
-import styles from "./SourceMainPage.module.css";
-const MonthsList = ({ year, months_list = {} }) => {
+import styles from "./DatesList.module.css";
+export default function MonthsList({ year, months_list = {} }) {
   return (
     <>
       <div class={styles["year-item"]}>
@@ -14,6 +14,4 @@ const MonthsList = ({ year, months_list = {} }) => {
       </div>
     </>
   );
-};
-
-export default MonthsList;
+}

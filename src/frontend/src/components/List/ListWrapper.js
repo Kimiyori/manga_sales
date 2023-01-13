@@ -1,13 +1,13 @@
 import React from "react";
-import SourceList from "./SourceList";
-import styles from "./SourceMainPage.module.css";
-const MainList = ({ data }) => {
-    return (
-      <>
-        <div className={styles["main"]}>
-          <h1>Sources manga sales</h1>
-          <SourceList source_list={data} />
-        </div>
-      </>
-    );
-  };
+import styles from "./list.module.css";
+
+export default function ListWrapper({ title, component }) {
+  return (
+    <div className={styles["main"]}>
+      <h1>{title}</h1>
+      <div className={styles["main-list"]}>
+        {component}
+      </div>
+    </div>
+  );
+}

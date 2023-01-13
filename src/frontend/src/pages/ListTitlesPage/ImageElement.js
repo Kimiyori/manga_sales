@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
-import styles from "./SourceMainPage.module.css";
+import styles from "./TitlesList.module.css";
 
 export default function Image({ image }) {
   const { source, type, date } = useContext(Context);

@@ -1,17 +1,12 @@
 import React from "react";
-import TypeElement from './Type'
-import styles from "./SourceMainPage.module.css";
-const TypesList = ({types_list=[]}) => {
+import TypeElement from "./Type";
 
+export default function TypesList({ data = [] }) {
   return (
     <>
-      <div className={styles['main-list']}>
-          {types_list.map((source,i) => (
-            <TypeElement key={i} type={source.type} />
-          ))}
-      </div>
+      {data.map((source, i) => (
+        <TypeElement key={i} type={source.type} />
+      ))}
     </>
   );
-};
-
-export default TypesList;
+}

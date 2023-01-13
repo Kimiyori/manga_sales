@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "./SourceMainPage.module.css";
-const SourceName = ({name}) => {
+import styles from "./Source.module.css";
+export default function SourceName({name}) {
   return (
     <>
       <div >
@@ -9,5 +9,3 @@ const SourceName = ({name}) => {
     </>
   );
 };
-
-export default SourceName;

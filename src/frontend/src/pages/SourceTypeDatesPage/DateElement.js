@@ -1,13 +1,14 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
-import styles from "./SourceMainPage.module.css";
+import styles from "./DatesList.module.css";
+
 function getMonthNumberFromName(monthName) {
   return String(new Date(`${monthName} 1, 2022`).getMonth() + 1).padStart(
     2,
     "0"
   );
 }
-const DateElement = ({ year, month, day }) => {
+export default function DateElement({ year, month, day }) {
   const { source } = useContext(Context);
   const { type } = useContext(Context);
   const month_num = getMonthNumberFromName(month);
@@ -33,6 +34,4 @@ const DateElement = ({ year, month, day }) => {
       </div>
     </>
   );
-};
-
-export default DateElement;
+}

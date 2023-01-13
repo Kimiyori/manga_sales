@@ -2,29 +2,23 @@ import React, { createContext } from "react";
 import { useParams } from "react-router-dom";
 import TypesList from "./TypesList";
 import Fetch from "../../components/Fetch";
-import styles from "./SourceMainPage.module.css";
 import LoadingComponent from "../../components/LoadingComponent/loadingComponent";
-const MainList = ({ data }) => {
-  return (
-    <>
-      <div className={styles["main"]}>
-        <h1>Types</h1>
-        <TypesList types_list={data} />
-      </div>
-    </>
-  );
-};
+import ListWrapper from "../../components/List/ListWrapper";
+
 export const Context = createContext();
-const SourceTypePage = () => {
+
+export default function SourceTypePage() {
   let { source } = useParams();
+  let fetch = (
+    <Fetch
+      uri={`http://127.0.0.1:8080/${source}/`}
+      renderSuccess={TypesList}
+      loadingFallback={LoadingComponent}
+    />
+  );
   return (
     <Context.Provider value={{ source }}>
-      <Fetch
-        uri={`http://127.0.0.1:8080/${source}/`}
-        renderSuccess={MainList} loadingFallback={LoadingComponent}
-      />
+      <ListWrapper title="Types" component={fetch} />
     </Context.Provider>
   );
-};
-
-export default SourceTypePage;
+}

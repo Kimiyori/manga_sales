@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./SourceMainPage.module.css";
+
 import TitleElement from "./ItemElement";
 const TitlesList = ({ data }) => {
   return (
