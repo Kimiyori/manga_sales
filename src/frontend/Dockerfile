@@ -1,6 +1,6 @@
 # Dockerfile
 # Pull the base image
-FROM node:13.12.0-alpine
+FROM node:latest
 # Set the working directory
 WORKDIR /react-docker
 # Copy app dependencies to container

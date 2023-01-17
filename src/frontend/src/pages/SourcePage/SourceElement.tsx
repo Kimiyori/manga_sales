@@ -2,8 +2,12 @@ import React from "react";
 import SourceImage from "./SourceImage";
 import SourceName from "./SourceName";
 import styles from "./Source.module.css";
-import PropTypes from "prop-types";
-export default function SourceElement({ source }) {
+export type SourceData = {
+  image: string;
+  name: string;
+};
+
+export default function SourceElement({ source }: { source: SourceData }) {
   return (
     <>
       <a href={"/" + source.name.toLowerCase()}>
@@ -15,9 +19,3 @@ export default function SourceElement({ source }) {
     </>
   );
 }
-SourceElement.propTypes = {
-  source: PropTypes.shape({
-    image: PropTypes.string,
-    name: PropTypes.string,
-  }),
-};

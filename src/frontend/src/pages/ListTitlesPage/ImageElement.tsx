@@ -1,9 +1,8 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
 import styles from "./TitlesList.module.css";
-import PropTypes from "prop-types";
 
-export default function Image({ image }) {
+export default function Image({ image }: { image: string }) {
   const { source, type, date } = useContext(Context);
   return (
     <div className={styles["image"]}>
@@ -16,7 +15,3 @@ export default function Image({ image }) {
     </div>
   );
 }
-
-Image.propTypes = {
-  image: PropTypes.string,
-};

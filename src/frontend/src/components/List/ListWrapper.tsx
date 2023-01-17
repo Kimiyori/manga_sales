@@ -1,7 +1,13 @@
 import React from "react";
 import styles from "./list.module.css";
-import PropTypes from "prop-types";
-export default function ListWrapper({ title, component }) {
+
+export default function ListWrapper({
+  title,
+  component,
+}: {
+  title: string;
+  component: React.ReactElement;
+}) {
   return (
     <div className={styles["main"]}>
       <h1>{title}</h1>
@@ -9,8 +15,3 @@ export default function ListWrapper({ title, component }) {
     </div>
   );
 }
-
-ListWrapper.propTypes = {
-  title: PropTypes.string,
-  component: PropTypes.element,
-};

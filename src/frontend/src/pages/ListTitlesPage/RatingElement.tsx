@@ -1,8 +1,7 @@
 import React from "react";
 import styles from "./TitlesList.module.css";
-import PropTypes from "prop-types";
 
-export default function Rating({ rating }) {
+export default function Rating({ rating }: { rating: number }) {
   return (
     <>
       <div className={styles["rating"]}>
@@ -11,7 +10,3 @@ export default function Rating({ rating }) {
     </>
   );
 }
-
-Rating.propTypes = {
-  rating: PropTypes.number,
-};

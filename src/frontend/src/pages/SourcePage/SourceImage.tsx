@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./Source.module.css";
-import PropTypes from "prop-types";
-export default function SourceImage({ image }) {
+
+export default function SourceImage({ image }: { image: string }) {
   return (
     <>
       <div className={styles["image"]}>
@@ -10,6 +10,3 @@ export default function SourceImage({ image }) {
     </>
   );
 }
-SourceImage.propTypes = {
-  image: PropTypes.string,
-};

@@ -4,11 +4,11 @@ import Fetch from "../../components/Fetch";
 import LoadingComponent from "../../components/LoadingComponent/loadingComponent";
 import TitlesList from "./TitlesList";
 import ListWrapper from "../../components/List/ListWrapper";
-export const Context = createContext();
+export const Context = createContext<any>({});
 
 export default function TitlesListMain() {
-  let { source, type, date } = useParams();
-  let fetch = (
+  const { source, type, date } = useParams();
+  const fetch = (
     <Fetch
       uri={`http://127.0.0.1:8080/${source}/${type}/${date}/`}
       renderSuccess={TitlesList}

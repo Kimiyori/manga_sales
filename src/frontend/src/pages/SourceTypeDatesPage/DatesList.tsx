@@ -1,9 +1,19 @@
 import React from "react";
 import DateElement from "./DateElement";
 import styles from "./DatesList.module.css";
-import PropTypes from "prop-types";
 
-export default function DateList({ year, month, dates_list = [] }) {
+import type { DateNumber } from "./DateElement";
+
+export interface MonthElement {
+  month: string;
+  dates_list: DateNumber[];
+}
+
+interface ListDate extends MonthElement {
+  year: string;
+}
+
+export default function DateList({ year, month, dates_list = [] }: ListDate) {
   return (
     <>
       <div className={styles["month-item"]}>
@@ -17,8 +27,3 @@ export default function DateList({ year, month, dates_list = [] }) {
     </>
   );
 }
-DateList.propTypes = {
-  year: PropTypes.string,
-  month: PropTypes.string,
-  dates_list: PropTypes.arrayOf(PropTypes.number),
-};

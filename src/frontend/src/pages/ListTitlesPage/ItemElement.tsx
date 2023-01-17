@@ -3,9 +3,9 @@ import Rating from "./RatingElement";
 import Image from "./ImageElement";
 import List from "./List";
 import styles from "./TitlesList.module.css";
-import PropTypes from "prop-types";
 
-export default function TitleElement({ item }) {
+import type { DataList } from "./TitlesList";
+export default function TitleElement({ item }: { item: DataList }) {
   return (
     <>
       <div className={styles["item"]}>
@@ -23,16 +23,3 @@ export default function TitleElement({ item }) {
     </>
   );
 }
-
-TitleElement.propTypes = {
-  item: PropTypes.shape({
-    rating: PropTypes.number,
-    image: PropTypes.string,
-    title: PropTypes.string,
-    authors: PropTypes.arrayOf(PropTypes.string),
-    publishers: PropTypes.arrayOf(PropTypes.string),
-    release_date: PropTypes.string,
-    volume: PropTypes.number,
-    sales: PropTypes.number,
-  }),
-};

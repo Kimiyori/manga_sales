@@ -1,7 +1,7 @@
 import React from "react";
 import TypeElement from "./Type";
-import PropTypes from "prop-types";
-export default function TypesList({ data = [] }) {
+
+export default function TypesList({ data = [] }: { data: { type: string }[] }) {
   return (
     <>
       {data.map((source, i) => (
@@ -10,6 +10,3 @@ export default function TypesList({ data = [] }) {
     </>
   );
 }
-TypesList.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.string),
-};

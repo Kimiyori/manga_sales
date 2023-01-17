@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Context } from "./App";
-import PropTypes from "prop-types";
-export default function TypeElement({ type }) {
+
+export default function TypeElement({ type }: { type: string }) {
   const { source } = useContext(Context);
   return (
     <>
@@ -9,6 +9,3 @@ export default function TypeElement({ type }) {
     </>
   );
 }
-TypeElement.propTypes = {
-  type: PropTypes.string,
-};

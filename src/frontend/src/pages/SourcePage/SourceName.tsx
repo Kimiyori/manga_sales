@@ -1,8 +1,7 @@
 import React from "react";
 import styles from "./Source.module.css";
-import PropTypes from "prop-types";
 
-export default function SourceName({ name }) {
+export default function SourceName({ name }: { name: string }) {
   return (
     <>
       <div>
@@ -11,6 +10,3 @@ export default function SourceName({ name }) {
     </>
   );
 }
-SourceName.propTypes = {
-  name: PropTypes.string,
-};
