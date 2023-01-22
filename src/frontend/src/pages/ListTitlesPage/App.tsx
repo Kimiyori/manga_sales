@@ -1,9 +1,9 @@
 import React, { createContext } from "react";
 import { useParams } from "react-router-dom";
 import Fetch from "../../components/Fetch";
-import LoadingComponent from "../../components/LoadingComponent/loadingComponent";
+import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import TitlesList from "./TitlesList";
-import ListWrapper from "../../components/List/ListWrapper";
+import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
 export const Context = createContext<any>({});
 
 export default function TitlesListMain() {
@@ -18,7 +18,7 @@ export default function TitlesListMain() {
   return (
     <>
       <Context.Provider value={{ source, type, date }}>
-        <ListWrapper title="Rating" component={fetch} />
+        <ListWrapper component={fetch} />
       </Context.Provider>
     </>
   );

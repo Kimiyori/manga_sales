@@ -35,11 +35,26 @@ class Source(Base):
     __tablename__ = "source"
     id = Column(Integer, primary_key=True)
     name = Column(String(256), nullable=False, unique=True)
+    description = Column(String(), nullable=True)
     image = Column(String, nullable=True, unique=True)
     source_type: list[SourceType] = relationship("SourceType", back_populates="source")
+    link: list[Link] = relationship("Link", back_populates="source")
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(" f"id={self.id},name={self.name})>"
+        return f"<{self.__class__.__name__}(" f"id={self.id}, name={self.name})>"
+
+
+class Link(Base):
+    """Model for storign links"""
+
+    __tablename__ = "link"
+    id = Column(Integer, primary_key=True)
+    link = Column(String(512), nullable=False)
+    source_id = Column(Integer, ForeignKey("source.id", ondelete="CASCADE"))
+    source: Source = relationship("Source", back_populates="link")
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__}(" f"id={self.id}, link={self.link})>"
 
 
 class SourceType(Base):
@@ -60,7 +75,10 @@ class SourceType(Base):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(" f"id={self.id},type={self.type})>"
-
+"""Oricon is the holding company at the head of a Japanese corporate group 
+that monitors and reports on sales of CDs, DVDs, video games,
+and entertainment content in several other formats; manga and book sales were also formerly covered.
+"""
 
 class Week(Base):
     """

@@ -2,8 +2,8 @@ import React, { createContext } from "react";
 import { useParams } from "react-router-dom";
 import YearsList from "./YearList";
 import Fetch from "../../components/Fetch";
-import LoadingComponent from "../../components/LoadingComponent/loadingComponent";
-import ListWrapper from "../../components/List/ListWrapper";
+import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
+import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
 export const Context = createContext<any>({});
 
 export default function SourceTypeDatesPage() {
@@ -18,7 +18,7 @@ export default function SourceTypeDatesPage() {
   );
   return (
     <Context.Provider value={{ source, type }}>
-      <ListWrapper title="Dates" component={fetch} />
+      <ListWrapper component={fetch} />
     </Context.Provider>
   );
 }

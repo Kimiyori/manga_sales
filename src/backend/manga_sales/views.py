@@ -24,7 +24,16 @@ async def source(
         dict[str, list[Row]]: json with all sources
     """
     data = await service.get_all()
-    response = [{"name": source[0], "image": source[1]} for source in data]
+    response = [
+        {
+            "name": source[1],
+            "image": source[2],
+            "description": source[3],
+            "link": source[4],
+            "types":source[5]
+        }
+        for source in data
+    ]
     return web.Response(text=json.dumps(response), content_type="application/json")
 
 

@@ -1,0 +1,38 @@
+/* Note: This example only works with Windows Insider Preview Builds 16237+ or the Fall Creators Update. */
+body {
+  margin: 0;
+}
+.main-layout {
+  margin: 0;
+  font-family: Monospace, serif;
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "nav section aside"
+    "footer footer footer";
+  grid-template-rows: 80px 1fr 50px;
+  grid-template-columns: 30% 1fr 30%;
+  grid-gap: 5px;
+  height: 100vh;
+}
+
+header {
+  grid-area: header;
+}
+
+nav {
+  grid-area: nav;
+}
+
+section {
+  grid-area: section;
+}
+
+aside {
+  grid-area: aside;
+}
+
+footer {
+  background: #707070;
+  grid-area: footer;
+}

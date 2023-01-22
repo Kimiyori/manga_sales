@@ -1,6 +1,7 @@
 from sqlalchemy.engine.row import Row
 from sqlalchemy.future import select
-from manga_sales.db.models import Source
+from sqlalchemy import distinct, func
+from manga_sales.db.models import Source, Link, SourceType
 from manga_sales.db.data_access_layers.abc import AbstractDAO
 
 
@@ -18,5 +19,17 @@ class SourceDAO(AbstractDAO):
         Returns:
             list[Row]: list all week rows
         """
-        query = await self.session.execute(select(self.model.name, self.model.image))
+        query = await self.session.execute(
+            select(
+                self.model.id,
+                self.model.name,
+                self.model.image,
+                self.model.description,
+                Link.link.label("link"),
+                func.array_agg(SourceType.type).label("types"),
+            )
+            .join(Link)
+            .join(SourceType)
+            .group_by(self.model.id, Link.link)
+        )
         return query.all()

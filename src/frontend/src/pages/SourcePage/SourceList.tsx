@@ -1,15 +1,11 @@
 import React from "react";
-import SourceElement from "./SourceElement";
-import type { SourceData } from "./SourceElement";
-export type SourceProp = {
-  data: SourceData[];
-};
+import Item, { ItemData } from "../../components/core/ItemBlock/ItemBlock";
 
-export default function SourceList({ data = [] }: SourceProp) {
+export default function SourceList({ data = [] }: { data: ItemData[] }) {
   return (
     <>
       {data.map((source, i) => (
-        <SourceElement key={i} source={source} />
+        <Item key={i} data={source} />
       ))}
     </>
   );

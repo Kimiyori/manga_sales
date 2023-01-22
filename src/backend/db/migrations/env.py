@@ -21,7 +21,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from src.manga_sales.db import models
+from manga_sales.db import models
 
 target_metadata = models.Base.metadata
 
@@ -29,7 +29,7 @@ target_metadata = models.Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-from src.config import get_postgres_uri
+from config.config import get_postgres_uri
 
 DSN = get_postgres_uri()
 config.set_main_option("sqlalchemy.url", DSN)

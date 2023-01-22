@@ -11,10 +11,7 @@ export type Date = {
 };
 
 function getMonthNumberFromName(monthName: string): string {
-  return String(new Date(`${monthName} 1, 2022`).getMonth() + 1).padStart(
-    2,
-    "0"
-  );
+  return String(new Date(`${monthName} 1, 2022`).getMonth() + 1).padStart(2, "0");
 }
 
 export default function DateElement({ year, month, day }: Date) {
@@ -24,20 +21,7 @@ export default function DateElement({ year, month, day }: Date) {
   return (
     <>
       <div className={styles["date"]}>
-        <a
-          href={
-            "/" +
-            source +
-            "/" +
-            type +
-            "/" +
-            year +
-            "-" +
-            month_num +
-            "-" +
-            String(day).padStart(2, "0")
-          }
-        >
+        <a href={"/" + source + "/" + type + "/" + year + "-" + month_num + "-" + String(day).padStart(2, "0")}>
           {day}
         </a>
       </div>

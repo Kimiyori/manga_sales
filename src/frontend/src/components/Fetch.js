@@ -21,12 +21,7 @@ function useFetch(uri) {
   };
 }
 
-export default function Fetch({
-  uri,
-  renderSuccess,
-  loadingFallback,
-  renderError = (error) => <pre>{error}</pre>,
-}) {
+export default function Fetch({ uri, renderSuccess, loadingFallback, renderError = (error) => <pre>{error}</pre> }) {
   const { loading, data, error } = useFetch(uri);
   if (loading) return loadingFallback();
   if (error) return renderError(error);
