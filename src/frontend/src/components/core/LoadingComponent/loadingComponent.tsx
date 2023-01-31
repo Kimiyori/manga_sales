@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./loading.css";
+import styles from "./loading.module.css";
 const LoadingComponent: React.FunctionComponent = () => {
   return (
     <>

@@ -1,0 +1,100 @@
+.container {
+  display: grid;
+  grid-template-columns: 0.1fr 0.3fr 0.60fr;
+  grid-template-rows: 1fr;
+  gap: 1em;
+  grid-auto-flow: row;
+  grid-template-areas: "title_rating title_image main_info";
+  margin: 0.5rem;
+}
+
+.title_rating {
+  grid-area: title_rating;
+  justify-self: center;
+  align-self: center;
+  font-size: 2em;
+  
+}
+
+.title_image {
+  grid-area: title_image;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  img {
+    object-fit:  cover;
+    width:100%;
+    max-height: 200px;
+  }
+}
+
+.main_info {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 0.2fr 0.2fr 0.6fr;
+
+  grid-auto-flow: row;
+  grid-template-areas:
+    "title_name"
+    "chart_info"
+    "creators";
+  grid-area: main_info;
+}
+
+.title_name {
+  grid-area: title_name;
+  justify-self: center;
+  align-self: center;
+  
+  h2{
+    font-size: 18px;
+  }
+}
+
+.chart_info {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0px,1fr));
+  grid-template-rows: 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas: "release volume sales";
+  grid-area: chart_info;
+  justify-items: center;
+  align-items: center;
+  align-self: center;
+}
+
+.release {
+  grid-area: release;
+}
+
+.volume {
+  grid-area: volume;
+}
+
+.sales {
+  grid-area: sales;
+}
+
+.creators {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1.1fr 0.9fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "authors_list"
+    "publishers_list";
+  grid-area: creators;
+
+}
+
+.authors_list {
+  grid-area: authors_list;
+  display: inline
+}
+
+.publishers_list {
+  grid-area: publishers_list;
+}

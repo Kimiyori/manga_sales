@@ -1,9 +1,19 @@
 import React, { useEffect } from "react";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
-import SourceList from "./SourceList";
 import Fetch from "../../components/Fetch";
 import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
+import Item, { ItemData } from "../../components/core/ItemBlock/ItemBlock";
+
+function SourceList({ data = [] }: { data: ItemData[] }) {
+  return (
+    <>
+      {data.map((source, i) => (
+        <Item key={i} data={source} />
+      ))}
+    </>
+  );
+}
 
 export default function SourceListMainPage() {
   useEffect(() => {

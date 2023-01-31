@@ -30,7 +30,7 @@ async def source(
             "image": source[2],
             "description": source[3],
             "link": source[4],
-            "types":source[5]
+            "types": source[5],
         }
         for source in data
     ]
@@ -72,7 +72,17 @@ async def source_type_detail(
     source_str = request.match_info["source"]
     source_type_str = request.match_info["type"]
     data = await service.get_all_groupby(source_str, source_type_str)
-    return web.Response(text=json.dumps(data), content_type="application/json")
+    formatted_data = [
+        {
+            "year": year,
+            "months": [
+                {"name": name, "dates": dates} for (name, dates) in months.items()
+            ],
+        }
+        for item in data
+        for (year, months) in item.items()
+    ]
+    return web.Response(text=json.dumps(formatted_data), content_type="application/json")
 
 
 @aiohttp_jinja2.template("detail.html")

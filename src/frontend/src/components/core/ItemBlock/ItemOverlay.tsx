@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./ItemBlock.module.scss";
 
-export default function ItemOverlay({ name, types }: { name: string; types: string[] }) {
+export default function dItemOverlay({ name, types }: { name: string; types: string[] }) {
   return (
     <>
       <div className={styles["source-type"]}>

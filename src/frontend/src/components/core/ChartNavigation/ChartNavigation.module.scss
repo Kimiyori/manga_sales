@@ -1,0 +1,86 @@
+.dates_navigator {
+  display: grid;
+  grid-template-columns: 0.4fr 0.8fr;
+  grid-template-rows: 0.2fr 0.2fr 0.6fr;
+  gap: 1rem;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "dates-nav-year right-nav"
+    "dates-nav-month right-nav"
+    "dates-nav-days right-nav-botom";
+  background-color: rgb(240, 240, 240);
+  justify-items: center;
+}
+
+.dates-nav-year {
+  grid-area: dates-nav-year;
+  display: grid;
+  grid-template-columns: 0.25fr 0.5fr 0.25fr;
+  grid-template-rows: 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas: "left-arrow-button center-info right-arrow-button";
+  width: 100%;
+  justify-items: center;
+  align-items: center;
+}
+
+.dates-nav-month {
+  grid-area: dates-nav-month;
+  display: grid;
+  grid-template-columns: 0.25fr 0.5fr 0.25fr;
+  grid-template-rows: 1fr;
+  gap: 0px 0px;
+  grid-auto-flow: row;
+  grid-template-areas: "left-arrow-button center-info right-arrow-button";
+  width: 100%;
+  justify-items: center;
+  align-items: center;
+}
+
+.dates-nav-days {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: flex-start;
+  width: 100%;
+  div {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.right-nav {
+  grid-area: right-nav;
+}
+
+.button {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+}
+.right-nav-botom {
+  grid-area: right-nav-botom;
+}
+
+.left-arrow-button {
+  button {
+    @extend .button;
+  }
+  grid-area: left-arrow-button;
+}
+
+.right-arrow-button {
+  button {
+    @extend .button;
+  }
+  grid-area: right-arrow-button;
+}
+
+.center-info {
+  grid-area: center-info;
+}
