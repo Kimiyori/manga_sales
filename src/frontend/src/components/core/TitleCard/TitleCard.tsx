@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useContext, useLayoutEffect, useRef } from "react";
 import styles from "./styles.module.scss";
 import VerticalInfoBar from "../VerticalInfoBar/VerticalInfoBar";
 import TitleCreaters from "./TitleCreaters";
+import { Context, SourceContextType } from "../../../pages/ChartstList";
 export type TitleData = {
   rating: number;
   image: string;
@@ -13,16 +14,24 @@ export type TitleData = {
   sales: number | null;
 };
 export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: string }) => {
+  const txtTitle = useRef() as React.MutableRefObject<HTMLDivElement>;
+  const { source, type } = useContext(Context) as SourceContextType;
+  useLayoutEffect(() => {
+    const relFontsize = txtTitle.current.offsetWidth * 0.05;
+    txtTitle.current.style.fontSize = relFontsize + "px";
+  });
   return (
     <>
       <div className={styles["container"]}>
         <div className={styles["title_rating"]}>{title_data.rating}</div>
         <div className={styles["title_image"]}>
-          <img src={`${date}/${title_data.image}`} alt={title_data.image} />
+          <img src={`http://127.0.0.1:8080/${source}/${type}/${date}/${title_data.image}`} alt={title_data.image} />
         </div>
         <div className={styles["main_info"]}>
           <div className={styles["title_name"]}>
-            <h2 className={styles["title"]}>{title_data.title}</h2>
+            <h2 ref={txtTitle} className={styles["title"]}>
+              {title_data.title}
+            </h2>
           </div>
           <div className={styles["chart_info"]}>
             <div className={styles["release"]}>

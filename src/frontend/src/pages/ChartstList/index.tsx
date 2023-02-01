@@ -1,20 +1,26 @@
-import React, { createContext, useEffect } from "react";
+import React, { createContext, useLayoutEffect } from "react";
 import { useParams } from "react-router-dom";
 import Fetch from "../../components/Fetch";
 import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
-import { ChartLayout, DatesObject } from "./Layout";
+import { ChartLayout } from "./Layout";
 import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
+import { capitalize } from "../../utils/string_helpers";
 export type SourceContextType = {
   source: string;
   type: string;
+  url_date?: string;
 };
+export interface DatesObject {
+  year: string;
+  months: { name: string; dates: number[] }[];
+}
 export const Context = createContext<SourceContextType | null>(null);
 
 export default function ChartList() {
-  const { source, type } = useParams<SourceContextType>();
-  useEffect(() => {
-    document.title = `${source?.toUpperCase()} ${type?.toUpperCase()}  chart`;
+  const { source, type, url_date } = useParams<SourceContextType>();
+  useLayoutEffect(() => {
+    document.title = `${capitalize(source as string)} ${capitalize(type as string)}  chart`;
   });
   const fetch = (
     <Fetch
@@ -24,8 +30,8 @@ export default function ChartList() {
     />
   );
   return (
-    <Context.Provider value={{ source, type } as SourceContextType}>
-      <MainLayout section={<ListWrapper component={fetch} />} />;
+    <Context.Provider value={{ source, type, url_date } as SourceContextType}>
+      <MainLayout section={<ListWrapper component={fetch} />} />
     </Context.Provider>
   );
 }

@@ -49,6 +49,9 @@
     width: 100%;
     text-align: center;
   }
+  button {
+    @extend .button;
+  }
 }
 
 .right-nav {
@@ -83,4 +86,8 @@
 
 .center-info {
   grid-area: center-info;
+}
+
+.active_button{
+  color: red;
 }
