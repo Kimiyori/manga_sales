@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
-import Fetch from "../../components/Fetch";
+import Fetch from "../../hooks/Fetch";
 import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
 import Item, { ItemData } from "../../components/core/ItemBlock/ItemBlock";

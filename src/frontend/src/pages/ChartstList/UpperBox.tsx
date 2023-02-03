@@ -51,7 +51,6 @@ export function ChartLayout({ data }: { data: DatesObject[] }) {
   }, [url, currentDate]);
   return (
     <>
-      <div className={styles.container}>
         <div className={styles.upper_box}>
           <div className={styles.navigation}>
             <DateContext.Provider value={{ changeYear, changeMonth, changeDate, currentDay }}>
@@ -63,17 +62,6 @@ export function ChartLayout({ data }: { data: DatesObject[] }) {
             </DateContext.Provider>
           </div>
           <div className={styles.base_menu_info}></div>
-        </div>
-        <div className={styles["bottom_box"]}>
-          {currentDate ? (
-            <Fetch<TitleData[]>
-              uri={`http://127.0.0.1:8080/${source}/${type}/${currentDate}/`}
-              renderSuccess={({ data }) => <ListTitles data={data} currentDate={currentDate} />}
-              loadingFallback={LoadingComponent}
-            />
-          ) : (
-            <div>1</div>
-          )}
         </div>
       </div>
     </>

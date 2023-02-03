@@ -3,6 +3,7 @@ import { DatesObject } from "../pages/ChartstList";
 import { calculate, compare } from "../utils/calculate";
 import { getMonthName } from "../utils/dates";
 
+export type DatesState = { year_index: number; month_index: number };
 const getYear = (data: DatesObject[], date: string) => {
   const [, url_year] = date.match(/(\d+)-\d+-\d+/) || [];
   const finded_year = data.map((obj) => obj.year).indexOf(url_year);
@@ -17,7 +18,7 @@ export const DatesIterator = (
   data: DatesObject[],
   url_date?: string
 ): [
-  { year_index: number; month_index: number },
+  DatesState,
   (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
   (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
 ] => {

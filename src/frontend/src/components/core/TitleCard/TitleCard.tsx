@@ -1,8 +1,9 @@
-import React, { useContext, useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import styles from "./styles.module.scss";
 import VerticalInfoBar from "../VerticalInfoBar/VerticalInfoBar";
 import TitleCreaters from "./TitleCreaters";
-import { Context, SourceContextType } from "../../../pages/ChartstList";
+import { SourceContextType } from "../../../pages/ChartstList";
+import { useParams } from "react-router-dom";
 export type TitleData = {
   rating: number;
   image: string;
@@ -15,7 +16,7 @@ export type TitleData = {
 };
 export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: string }) => {
   const txtTitle = useRef() as React.MutableRefObject<HTMLDivElement>;
-  const { source, type } = useContext(Context) as SourceContextType;
+  const { source, type } = useParams<SourceContextType>();
   useLayoutEffect(() => {
     const relFontsize = txtTitle.current.offsetWidth * 0.05;
     txtTitle.current.style.fontSize = relFontsize + "px";
