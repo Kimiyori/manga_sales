@@ -4,6 +4,7 @@ import VerticalInfoBar from "../VerticalInfoBar/VerticalInfoBar";
 import TitleCreaters from "./TitleCreaters";
 import { SourceContextType } from "../../../pages/ChartstList";
 import { useParams } from "react-router-dom";
+import { BsFillArrowUpSquareFill, BsFillArrowDownSquareFill } from "react-icons/bs";
 export type TitleData = {
   rating: number;
   image: string;
@@ -13,6 +14,7 @@ export type TitleData = {
   release_date: string;
   volume: number;
   sales: number | null;
+  prev_rank: string | null;
 };
 export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: string }) => {
   const txtTitle = useRef() as React.MutableRefObject<HTMLDivElement>;
@@ -27,6 +29,15 @@ export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: s
         <div className={styles["title_image"]}>
           <img src={`http://127.0.0.1:8080/${source}/${type}/${date}/${title_data.image}`} alt={title_data.image} />
           <div className={styles["title_rating"]}>{title_data.rating}</div>
+          {title_data.prev_rank && (
+            <div className={styles["title_prev_rank"]}>
+              {title_data.prev_rank == "UP" ? (
+                <BsFillArrowUpSquareFill style={{ color: "#1ad31a" }} />
+              ) : (
+                <BsFillArrowDownSquareFill style={{ color: "rgb(237 14 14)" }} />
+              )}
+            </div>
+          )}
         </div>
         <div className={styles["main_info"]}>
           <div className={styles["title_name"]}>

@@ -73,9 +73,9 @@ class AmazonParser(AuxDataParserAbstract):
                 "span", {"class": "a-size-medium a-color-base a-text-normal"}
             )
             string_match = re.search(STRING_MATCH, title_string.string)
-            if not string_match:
-                continue
             data_line = title_element.find("div", {"class": "a-row"})
+            if not string_match or not data_line:
+                continue
             volume = self._get_volume(data_line, string_match)
             if self.volume and volume and self.volume != int(volume):
                 continue

@@ -33,6 +33,16 @@
         color: variables.$text_color;
         font-size: variables.$big_font_size;
     }
+    .title_prev_rank {
+        background-color: variables.$block_color;
+        border-radius: variables.$border_radius;
+        position: absolute;
+        overflow: hidden;
+        bottom: -5%;
+        right: -3%;
+        margin: 0;
+        font-size: variables.$big_font_size*1.2;
+    }
 }
 
 .main_info {
