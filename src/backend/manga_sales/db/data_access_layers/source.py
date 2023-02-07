@@ -1,12 +1,12 @@
 from sqlalchemy.engine.row import Row
 from sqlalchemy.future import select
-from sqlalchemy import distinct, func
+from sqlalchemy import func
 from manga_sales.db.models import Source, Link, SourceType
 from manga_sales.db.data_access_layers.abc import AbstractDAO
 
 
 class SourceDAO(AbstractDAO):
-    """Data Acess Layer for source table"""
+    """Data Access Layer for source table"""
 
     model = Source
 
@@ -28,7 +28,7 @@ class SourceDAO(AbstractDAO):
                 Link.link.label("link"),
                 func.array_agg(SourceType.type).label("types"),
             )
-            .join(Link)
+            .join(Link, isouter=True)
             .join(SourceType)
             .group_by(self.model.id, Link.link)
         )

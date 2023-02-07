@@ -75,10 +75,7 @@ class SourceType(Base):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(" f"id={self.id},type={self.type})>"
-"""Oricon is the holding company at the head of a Japanese corporate group 
-that monitors and reports on sales of CDs, DVDs, video games,
-and entertainment content in several other formats; manga and book sales were also formerly covered.
-"""
+
 
 class Week(Base):
     """

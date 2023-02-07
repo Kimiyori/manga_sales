@@ -1,0 +1,8 @@
+@use "../abstracts/variables";
+section {
+  grid-area: section;
+  min-height: 100vh;
+  background-color: variables.$section_color;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+}

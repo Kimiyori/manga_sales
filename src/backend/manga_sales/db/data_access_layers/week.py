@@ -63,7 +63,9 @@ class WeekDAO(AbstractDAO):
         dte = results.first()
         return dte.date if dte else None
 
-    async def get_all_groupby(self, source: str, source_type: str) -> list[Week]:
+    async def get_all_groupby(
+        self, source: str, source_type: str
+    ) -> list[dict[str, dict[str, list[int]]]]:
         """
         Get week date with group by by year and month if the following format:
 

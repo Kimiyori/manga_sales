@@ -16,7 +16,7 @@ export type ItemData = {
 export default function Item({ data }: { data: ItemData }) {
   return (
     <>
-      <div className={styles["wide-items-list"]}>
+      <div className={styles.source_block}>
         <ItemImage image={data.image} name={data.name} types={data.types} />
         <ItemTitle name={data.name} />
         <ItemDescription name={data.description} />

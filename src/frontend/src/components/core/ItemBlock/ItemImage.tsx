@@ -13,7 +13,7 @@ export default function ItemImage({ name, image, types }: { name: string; image:
   };
   return (
     <>
-      <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className={styles["image"]}>
+      <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className={styles.image}>
         <img style={{ opacity: isHovering ? 0.7 : 1 }} src={`http://127.0.0.1:8080/${image}`} alt={image} />
         {isHovering && <ItemOverlay name={name} types={types} />}
       </div>

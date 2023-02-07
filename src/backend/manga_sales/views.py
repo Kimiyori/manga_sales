@@ -82,7 +82,9 @@ async def source_type_detail(
         for item in data
         for (year, months) in item.items()
     ]
-    return web.Response(text=json.dumps(formatted_data), content_type="application/json")
+    return web.Response(
+        text=json.dumps(formatted_data), content_type="application/json"
+    )
 
 
 @aiohttp_jinja2.template("detail.html")

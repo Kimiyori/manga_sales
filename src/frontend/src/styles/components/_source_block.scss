@@ -1,0 +1,63 @@
+@use "../abstracts/variables";
+
+.source_block {
+  display: grid;
+  grid-template-columns: 0.4fr 0.8fr;
+  grid-template-rows: 0.5fr 0.5fr 0.5fr;
+  gap: variables.$gap;
+  grid-template-areas:
+    "image title"
+    "image description"
+    "image links";
+  background-color: variables.$block_color;
+  border-radius: variables.$border_radius;
+  color: variables.$text_color;
+  z-index: 1;
+}
+.title {
+  font-size: variables.$big_font_size;
+  grid-area: title;
+  justify-self: start;
+  align-self: center;
+}
+.image {
+  position: relative;
+  align-self: center;
+  object-fit: cover;
+  grid-area: image;
+  margin: 1rem;
+  img {
+    width: 100%;
+    object-fit: cover;
+    border-radius: variables.$border_radius;
+  }
+  .source_type {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    a {
+      text-decoration: none;
+    }
+    .type {
+      background-color: variables.$header_color;
+      color: variables.$block_color;
+      font-size: variables.$middle_text_size;
+      padding: 10px 32px;
+    }
+  }
+}
+.description {
+  grid-area: description;
+  color: variables.$text_color;
+}
+.link-wrapper {
+  grid-area: links;
+  justify-self: start;
+  align-self: center;
+  a {
+    text-decoration: none;
+    color: variables.$text_color;
+  }
+}

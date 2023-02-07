@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { DatesObject } from "../pages/ChartstList";
 import { calculate, compare } from "../utils/calculate";
-import { getMonthName } from "../utils/dates";
+import { getDayNumber, getMonthName, getMonthNumber } from "../utils/dates";
 
 export type DatesState = { year_index: number; month_index: number };
 const getYear = (data: DatesObject[], date: string) => {
@@ -14,11 +14,18 @@ const getMonth = (data: DatesObject[], date: string, year: number) => {
   const finded_month = data[year]["months"].map((obj) => obj.name).indexOf(getMonthName(Number(month)));
   return finded_month;
 };
+const generateDateString = (day: number | string, data: DatesObject[], date: DatesState) => {
+  return `${data[date.year_index].year}-${getMonthNumber(
+    data[date.year_index].months[date.month_index].name
+  )}-${getDayNumber(Number(day) as number)}`;
+};
 export const DatesIterator = (
   data: DatesObject[],
   url_date?: string
 ): [
   DatesState,
+  string,
+  (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
   (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
   (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
 ] => {
@@ -28,6 +35,15 @@ export const DatesIterator = (
     year_index: year,
     month_index: month,
   });
+  const [currentDate, setCurrentDate] = useState<string>(
+    url_date
+      ? url_date
+      : generateDateString(data[date.year_index].months[date.month_index].dates.at(-1) as number, data, date)
+  );
+  const changeDate = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setCurrentDate(generateDateString(event.currentTarget.textContent as string, data, date));
+  };
   const changeMonth = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const direction = event.currentTarget.dataset.arrow == "left";
@@ -59,5 +75,5 @@ export const DatesIterator = (
       });
     }
   };
-  return [date, changeYear, changeMonth];
+  return [date, currentDate, changeYear, changeMonth, changeDate];
 };

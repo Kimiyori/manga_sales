@@ -4,10 +4,10 @@ import styles from "./ItemBlock.module.scss";
 export default function dItemOverlay({ name, types }: { name: string; types: string[] }) {
   return (
     <>
-      <div className={styles["source-type"]}>
+      <div className={styles.source_type}>
         {types.map((type, i) => (
           <a key={i} href={`${name.toLowerCase()}/${type.toLowerCase()}`}>
-            <div className={styles["type"]}>{type}</div>
+            <div className={styles.type}>{type}</div>
           </a>
         ))}
       </div>

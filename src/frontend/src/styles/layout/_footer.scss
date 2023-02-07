@@ -1,0 +1,5 @@
+@use "../abstracts/variables";
+footer {
+  background: variables.$footer_color;
+  grid-area: footer;
+}

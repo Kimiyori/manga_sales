@@ -1,0 +1,5 @@
+@use "../abstracts/variables";
+aside {
+  background-color: variables.$background_color;
+  grid-area: aside;
+}

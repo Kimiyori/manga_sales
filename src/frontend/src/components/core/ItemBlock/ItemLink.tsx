@@ -5,8 +5,10 @@ export default function ItemLink({ link }: { link: string }) {
   return (
     <>
       <div className={styles["link-wrapper"]}>
+        <span>Official Website: </span>
         <a href={link}>
-          <ImLink /> To the site
+          <ImLink />
+          link
         </a>
       </div>
     </>

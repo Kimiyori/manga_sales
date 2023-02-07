@@ -1,0 +1,25 @@
+@use "../abstracts/variables";
+.nav {
+  scroll-behavior: smooth;
+  background-color: inherit;
+  height: 100%;
+  margin: 0;
+  ul {
+    align-items: center;
+    display: flex;
+    list-style-type: none;
+    gap: 3rem;
+    justify-content: center;
+    font-size: variables.$big_font_size;
+    margin: 0;
+    padding: 1rem;
+    li {
+      cursor: pointer;
+      a {
+        text-decoration: none;
+        color: variables.$text_color;
+        text-shadow: 1px 1px variables.$shadow_text_color;
+      }
+    }
+  }
+}

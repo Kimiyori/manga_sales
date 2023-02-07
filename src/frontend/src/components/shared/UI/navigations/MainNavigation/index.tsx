@@ -1,18 +1,20 @@
 import React from "react";
-import NavList from "./NavList";
 import styles from "./NavBar.module.scss";
-
+import NavElement from "./NavElement";
+const paths = [
+  { path: "/manga", name: "Manga" },
+  { path: "/about", name: "About" },
+  { path: "/contact", name: "Contact" },
+];
 export default function Navbar() {
-  const paths = [
-    { path: "/manga", name: "Manga" },
-    { path: "/about", name: "About" },
-    { path: "/contact", name: "Contact" },
-  ];
-
   return (
     <>
       <nav className={styles["nav"]}>
-        <NavList items={paths} />
+        <ul>
+          {paths.map((item, i) => (
+            <NavElement key={i} title={item.name} path={item.path} />
+          ))}
+        </ul>
       </nav>
     </>
   );

@@ -1,0 +1,18 @@
+@use "../base.scss";
+@use "aside";
+@use "section";
+@use "footer";
+@use "header";
+@use "nav";
+@use "waves";
+
+.main_layout {
+  margin: 0;
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "nav section aside"
+    "footer footer footer";
+  grid-template-rows: 65px 1fr 50px;
+  grid-template-columns: 30% 1fr 30%;
+}

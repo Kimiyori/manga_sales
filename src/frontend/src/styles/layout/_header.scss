@@ -1,0 +1,5 @@
+@use "../abstracts/variables";
+header {
+  grid-area: header;
+  background-color: variables.$header_color;
+}

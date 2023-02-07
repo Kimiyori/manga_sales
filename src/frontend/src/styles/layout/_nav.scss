@@ -1,0 +1,5 @@
+@use "../abstracts/variables";
+nav {
+  background-color: variables.$background_color;
+  grid-area: nav;
+}
