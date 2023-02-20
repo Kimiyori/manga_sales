@@ -1,63 +1,99 @@
 @use "../abstracts/variables";
-
-.source_block {
+@use "../abstracts/mixins";
+.source {
   display: grid;
-  grid-template-columns: 0.4fr 0.8fr;
-  grid-template-rows: 0.5fr 0.5fr 0.5fr;
+  grid-template-columns: minmax(0, 0.3fr) 0.7fr;
   gap: variables.$gap;
-  grid-template-areas:
-    "image title"
-    "image description"
-    "image links";
-  background-color: variables.$block_color;
-  border-radius: variables.$border_radius;
-  color: variables.$text_color;
-  z-index: 1;
-}
-.title {
-  font-size: variables.$big_font_size;
-  grid-area: title;
-  justify-self: start;
-  align-self: center;
-}
-.image {
-  position: relative;
-  align-self: center;
-  object-fit: cover;
-  grid-area: image;
-  margin: 1rem;
-  img {
-    width: 100%;
+  grid-template-areas: "image source_info";
+  @include mixins.block;
+  .image {
+    position: relative;
+    align-self: center;
     object-fit: cover;
-    border-radius: variables.$border_radius;
-  }
-  .source_type {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    a {
-      text-decoration: none;
+    grid-area: image;
+    margin: 1rem;
+    img {
+      width: 100%;
+      object-fit: cover;
+      border-radius: variables.$border_radius;
     }
-    .type {
-      background-color: variables.$header_color;
-      color: variables.$block_color;
-      font-size: variables.$middle_text_size;
-      padding: 10px 32px;
+    .source_type {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
+      a {
+        text-decoration: none;
+      }
+      .type {
+        background-color: variables.$header_color;
+        color: variables.$block_color;
+        font-size: variables.$font_size_middle;
+        padding: 10px 32px;
+      }
     }
   }
-}
-.description {
-  grid-area: description;
-  color: variables.$text_color;
-}
-.link-wrapper {
-  grid-area: links;
-  justify-self: start;
-  align-self: center;
-  a {
-    text-decoration: none;
-    color: variables.$text_color;
+  .source_info {
+    grid-area: source_info;
+    display: grid;
+    grid-template-rows: 0.3fr auto 0.2fr;
+    align-content: space-evenly;
+    gap: variables.$gap;
+    grid-template-areas:
+      "title"
+      "description"
+      "links";
+    margin: 0.5rem;
+    .title {
+      @include mixins.font-size-mixin(20px,22px,26px,28px,32px);
+      grid-area: title;
+      justify-self: start;
+      align-self: center;
+    }
+    .description {
+      grid-area: description;
+      color: variables.$text_color;
+      &__text {
+        margin:0;
+        @include mixins.for-size(phone-only) {
+          @include mixins.truncate(3);
+        }
+        @include mixins.for-size(tablet-portrait-up) {
+          @include mixins.truncate(4);
+        }
+        @include mixins.for-size(tablet-landscape-up) {
+          @include mixins.truncate(4);
+        }
+        @include mixins.font-size-mixin(16px,14px,16px,16px,20px);
+      }
+      div {
+        display: none;
+        text-align: center;
+        button {
+          background-color: transparent;
+          border:0; 
+          font-size: variables.$font_size_big;
+        }
+        @include mixins.for-size(phone-only) {
+          display: block;
+        }
+        @include mixins.for-size(tablet-landscape-up) {
+          display: block;
+        }
+        @include mixins.for-size(tablet-portrait-up) {
+          display: block;
+        }
+      }
+    }
+    .link-wrapper {
+      grid-area: links;
+      justify-self: start;
+      align-self: center;
+      a {
+        text-decoration: none;
+        color: variables.$text_color;
+      }
+    }
   }
 }

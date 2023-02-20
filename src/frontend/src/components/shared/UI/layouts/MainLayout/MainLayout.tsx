@@ -12,9 +12,9 @@ export default function MainLayout({ section }: { section: JSX.Element }) {
         <nav></nav>
         <section>{section}</section>
         <aside></aside>
+        <WavesBottom />
         <footer></footer>
       </div>
-      <WavesBottom />
     </>
   );
 }

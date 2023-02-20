@@ -5,14 +5,26 @@
 @use "header";
 @use "nav";
 @use "waves";
-
+@use "../abstracts/mixins";
 .main_layout {
-  margin: 0;
   display: grid;
   grid-template-areas:
     "header header header"
     "nav section aside"
     "footer footer footer";
   grid-template-rows: 65px 1fr 50px;
-  grid-template-columns: 30% 1fr 30%;
+  grid-template-columns: 0 1fr 0;
+  position:relative;
+  @include mixins.for-size(tablet-portrait-up) {
+    grid-template-columns: 0.5fr minmax(40%, 500px) 0.5fr;
+  }
+  @include mixins.for-size(tablet-landscape-up) {
+    grid-template-columns: 0.5fr minmax(40%, 640px) 0.5fr;
+  }
+  @include mixins.for-size(desktop-up) {
+    grid-template-columns: 0.5fr minmax(40%, 780px) 0.5fr;
+  }
+  @include mixins.for-size(big-desktop-up) {
+    grid-template-columns: 0.5fr minmax(40%, 980px) 0.5fr;
+  }
 }

@@ -15,7 +15,9 @@ export function useFetch<T>(uri: string): State<T> {
   const [data, setData] = useState();
   const [error, setError] = useState();
   const [loading, setLoading] = useState(true);
-
+  useEffect(() => {
+    setLoading(true);
+  }, [uri]);
   useEffect(() => {
     if (!uri) return;
     fetch(uri)
@@ -24,7 +26,6 @@ export function useFetch<T>(uri: string): State<T> {
       .then(() => setLoading(false))
       .catch(setError);
   }, [uri]);
-
   return {
     loading,
     data,

@@ -1,37 +1,50 @@
 @use "../abstracts/variables";
+@use "../abstracts/mixins";
 .container {
     display: grid;
-    grid-template-columns: 0.4fr 0.6fr;
+    grid-template-columns: min(35%, 150px) 1fr;
+    grid-template-rows: auto auto;
     grid-template-areas: "title_image main_info";
-    background-color: variables.$block_color;
-    border-radius: variables.$border_radius;
-    z-index: 1;
-    max-height: 250px;
+    padding: 0.5rem;
+    flex-grow: 1;
+    gap: 0.5rem;
+    @include mixins.block;
+
 }
 
 .title_image {
+    display: block;
     grid-area: title_image;
     overflow: hidden;
     border-radius: 10px;
     position: relative;
-    margin: 0.5rem;
+    max-height: 100%;
+    height: 0;
+    padding-bottom: 142.307692%;
+    align-items: flex-start;
     img {
         object-fit: cover;
+        object-position: center center;
         width: 100%;
+        top: 0;
+        left: 0;
         border-radius: 10px;
-        margin:1%;
+        max-width: inherit;
     }
     .title_rating {
-        text-align: center;
         background-color: variables.$block_color;
         border-radius: variables.$border_radius;
         padding: 10px;
-        min-width:25px;
+        width: 10%;
+        height: 6%;
         position: absolute;
         top: -3%;
         left: -3%;
         color: variables.$text_color;
-        font-size: variables.$big_font_size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        @include mixins.font-size-mixin(12px, 14px, 14px, 18px, 20px);
     }
     .title_prev_rank {
         background-color: variables.$block_color;
@@ -41,27 +54,29 @@
         bottom: -5%;
         right: -3%;
         margin: 0;
-        font-size: variables.$big_font_size*1.2;
+        @include mixins.font-size-mixin(28px, 28px, 28px, 30px, 36px);
     }
 }
 
 .main_info {
     display: grid;
-    grid-template-rows: 0.1fr 0.3fr 0.6fr;
+    grid-template-rows: repeat(3, minmax(0, auto));
     align-content: space-around;
     grid-template-areas:
         "title_name"
         "chart_info"
         "creators";
     grid-area: main_info;
-    margin-left: 1.5rem;
+    @include mixins.font-size-mixin(14px, 16px, 16px, 16px, 18px);
 }
 
 .title_name {
     grid-area: title_name;
     width: 100%;
     h2 {
+        margin: 0;
         text-align: left;
+        @include mixins.font-size-mixin(14px, 16px, 16px, 16px, 20px);
     }
 }
 
@@ -70,7 +85,7 @@
     grid-template-columns: repeat(3, minmax(0px, 1fr));
     grid-template-areas: "release volume sales";
     grid-area: chart_info;
-    justify-items: center;
+    justify-items: start;
     align-items: start;
     align-self: center;
     text-align: center;
@@ -93,22 +108,16 @@
         "publishers_list";
     grid-area: creators;
     align-items: center;
-}
-
-.authors_list {
-    grid-area: authors_list;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    display: -webkit-box;
-}
-
-.publishers_list {
-    grid-area: publishers_list;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    display: -webkit-box;
+    gap: 0.5rem;
+    .authors_list,
+    .publishers_list {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        display: -webkit-box;
+        @include mixins.for-size(phone-only) {
+            -webkit-line-clamp: 1;
+        }
+    }
 }

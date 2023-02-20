@@ -16,11 +16,13 @@ export type ItemData = {
 export default function Item({ data }: { data: ItemData }) {
   return (
     <>
-      <div className={styles.source_block}>
+      <div className={styles.source}>
         <ItemImage image={data.image} name={data.name} types={data.types} />
-        <ItemTitle name={data.name} />
-        <ItemDescription name={data.description} />
-        <ItemLink link={data.link} />
+        <div className={styles.source_info}>
+          <ItemTitle name={data.name} />
+          <ItemDescription name={data.description} />
+          <ItemLink link={data.link} />
+        </div>
       </div>
     </>
   );

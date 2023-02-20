@@ -43,11 +43,13 @@ def create_scraper_container(
     async def wrapper(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
+        main_scrap = DataScrapingContainer()
         aux_scrap = AuxScrapingContainer()
         image_scrap = ImageScrapingContainer()
         try:
             await func(*args, **kwargs)
         finally:
+            await main_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
             await aux_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
             await image_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
 
@@ -99,6 +101,8 @@ async def execute_scraper(
     db_conn = DatabaseConnector(scraper)
     date_queue: queue.Queue[datetime.date] = queue.Queue()
     scraper_date = await get_date(scraper)
+    if scraper_date:
+        date_queue.put(scraper_date)
     while scraper_date:
         scraper_date = await get_date(scraper, scraper_date)
         if scraper_date:

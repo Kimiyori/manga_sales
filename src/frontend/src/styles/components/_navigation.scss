@@ -1,18 +1,19 @@
 @use "../abstracts/variables";
+@use "../abstracts/mixins";
 .nav {
-  scroll-behavior: smooth;
   background-color: inherit;
   height: 100%;
-  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   ul {
-    align-items: center;
-    display: flex;
+    display: inherit;
     list-style-type: none;
     gap: 3rem;
-    justify-content: center;
-    font-size: variables.$big_font_size;
     margin: 0;
     padding: 1rem;
+    font-size: variables.$font_size_big;
+    @include mixins.font-size-mixin(20px,22px,25px,28px,32px);
     li {
       cursor: pointer;
       a {

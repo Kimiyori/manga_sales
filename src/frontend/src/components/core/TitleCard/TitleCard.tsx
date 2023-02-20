@@ -1,10 +1,12 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React from "react";
 import styles from "./styles.module.scss";
 import VerticalInfoBar from "../VerticalInfoBar/VerticalInfoBar";
 import TitleCreaters from "./TitleCreaters";
 import { SourceContextType } from "../../../pages/ChartstList";
 import { useParams } from "react-router-dom";
 import { BsFillArrowUpSquareFill, BsFillArrowDownSquareFill } from "react-icons/bs";
+import ImageLoad from "../ImageLoad/ImageLoad";
+
 export type TitleData = {
   rating: number;
   image: string;
@@ -17,17 +19,15 @@ export type TitleData = {
   prev_rank: string | null;
 };
 export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: string }) => {
-  const txtTitle = useRef() as React.MutableRefObject<HTMLDivElement>;
   const { source, type } = useParams<SourceContextType>();
-  useLayoutEffect(() => {
-    const relFontsize = txtTitle.current.offsetWidth * 0.06;
-    txtTitle.current.style.fontSize = relFontsize + "px";
-  });
   return (
     <>
       <div className={styles["container"]}>
         <div className={styles["title_image"]}>
-          <img src={`http://127.0.0.1:8080/${source}/${type}/${date}/${title_data.image}`} alt={title_data.image} />
+          <ImageLoad
+            src={`http://127.0.0.1:8080/${source}/${type}/${date}/${title_data.image}`}
+            alt={title_data.image}
+          />
           <div className={styles["title_rating"]}>{title_data.rating}</div>
           {title_data.prev_rank && (
             <div className={styles["title_prev_rank"]}>
@@ -41,9 +41,7 @@ export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: s
         </div>
         <div className={styles["main_info"]}>
           <div className={styles["title_name"]}>
-            <h2 ref={txtTitle} className={styles["title"]}>
-              {title_data.title}
-            </h2>
+            <h2 className={styles["title"]}>{title_data.title}</h2>
           </div>
           <div className={styles["chart_info"]}>
             <div className={styles["release"]}>

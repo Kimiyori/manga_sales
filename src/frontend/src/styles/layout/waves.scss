@@ -1,33 +1,44 @@
 @use "../abstracts/variables";
-.wave {
-  fill: variables.$footer_color;
+@use "../abstracts/mixins";
+.waves {
+  width: 100%;
   position: absolute;
   bottom: 50px;
-  height: 185px;
+  max-height: 300px;
+  @include mixins.for-size(big-desktop-up) {
+    height:20%;
+  }
+  @include mixins.for-size(desktop-up) {
+    height: 15%;
+    
+  }
+  @include mixins.for-size(tablet-landscape-up) {
+    height: 10%;
+  }
+  @include mixins.for-size(tablet-portrait-up) {
+    height: 10%;
+  }
+  @include mixins.for-size(phone-only) {
+    height: 5%;
+  }
+  * {
+    position: inherit;
+    bottom: 0;
+    height: 100%;
+  }
+}
+.wave {
+  fill: variables.$footer_color;
   width: 100%;
 }
 .wave2 {
   fill: rgb(223, 185, 185);
-  position: absolute;
-  bottom: 50px;
-  height: 500px;
   width: 100%;
 }
 .wave3 {
   fill: rgb(185, 195, 223);
-  position: absolute;
-  bottom: 50px;
-  height: 400px;
   width: 100%;
-}
-.waves {
-  width: 100%;
-  position: absolute;
 }
 .circle {
-  svg {
-    fill: variables.$footer_color;
-    position: absolute;
-    bottom: 80px;
-  }
+  fill: variables.$footer_color;
 }

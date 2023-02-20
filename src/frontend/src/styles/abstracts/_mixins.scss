@@ -1,0 +1,56 @@
+@use "../abstracts/variables";
+
+@mixin for-size($size) {
+    @if $size == phone-only {
+        @media (max-width: 599px) {
+            @content;
+        }
+    } @else if $size == tablet-portrait-up {
+        @media (min-width: 600px) and (max-width: 899px) {
+            @content;
+        }
+    } @else if $size == tablet-landscape-up {
+        @media (min-width: 900px) and (max-width: 1199px) {
+            @content;
+        }
+    } @else if $size == desktop-up {
+        @media (min-width: 1200px) and (max-width: 1799px) {
+            @content;
+        }
+    } @else if $size == big-desktop-up {
+        @media (min-width: 1800px) {
+            @content;
+        }
+    }
+}
+@mixin block {
+    background-color: variables.$block_color;
+    border-radius: variables.$border_radius;
+    color: variables.$text_color;
+    z-index: 1;
+}
+@mixin truncate($rows) {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    -webkit-line-clamp: $rows;
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+}
+
+@mixin font-size-mixin($phone-only: 12px, $tablet-portrait-up: 16px, $tablet-landscape-up: 20px, $desktop-up: 25px,$big-desktop-up:32px) {
+    @include for-size(phone-only) {
+        font-size: $phone-only;
+    }
+    @include for-size(tablet-portrait-up) {
+        font-size: $tablet-portrait-up;
+    }
+    @include for-size(tablet-landscape-up) {
+        font-size: $tablet-landscape-up;
+    }
+    @include for-size(desktop-up) {
+        font-size: $desktop-up;
+    }
+    @include for-size(big-desktop-up) {
+        font-size: $big-desktop-up;
+    }
+}

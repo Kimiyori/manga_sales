@@ -1,0 +1,17 @@
+@use "../abstracts/mixins";
+@use "../abstracts/variables";
+.contact {
+    display: block;
+    display: grid; 
+    grid-template-columns: 1fr; 
+    grid-template-rows: 0.1fr 0.6fr; 
+    text-align: center;
+    padding:1rem;
+    color:variables.$text_color;
+    @include mixins.font-size-mixin(20px,22px,26px,28px,32px);
+    @include mixins.block;
+    .links>* {
+        color:variables.$text_color;
+        text-decoration: none;
+    }
+}
