@@ -1,8 +1,10 @@
-import aioschedule as schedule
+import asyncio
 from manga_scrapers.services.db_service import execute_scraper
 
 
 async def run_schedule() -> None:
-    schedule.every(55).minutes.do(execute_scraper, scraper_name="oricon_scraper")
-    # schedule.every(55).minutes.do(execute_scraper, scraper_name="shoseki_scraper")
-    await schedule.run_all()
+    tasks = [
+        asyncio.create_task(execute_scraper(scraper_name))
+        for scraper_name in ["oricon_scraper", "shoseki_scraper"]
+    ]
+    asyncio.gather(*tasks)

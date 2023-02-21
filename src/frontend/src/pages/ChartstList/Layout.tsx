@@ -1,5 +1,5 @@
 import React, { createContext, useEffect } from "react";
-import styles from "./styles.module.scss";
+import styles from "../../styles/pages/ChartList.module.scss";
 import { DatesObject, SourceContextType } from ".";
 import { DatesIterator } from "../../hooks/DateSwipe";
 import { useParams } from "react-router-dom";

@@ -1,6 +1,6 @@
 import datetime
 import functools
-import queue
+import asyncio
 from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar
 from dependency_injector.wiring import Provide, inject, Closing
 from manga_scrapers.containers.title_data_container import AuxScrapingContainer
@@ -43,15 +43,10 @@ def create_scraper_container(
     async def wrapper(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
-        main_scrap = DataScrapingContainer()
-        aux_scrap = AuxScrapingContainer()
-        image_scrap = ImageScrapingContainer()
-        try:
-            await func(*args, **kwargs)
-        finally:
-            await main_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
-            await aux_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
-            await image_scrap.shutdown_resources()  # type: ignore  # pylint: disable=no-member
+        DataScrapingContainer()
+        AuxScrapingContainer()
+        ImageScrapingContainer()
+        await func(*args, **kwargs)
 
     return wrapper
 
@@ -92,20 +87,23 @@ async def get_date(
     return valid_date
 
 
-@create_db_container
-@create_scraper_container
-async def execute_scraper(
-    scraper_name: str, str_date: datetime.date | None = None
-) -> None:
-    scraper = await scraper_factory(scraper_name)
-    db_conn = DatabaseConnector(scraper)
-    date_queue: queue.Queue[datetime.date] = queue.Queue()
+async def get_date_list(scraper: MainDataAbstractScraper) -> list[datetime.date]:
+    date_list = []
     scraper_date = await get_date(scraper)
     if scraper_date:
-        date_queue.put(scraper_date)
+        date_list.append(scraper_date)
     while scraper_date:
         scraper_date = await get_date(scraper, scraper_date)
         if scraper_date:
-            date_queue.put(scraper_date)
-    while not date_queue.empty():
-        await db_conn.insert_data(date_queue.get())
+            date_list.append(scraper_date)
+    return date_list
+
+
+@create_db_container
+@create_scraper_container
+async def execute_scraper(scraper_name: str) -> None:
+    scraper = await scraper_factory(scraper_name)
+    db_conn = DatabaseConnector(scraper)
+    date_list = await get_date_list(scraper)
+    tasks = [asyncio.create_task(db_conn.insert_data(date)) for date in date_list]
+    await asyncio.gather(*tasks)

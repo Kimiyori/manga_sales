@@ -28,8 +28,7 @@ async def setup_redis(app_obj: web.Application) -> redis.asyncio.client.Redis[by
 async def on_startup(
     app: web.Application,  # pylint: disable=unused-argument
 ) -> None:
-    task = asyncio.create_task(run_schedule())
-    await task
+    asyncio.create_task(run_schedule())
 
 
 async def create_app() -> web.Application:
@@ -39,7 +38,7 @@ async def create_app() -> web.Application:
     redis_pool = await setup_redis(app)
     storage = RedisStorage(redis_pool)
     setup_session(app, storage)
-    # app.on_startup.append(on_startup)
+    app.on_startup.append(on_startup)
     return app
 
 

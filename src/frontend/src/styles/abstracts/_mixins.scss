@@ -28,6 +28,7 @@
     border-radius: variables.$border_radius;
     color: variables.$text_color;
     z-index: 1;
+    padding: 0.5rem;
 }
 @mixin truncate($rows) {
     text-overflow: ellipsis;
@@ -37,7 +38,13 @@
     display: -webkit-box;
 }
 
-@mixin font-size-mixin($phone-only: 12px, $tablet-portrait-up: 16px, $tablet-landscape-up: 20px, $desktop-up: 25px,$big-desktop-up:32px) {
+@mixin font-size-mixin(
+    $phone-only: 12px,
+    $tablet-portrait-up: 16px,
+    $tablet-landscape-up: 20px,
+    $desktop-up: 25px,
+    $big-desktop-up: 32px
+) {
     @include for-size(phone-only) {
         font-size: $phone-only;
     }

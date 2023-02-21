@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./ItemBlock.module.scss";
+import styles from "../../../styles/components/_source_block.module.scss";
 
 export default function dItemOverlay({ name, types }: { name: string; types: string[] }) {
   return (

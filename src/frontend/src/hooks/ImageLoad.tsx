@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import LoadingComponent from "../LoadingComponent/loadingComponent";
+import LoadingComponent from "../components/core/LoadingComponent/loadingComponent";
 
 type ImageType = {
   className?: string;
@@ -23,7 +23,6 @@ const ImageLoad: React.FunctionComponent<ImageType> = ({ className, src, alt, st
         src={image}
         alt={alt}
         onLoad={() => setLoading((state) => !state)}
-        loading="lazy"
         style={loading ? style : { opacity: 0 }}
       />
     </>

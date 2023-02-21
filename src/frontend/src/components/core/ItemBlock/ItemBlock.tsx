@@ -3,7 +3,7 @@ import ItemImage from "./ItemImage";
 import ItemTitle from "./ItemTitle";
 import ItemDescription from "./ItemDescription";
 import ItemLink from "./ItemLink";
-import styles from "./ItemBlock.module.scss";
+import styles from "../../../styles/components/_source_block.module.scss";
 
 export type ItemData = {
   image: string;

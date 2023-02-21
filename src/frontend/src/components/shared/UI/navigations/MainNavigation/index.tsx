@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./NavBar.module.scss";
+import "../../../../../styles/components/_navigation.scss";
 import NavElement from "./NavElement";
 const paths = [
   { path: "/manga", name: "Manga" },
@@ -9,7 +9,7 @@ const paths = [
 export default function Navbar() {
   return (
     <>
-      <nav className={styles["nav"]}>
+      <nav className={"nav"}>
         <ul>
           {paths.map((item, i) => (
             <NavElement key={i} title={item.name} path={item.path} />

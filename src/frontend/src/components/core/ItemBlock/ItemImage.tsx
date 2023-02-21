@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import ItemOverlay from "./ItemOverlay";
-import styles from "./ItemBlock.module.scss";
-import ImageLoad from "../ImageLoad/ImageLoad";
-
+import styles from "../../../styles/components/_source_block.module.scss";
+import ImageLoad from "../../../hooks/ImageLoad";
 export default function ItemImage({ name, image, types }: { name: string; image: string; types: string[] }) {
   const [isHovering, setIsHovering] = useState(false);
   const handleMouseOver = () => {
