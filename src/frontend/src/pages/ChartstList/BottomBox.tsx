@@ -28,7 +28,7 @@ export function BottomBox({ currentDate }: { currentDate: string }) {
     <>
       {currentDate && (
         <Fetch<TitleData[]>
-          uri={`http://127.0.0.1:8080/${source}/${type}/${currentDate}/`}
+          uri={`/api/source/${source}/${type}/${currentDate}`}
           renderSuccess={({ data }) => <ListTitles data={data} currentDate={currentDate} />}
           loadingFallback={LoadingComponent}
         />

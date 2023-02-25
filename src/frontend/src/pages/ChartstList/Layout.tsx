@@ -17,11 +17,11 @@ export const DateContext = createContext<ContextType | null>(null);
 
 export function ChartLayout({ data }: { data: DatesObject[] }) {
   const { source, type, url_date } = useParams<SourceContextType>();
-  const url = `http://127.0.0.1:3000/${source}/${type}/`;
+  const url = `${source}/${type}`;
   const [date, currentDate, changeYear, changeMonth, changeDate] = DatesIterator(data, url_date);
   const [, currentDay] = currentDate.match(/\d*-\d+-(\d+)/) || [];
   useEffect(() => {
-    window.history.replaceState(null, "", `${url}${currentDate}`);
+    window.history.replaceState(null, "", `/${url}/${currentDate}`);
   }, [url, currentDate]);
   return (
     <>

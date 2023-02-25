@@ -21,7 +21,7 @@ export default function SourceListMainPage() {
   }, []);
   const fetch = (
     <>
-      <Fetch uri={`http://127.0.0.1:8080`} renderSuccess={SourceList} loadingFallback={LoadingComponent} />
+      <Fetch uri={`api/source`} renderSuccess={SourceList} loadingFallback={LoadingComponent} />
     </>
   );
   return <MainLayout section={<ListWrapper component={fetch} />} />;

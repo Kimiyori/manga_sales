@@ -24,7 +24,7 @@ export default function ChartList() {
     <MainLayout
       section={
         <Fetch<DatesObject[]>
-          uri={`http://127.0.0.1:8080/${source}/${type}/`}
+          uri={`/api/source/${source}/${type}`}
           renderSuccess={({ data }) => <ChartLayout data={data} />}
           loadingFallback={LoadingComponent}
         />

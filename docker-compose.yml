@@ -1,5 +1,5 @@
 services:
-  web:
+  backend:
     build: ./src/backend
     command: gunicorn config.main:main --bind 0.0.0.0:8080 --worker-class aiohttp.GunicornWebWorker --timeout 1800 --reload
     working_dir: /aiohttp/src/backend
@@ -9,22 +9,20 @@ services:
       - 8080
     depends_on:
       - db
-    restart: on-failure
+    restart: always
   frontend:
     build: ./src/frontend
-    container_name: dev-react
     command: npm start --host 0.0.0.0 --port 3000
-    ports:
-      - 3000:3000
+    expose:
+      - 3000
     volumes:
       - ./src/frontend:/react-docker:delegated
       - /react-docker/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true # create-ui-app >= 5.x
-
+      - WATCHPACK_POLLING=true 
     depends_on:
-      - web
+      - backend
     restart: always
   db:
     image: postgres:14
@@ -41,14 +39,16 @@ services:
       - 6379:6379
   nginx:
     image: nginx:latest
-    container_name: nginx
-    depends_on:
-      - web
     ports:
-      - 8080:8080
+      - 8080:81
+      - 3000:80
+      - 443:443
     volumes:
       - ./config/nginx:/etc/nginx/conf.d
       - .:/aiohttp
+    restart: always 
+  certbot:
+    image: certbot/certbot
   test:
     build: ./src/backend
     command: python -m  pytest

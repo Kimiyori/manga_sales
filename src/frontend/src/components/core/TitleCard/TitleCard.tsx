@@ -32,10 +32,7 @@ export const TitleCard = ({ title_data, date }: { title_data: TitleData; date: s
     <>
       <div className={styles["container"]}>
         <div className={styles["title_image"]}>
-          <ImageLoad
-            src={`http://127.0.0.1:8080/${source}/${type}/${date}/${title_data.image}`}
-            alt={title_data.image}
-          />
+          <ImageLoad src={`/api/${source}/${type}/${date}/${title_data.image}`} alt={title_data.image} />
           <div className={styles["title_rating"]}>{title_data.rating}</div>
           {title_data.prev_rank && (
             <div className={styles["title_prev_rank"]}>

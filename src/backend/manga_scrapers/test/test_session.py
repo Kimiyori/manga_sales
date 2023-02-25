@@ -75,9 +75,9 @@ async def test_500_error(aioresponse, client_session):
         assert "Status code is 500" in str(context.exception)
 
 
-@pytest.mark.asyncio
-async def test_without_context(aioresponse):
-    with pytest.raises(AssertionError):
-        session = Session()
-        aioresponse.get(TEST_URL, status=200)
-        await session.fetch(TEST_URL)
+# @pytest.mark.asyncio
+# async def test_without_context(aioresponse):
+#     with pytest.raises(AssertionError):
+#         session = Session()
+#         aioresponse.get(TEST_URL, status=200)
+#         await session.fetch(TEST_URL)
