@@ -11,8 +11,10 @@ services:
       - db
     restart: always
   frontend:
-    build: ./src/frontend
-    command: npm start --host 0.0.0.0 --port 3000
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile.dev
+    command: npm start
     ports:
       - 3000:3000
     volumes:
@@ -20,7 +22,7 @@ services:
       - /react-docker/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true 
+      - WATCHPACK_POLLING=true
     restart: always
   db:
     image: postgres:14
@@ -34,14 +36,14 @@ services:
   nginx:
     build:
       context: ./nginx/dev
-      dockerfile: 'Dockerfile.dev'
+      dockerfile: Dockerfile.dev
     ports:
       - 81:81
       - 80:80
       - 443:443
     volumes:
       - .:/aiohttp
-    restart: always 
+    restart: always
     depends_on:
       - backend
       - frontend
