@@ -1,0 +1,26 @@
+services:
+  nginx:
+    build:
+      context: ./nginx/prod
+      dockerfile: 'Dockerfile.prod'
+    ports:
+      - 81:81
+      - 80:80
+      - 443:443
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    volumes:
+      - .:/aiohttp
+      - ./persistentdata/certbot/conf:/etc/letsencrypt
+      - ./persistentdata/certbot/www:/var/www/certbot
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+  certbot:
+    image: certbot/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    volumes:
+      - ./persistentdata/certbot/conf:/etc/letsencrypt
+      - ./persistentdata/certbot/www:/var/www/certbot
+volumes:
+  postgres_data:

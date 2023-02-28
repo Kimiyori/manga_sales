@@ -14,7 +14,6 @@ from manga_scrapers.exceptions import (
 class Session:
     """
     Object for connect to aiohttp ClientSession and handle context manager
-
     Args:
         sleep_time: Sets sleep time in case of error 429 for too many requests.
         timeout: Set timeout for ClientTimeout class.
@@ -78,7 +77,6 @@ class Session:
     ) -> Any:
         """
         Method for handling requests/responses
-
         Args:
             url: Url to which the request should be sent
             retries: Set how many times we can get a 429 error (default 5)
@@ -92,12 +90,7 @@ class Session:
         if retries == 0:
             raise Unsuccessful("Get 429 error too often")
         try:
-            try:
-                assert isinstance(self.session, aiohttp.ClientSession)
-            except AssertionError:
-                self.session = aiohttp.ClientSession(
-                    headers=self.headers, timeout=self.timeout
-                )
+            assert isinstance(self.session, aiohttp.ClientSession)
             async with self.session.get(url) as response:
                 await asyncio.sleep(1)
                 if response.status == 200:

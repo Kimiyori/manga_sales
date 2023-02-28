@@ -1,0 +1,17 @@
+ services:
+  test:
+    build: ./src/backend
+    command: python -m  pytest
+    working_dir: /aiohttp/src/backend
+    profiles: [ "test_profile" ]
+    volumes:
+      - .:/aiohttp
+    depends_on:
+      - db
+  lint:
+    build: ./src/backend
+    command: bash -c "mypy . ; pylint . ; flake8"
+    working_dir: /aiohttp/src/backend/.
+    profiles: [ "test_profile" ]
+    volumes:
+      - .:/aiohttp

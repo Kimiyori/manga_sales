@@ -43,9 +43,12 @@ def create_scraper_container(
     async def wrapper(
         *args: MainFuncParams.args, **kwargs: MainFuncParams.kwargs
     ) -> None:
-        DataScrapingContainer()
-        AuxScrapingContainer()
-        ImageScrapingContainer()
+        data_container = DataScrapingContainer()
+        data_container.init_resources()
+        aux_container = AuxScrapingContainer()
+        aux_container.init_resources()
+        img_cntainer = ImageScrapingContainer()
+        img_cntainer.init_resources()
         await func(*args, **kwargs)
 
     return wrapper

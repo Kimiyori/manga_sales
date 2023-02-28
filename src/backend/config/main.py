@@ -10,7 +10,8 @@ from config.schedule import run_schedule
 async def on_startup(
     app: web.Application,  # pylint: disable=unused-argument
 ) -> None:
-    asyncio.create_task(run_schedule())
+    task = asyncio.create_task(run_schedule())
+    await task
 
 
 async def create_app() -> web.Application:
