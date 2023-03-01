@@ -24,7 +24,7 @@ export default function ChartList() {
     <MainLayout
       section={
         <Fetch<DatesObject[]>
-          uri={`/api/source/${source}/${type}`}
+          uri={`${process.env.REACT_APP_BACKEND_URL}/source/${source}/${type}`}
           renderSuccess={({ data }) => <ChartLayout data={data} />}
           loadingFallback={LoadingComponent}
         />
