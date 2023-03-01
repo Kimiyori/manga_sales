@@ -1,4 +1,33 @@
  services:
+  frontend:
+      build:
+        context: ./src/frontend
+        dockerfile: Dockerfile.dev
+      command: npm start
+      ports:
+        - 3000:3000
+      volumes:
+        - ./src/frontend:/react-docker:delegated
+        - /react-docker/node_modules
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+        - WATCHPACK_POLLING=true
+        - REACT_APP_BACKEND_URL=/api
+      restart: always
+  nginx:
+    build:
+      context: ./nginx/dev
+      dockerfile: Dockerfile.dev
+    ports:
+      - 81:81
+      - 80:80
+      - 443:443
+    volumes:
+      - .:/aiohttp
+    restart: always
+    depends_on:
+      - backend
+      - frontend
   test:
     build: ./src/backend
     command: python -m  pytest

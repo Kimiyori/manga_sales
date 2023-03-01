@@ -1,3 +1,4 @@
+version: '3'
 services:
   backend:
     build: ./src/backend
@@ -10,20 +11,6 @@ services:
     depends_on:
       - db
     restart: always
-  frontend:
-    build:
-      context: ./src/frontend
-      dockerfile: Dockerfile.dev
-    command: npm start
-    ports:
-      - 3000:3000
-    volumes:
-      - ./src/frontend:/react-docker:delegated
-      - /react-docker/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_BACKEND_URL=api
-    restart: always
   db:
     image: postgres:14
     working_dir: /aiohttp/src/backend/.
@@ -33,19 +20,5 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
-  nginx:
-    build:
-      context: ./nginx/dev
-      dockerfile: Dockerfile.dev
-    ports:
-      - 81:81
-      - 80:80
-      - 443:443
-    volumes:
-      - .:/aiohttp
-    restart: always
-    depends_on:
-      - backend
-      - frontend
 volumes:
   postgres_data:

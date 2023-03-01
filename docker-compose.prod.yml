@@ -1,8 +1,11 @@
+version: '3'
 services:
   frontend:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile.prod
+      args:
+        - REACT_APP_BACKEND_URL=api.mangastats.ru
     ports:
       - 3000:3000
     volumes:
@@ -10,8 +13,7 @@ services:
       - /react-docker/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_BACKEND_URL=api.mangastats.ru
-    stdin_open: true
+      - WATCHPACK_POLLING=true
   nginx:
     build:
       context: ./nginx/prod
