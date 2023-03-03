@@ -1,11 +1,10 @@
-version: '3'
 services:
   frontend:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile.prod
       args:
-        - REACT_APP_BACKEND_URL=api.mangastats.ru
+        - REACT_APP_BACKEND_URL=https://api.mangastats.ru
     ports:
       - 3000:3000
     volumes:
