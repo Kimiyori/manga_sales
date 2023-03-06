@@ -8,6 +8,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<SourceListMainPage />} />
         <Route path="/manga" element={<SourceListMainPage />} />
         <Route path="/:source/:type" element={<ChartList />} />
         <Route path="/:source/:type/:url_date" element={<ChartList />} />

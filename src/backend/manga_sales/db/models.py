@@ -100,14 +100,14 @@ class Week(Base):
 association_item_author = Table(
     "association_item_author",
     Base.metadata,
-    Column("item_id", ForeignKey("item.id")),
-    Column("author_id", ForeignKey("author.id")),
+    Column("item_id", ForeignKey("item.id", ondelete="CASCADE")),
+    Column("author_id", ForeignKey("author.id", ondelete="CASCADE")),
 )
 association_item_publisher = Table(
     "association_item_publisher",
     Base.metadata,
-    Column("item_id", ForeignKey("item.id")),
-    Column("publisher_id", ForeignKey("publisher.id")),
+    Column("item_id", ForeignKey("item.id", ondelete="CASCADE")),
+    Column("publisher_id", ForeignKey("publisher.id", ondelete="CASCADE")),
 )
 
 

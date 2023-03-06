@@ -149,10 +149,11 @@ class OriconWeeklyScraper(MainDataAbstractScraper):
             list[Content]: list fo contents
         """
         list_items = await self._get_list_raw_data(url)
-        lst = []
-        for i, item in enumerate(list_items, start=1):
-            content = await self.create_content_item(i, item, date)
-            lst.append(content)
+        tasks = [
+            asyncio.create_task(self.create_content_item(i, item, date))
+            for i, item in enumerate(list_items, start=1)
+        ]
+        lst = await asyncio.gather(*tasks)
         return lst
 
     # ------------main methods for collecting gata that invokes inside class------------

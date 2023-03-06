@@ -1,5 +1,6 @@
 import datetime
 import functools
+
 # import asyncio
 from typing import Any, Awaitable, Callable, Coroutine, ParamSpec, TypeVar
 from dependency_injector.wiring import Provide, inject, Closing
@@ -110,10 +111,7 @@ async def get_date_list(scraper: MainDataAbstractScraper) -> list[datetime.date]
         scraper_date = await get_date(scraper, scraper_date)
         if scraper_date:
             date_list.append(scraper_date)
-    symbol = 1
-    if date_list and len(date_list) >= 2 and date_list[0] > date_list[-1]:
-        symbol = -1
-    return date_list[::symbol]
+    return sorted(date_list)
 
 
 @create_db_container
@@ -124,5 +122,3 @@ async def execute_scraper(scraper_name: str) -> None:
     date_list = await get_date_list(scraper)
     for date in date_list:
         await db_conn.insert_data(date)
-    # tasks = [asyncio.create_task(db_conn.insert_data(date)) for date in date_list]
-    # await asyncio.gather(*tasks)

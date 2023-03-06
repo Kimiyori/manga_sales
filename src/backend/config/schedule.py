@@ -3,7 +3,7 @@ from manga_scrapers.services.db_service import execute_scraper
 
 
 async def run_schedule() -> None:
-    schedule.every().thursday.do(run_scrapers)
+    schedule.every().day.do(run_scrapers)
     await schedule.run_all()
 
 

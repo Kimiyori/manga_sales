@@ -4,7 +4,7 @@ import Fetch from "../../hooks/Fetch";
 import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
 import Item, { ItemData } from "../../components/core/ItemBlock/ItemBlock";
-
+import "../../styles/pages/SourcesList.scss";
 function SourceList({ data = [] }: { data: ItemData[] }) {
   return (
     <>
@@ -28,5 +28,13 @@ export default function SourceListMainPage() {
       />
     </>
   );
-  return <MainLayout section={<ListWrapper component={fetch} />} />;
+  return (
+    <MainLayout
+      section={
+        <div className="container">
+          <ListWrapper component={fetch} />
+        </div>
+      }
+    />
+  );
 }

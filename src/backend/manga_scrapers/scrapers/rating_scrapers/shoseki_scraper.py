@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import datetime
 import operator
 import re
@@ -173,10 +174,11 @@ class ShosekiWeeklyScraper(MainDataAbstractScraper):
             list[Content]: list with Contents instances
         """
         list_items = await self._get_list_raw_data(url)
-        lst = []
-        for i, row in enumerate(list_items):
-            content = await self.create_content_item(i, row, date)
-            lst.append(content)
+        tasks = [
+            asyncio.create_task(self.create_content_item(i, row, date))
+            for i, row in enumerate(list_items)
+        ]
+        lst = await asyncio.gather(*tasks)
         return lst
 
     async def _get_data_url(self, date: str) -> str | None:

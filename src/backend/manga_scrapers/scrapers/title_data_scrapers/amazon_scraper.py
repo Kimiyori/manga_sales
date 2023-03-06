@@ -3,6 +3,7 @@ from datetime import datetime, date
 
 import re
 from types import TracebackType
+from typing import Any
 from dateutil.relativedelta import relativedelta
 from bs4 import BeautifulSoup
 from manga_scrapers.client_handler.session_context_manager import Session
@@ -47,6 +48,12 @@ class AmazonParser(AuxDataParserAbstract):
         # return await super().__aexit__(exc_type, exc_val, exc_tb)
 
     # ------------helper methods for main methods------------
+    async def fetch(
+        self, url: str, commands: list[str] | None = None, return_bs: bool = True
+    ) -> Any:
+        response = await self.session.fetch(url, commands=commands, sleep_time=3)
+        return BeautifulSoup(response, "html.parser") if return_bs else response
+
     def _get_most_similar_title(
         self, link: BeautifulSoup
     ) -> dict[str, int | str | None | date] | None:
@@ -79,9 +86,14 @@ class AmazonParser(AuxDataParserAbstract):
             volume = self._get_volume(data_line, string_match)
             if self.volume and volume and self.volume != int(volume):
                 continue
-            title_publication_date = datetime.strptime(
-                data_line.findChildren()[-1].string, "%Y/%m/%d"
-            ).date()
+            try:
+                title_publication_date = datetime.strptime(
+                    data_line.findChildren()[-1].string, "%Y/%m/%d"
+                ).date()
+            except ValueError:
+                title_publication_date = datetime.strptime(
+                    data_line.findChildren()[-1].string, "%b %d, %Y"
+                ).date()
             if not self.publication_date or (
                 self.publication_date
                 and (

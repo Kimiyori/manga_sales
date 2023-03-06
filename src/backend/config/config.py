@@ -4,6 +4,7 @@ env = environs.Env()
 env.read_env(".env")
 
 TEST_DATABASE_NAME = "test_db"
+PROXY_URL = f"https://proxy6.net/api/{env('PROXY_API_KEY')}"
 
 
 def get_postgres_uri(database_name: bool = True, test: bool = False) -> str:
