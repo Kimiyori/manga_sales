@@ -1,0 +1,15 @@
+@use "../abstracts/variables";
+@use "../abstracts/mixins";
+.not-found {
+    color: variables.$block_color;
+    @include mixins.font-size-mixin(60px,60px,80px,100px,100px);
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    div:first-child {
+        font-size: 150%;
+    }
+}

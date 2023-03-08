@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
 import Fetch from "../../hooks/Fetch";
 import LoadingComponent from "../../components/core/LoadingComponent/loadingComponent";
 import ListWrapper from "../../components/shared/entity/ItemList/ItemList";
 import Item, { ItemData } from "../../components/core/ItemBlock/ItemBlock";
 import "../../styles/pages/SourcesList.scss";
+import ChangePageTitle from "../../hooks/ChangePageTitle";
 function SourceList({ data = [] }: { data: ItemData[] }) {
   return (
     <>
@@ -14,27 +15,24 @@ function SourceList({ data = [] }: { data: ItemData[] }) {
     </>
   );
 }
-
 export default function SourceListMainPage() {
-  useEffect(() => {
-    document.title = "Manga Statistics sources";
-  }, []);
   const fetch = (
-    <>
-      <Fetch
-        uri={`${process.env.REACT_APP_BACKEND_URL}/source`}
-        renderSuccess={SourceList}
-        loadingFallback={LoadingComponent}
-      />
-    </>
+    <Fetch
+      uri={`${process.env.REACT_APP_BACKEND_URL}/source`}
+      renderSuccess={SourceList}
+      loadingFallback={LoadingComponent}
+    />
   );
   return (
-    <MainLayout
-      section={
-        <div className="container">
-          <ListWrapper component={fetch} />
-        </div>
-      }
-    />
+    <>
+      <ChangePageTitle pageTitle="Sources" />
+      <MainLayout
+        section={
+          <div className="container">
+            <ListWrapper component={fetch} />
+          </div>
+        }
+      />
+    </>
   );
 }

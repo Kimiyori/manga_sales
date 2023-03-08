@@ -11,6 +11,7 @@ export type ContextType = {
   changeYear: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   changeDate: (event: React.MouseEvent<HTMLButtonElement>) => void;
   currentDay: string;
+  currentDate: string;
 };
 
 export const DateContext = createContext<ContextType | null>(null);
@@ -26,7 +27,7 @@ export function ChartLayout({ data }: { data: DatesObject[] }) {
   return (
     <>
       <div className={styles.container}>
-        <DateContext.Provider value={{ changeYear, changeMonth, changeDate, currentDay }}>
+        <DateContext.Provider value={{ changeYear, changeMonth, changeDate, currentDay, currentDate }}>
           <div className={styles.upper_box}>
             <UpperBox data={data} date={date} />
           </div>

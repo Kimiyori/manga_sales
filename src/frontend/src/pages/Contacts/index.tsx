@@ -2,6 +2,7 @@ import React from "react";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
 import { BsTelegram } from "react-icons/bs";
 import "../../styles/pages/Contact.scss";
+import ChangePageTitle from "../../hooks/ChangePageTitle";
 
 export function ContactInfo() {
   return (
@@ -19,5 +20,10 @@ export function ContactInfo() {
 }
 
 export default function Contact() {
-  return <MainLayout section={<ContactInfo />} />;
+  return (
+    <>
+      <ChangePageTitle pageTitle="Contact info" />
+      <MainLayout section={<ContactInfo />} />
+    </>
+  );
 }

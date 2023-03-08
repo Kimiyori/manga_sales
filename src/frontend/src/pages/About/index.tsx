@@ -1,5 +1,6 @@
 import React from "react";
 import MainLayout from "../../components/shared/UI/layouts/MainLayout/MainLayout";
+import ChangePageTitle from "../../hooks/ChangePageTitle";
 import "../../styles/pages/About.scss";
 
 export function AboutInfo() {
@@ -21,5 +22,10 @@ export function AboutInfo() {
 }
 
 export default function About() {
-  return <MainLayout section={<AboutInfo />} />;
+  return (
+    <>
+      <ChangePageTitle pageTitle="About" />
+      <MainLayout section={<AboutInfo />} />
+    </>
+  );
 }

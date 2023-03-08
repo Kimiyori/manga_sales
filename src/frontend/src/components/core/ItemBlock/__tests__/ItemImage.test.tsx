@@ -24,13 +24,13 @@ describe("ItemImage", () => {
     act(() => {
       render(<ItemImage {...data} />);
     });
-    const testImage = document.querySelector(".image") as HTMLImageElement;
+    const testImage = document.querySelector("img") as HTMLImageElement;
     fireEvent.mouseOver(testImage);
-    const HoverComponentOver = document.querySelector(".source-type") as HTMLImageElement;
+    const HoverComponentOver = document.querySelector(".source_type") as HTMLImageElement;
     expect(HoverComponentOver).toBeInTheDocument();
     expect(HoverComponentOver.textContent).toContain(data.types[0]);
     fireEvent.mouseOut(testImage);
-    const HoverComponentOut = document.querySelector(".source-type") as HTMLImageElement;
+    const HoverComponentOut = document.querySelector(".source_type") as HTMLImageElement;
     expect(HoverComponentOut).toBe(null);
   });
 });

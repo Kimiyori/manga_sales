@@ -9,9 +9,9 @@ export default function ChartNavigation({ year, month, dates }: { year: string; 
   return (
     <>
       <div className={styles["dates_navigator"]}>
-        <SwipeElement className={`${styles["arrow_line"]}`} text={year} onClick={changeYear} />
-        <SwipeElement className={`${styles["arrow_line"]}`} text={month} onClick={changeMonth} />
-        <DatesList dates_list={dates} onClick={changeDate} />
+        <SwipeElement text={year} onClick={changeYear} />
+        <SwipeElement text={month} onClick={changeMonth} />
+        <DatesList month={month} dates_list={dates} onClick={changeDate} />
       </div>
     </>
   );

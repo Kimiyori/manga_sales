@@ -10,6 +10,6 @@ describe("ItemLink", () => {
     act(() => {
       render(<ItemLink link={"test"} />);
     });
-    expect(document.body.textContent).toBe(" To the site");
+    expect(document.body.textContent).toBe(" Official Website");
   });
 });
