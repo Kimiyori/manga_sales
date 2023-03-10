@@ -17,82 +17,86 @@
       object-fit: cover;
       border-radius: variables.$border_radius;
     }
-    .source_type {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
-      a {
-        text-decoration: none;
-      }
-      .type {
-        background-color: variables.$header_color;
-        color: variables.$block_color;
-        font-size: variables.$font_size_middle;
-        padding: 10px 32px;
-      }
-    }
   }
-  .source_info {
-    grid-area: source_info;
+}
+.source_info {
+  grid-area: source_info;
+  display: grid;
+  grid-template-rows: 0.3fr auto 0.2fr;
+  align-content: space-evenly;
+  gap: variables.$gap;
+  grid-template-areas:
+    "title"
+    "description"
+    "links";
+  margin: 0.5rem;
+  .upper {
+    grid-area: title;
     display: grid;
-    grid-template-rows: 0.3fr auto 0.2fr;
-    align-content: space-evenly;
-    gap: variables.$gap;
-    grid-template-areas:
-      "title"
-      "description"
-      "links";
-    margin: 0.5rem;
+    grid-template-columns: repeat(2, 1fr);
     .title {
-      @include mixins.font-size-mixin(20px,22px,26px,28px,32px);
-      grid-area: title;
-      justify-self: start;
-      align-self: center;
+      @include mixins.font-size-mixin(20px, 22px, 26px, 28px, 32px);
     }
-    .description {
-      grid-area: description;
-      color: variables.$text_color;
-      &__text {
-        margin:0;
-        @include mixins.for-size(phone-only) {
-          @include mixins.truncate(3);
-        }
-        @include mixins.for-size(tablet-portrait-up) {
-          @include mixins.truncate(4);
-        }
-        @include mixins.for-size(tablet-landscape-up) {
-          @include mixins.truncate(4);
-        }
-        @include mixins.font-size-mixin(16px,14px,16px,16px,20px);
-      }
-      div {
-        display: none;
-        text-align: center;
-        button {
-          background-color: transparent;
-          border:0; 
-          font-size: variables.$font_size_big;
-        }
-        @include mixins.for-size(phone-only) {
-          display: block;
-        }
-        @include mixins.for-size(tablet-landscape-up) {
-          display: block;
-        }
-        @include mixins.for-size(tablet-portrait-up) {
-          display: block;
-        }
-      }
-    }
-    .link-wrapper {
-      grid-area: links;
-      justify-self: start;
+    .link {
+      justify-self: end;
       align-self: center;
       a {
         text-decoration: none;
         color: variables.$text_color;
+      }
+    }
+  }
+  .description {
+    grid-area: description;
+    color: variables.$text_color;
+    &__text {
+      margin: 0;
+      @include mixins.for-size(phone-only) {
+        @include mixins.truncate(3);
+      }
+      @include mixins.for-size(tablet-portrait-up) {
+        @include mixins.truncate(4);
+      }
+      @include mixins.for-size(tablet-landscape-up) {
+        @include mixins.truncate(4);
+      }
+      @include mixins.font-size-mixin(16px, 14px, 16px, 16px, 20px);
+    }
+    div {
+      display: none;
+      text-align: center;
+      button {
+        background-color: transparent;
+        border: 0;
+        font-size: variables.$font_size_big;
+      }
+      @include mixins.for-size(phone-only) {
+        display: block;
+      }
+      @include mixins.for-size(tablet-landscape-up) {
+        display: block;
+      }
+      @include mixins.for-size(tablet-portrait-up) {
+        display: block;
+      }
+    }
+  }
+  .source_type {
+    @include mixins.font-size-mixin(16px, 14px, 16px, 16px, 20px);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    a {
+      text-decoration: none;
+      color: variables.$text_color;
+      background-color: variables.$header_color;
+      border-radius: variables.$border_radius;
+      padding-left:10px;
+      padding-right:10px;
+      padding-top:5px;
+      padding-bottom:5px;
+      p {
+        margin:0;
       }
     }
   }

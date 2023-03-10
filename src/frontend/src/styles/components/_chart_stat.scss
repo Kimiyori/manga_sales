@@ -1,0 +1,61 @@
+@use "../abstracts/variables";
+@use "../abstracts/mixins";
+.stat_container {
+    @include mixins.block;
+}
+.sales_charts {
+    @include mixins.for-size(phone-only) {
+        display: block;
+    }
+    @include mixins.for-size(tablet-portrait-up) {
+        display: block;
+    }
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-template-areas:
+        "sales_bar sales_bar "
+        "publishers_pie  authors_pie";
+
+    gap: 1rem;
+}
+.no_sales_charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "authors_doughnut publishers_doughnut";
+    @include mixins.for-size(phone-only) {
+        grid-template-rows: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-areas:
+            "authors_doughnut"
+            "publishers_doughnut";
+    }
+    @include mixins.for-size(tablet-portrait-up) {
+        grid-template-rows: repeat(2, 1fr);
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-areas:
+            "authors_doughnut"
+            "publishers_doughnut";
+    }
+    gap: 1rem;
+}
+.sales_bar {
+    grid-area: sales_bar;
+    text-align: center;
+}
+.publishers_pie {
+    grid-area: publishers_pie;
+    text-align: center;
+}
+.authors_pie {
+    grid-area: authors_pie;
+    text-align: center;
+}
+.publishers_doughnut {
+    grid-area: publishers_doughnut;
+    text-align: center;
+}
+.authors_doughnut {
+    grid-area: authors_doughnut;
+    text-align: center;
+}

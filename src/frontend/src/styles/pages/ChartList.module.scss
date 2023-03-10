@@ -13,12 +13,32 @@
 .upper_box {
   grid-area: upper_box;
   display: grid;
-  grid-template-columns: 0.3fr auto;
+  grid-template-columns: 0.4fr auto;
   gap: variables.$gap;
   grid-template-areas: "navigation base_menu_info";
   .base_menu_info {
-    background-color: variables.$block_color;
-    border-radius: variables.$border_radius;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.5rem;
+    grid-template-areas:
+      "name name"
+      "tab_button tab_button2";
+    .name {
+      grid-area: name;
+      display: table-cell;
+      text-align: left;
+      vertical-align: middle;
+      @include mixins.block;
+    }
+    .tab_button {
+      grid-area: tab_button;
+      @include mixins.block;
+    }
+    .tab_button2 {
+      grid-area: tab_button2;
+      @include mixins.block;
+    }
   }
 }
 .bottom_box {

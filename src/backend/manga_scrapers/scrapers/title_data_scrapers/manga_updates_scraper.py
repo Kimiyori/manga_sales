@@ -96,7 +96,15 @@ class MangaUpdatesParser(AuxDataParserAbstract):
             authors_tag = self.page.find(
                 "b", string="Author(s)"
             ).parent.find_next_sibling("div")
-            authors_list = [author.string for author in authors_tag.find_all("u")]
+            authors_list = [
+                author.string
+                for author in authors_tag.find_all("u")
+                if author.string != "Add"
+            ]
+            if not authors_list:
+                authors_list = [
+                    author for author in authors_tag.text.strip("\xa0[Add]\n")
+                ]
         except AttributeError:
             return []
         return authors_list
@@ -107,8 +115,14 @@ class MangaUpdatesParser(AuxDataParserAbstract):
                 "b", string="Original Publisher"
             ).parent.find_next_sibling("div")
             publishers = [
-                publisher.string for publisher in publishers_tag.find_all("u")
+                publisher.string
+                for publisher in publishers_tag.find_all("u")
+                if publisher.string != "Add"
             ]
+            if not publishers:
+                publishers = [
+                    publisher for publisher in publishers_tag.text.strip("\xa0[Add]\n")
+                ]
         except AttributeError:
             return []
         return publishers

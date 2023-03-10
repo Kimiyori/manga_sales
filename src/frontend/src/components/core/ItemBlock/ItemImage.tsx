@@ -1,25 +1,11 @@
-import React, { useState } from "react";
-import ItemOverlay from "./ItemOverlay";
+import React from "react";
 import styles from "../../../styles/components/_source_block.module.scss";
 import ImageLoad from "../../../hooks/ImageLoad";
-export default function ItemImage({ name, image, types }: { name: string; image: string; types: string[] }) {
-  const [isHovering, setIsHovering] = useState(false);
-  const handleMouseOver = () => {
-    setIsHovering(true);
-  };
-
-  const handleMouseOut = () => {
-    setIsHovering(false);
-  };
+export default function ItemImage({ image }: { image: string }) {
   return (
     <>
-      <div onMouseOver={handleMouseOver} onMouseOut={handleMouseOut} className={styles.image}>
-        <ImageLoad
-          src={`${process.env.REACT_APP_BACKEND_URL}/${image}`}
-          alt={image}
-          style={{ opacity: isHovering ? 0.7 : 1 }}
-        />
-        {isHovering && <ItemOverlay name={name} types={types} />}
+      <div className={styles.image}>
+        <ImageLoad src={`${process.env.REACT_APP_BACKEND_URL}/${image}`} alt={image} />
       </div>
     </>
   );

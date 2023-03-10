@@ -10,6 +10,7 @@ export type SourceContextType = {
   source: string;
   type: string;
   url_date?: string;
+  stat?: string;
 };
 export interface DatesObject {
   year: string;
