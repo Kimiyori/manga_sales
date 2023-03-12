@@ -103,7 +103,7 @@ class MangaUpdatesParser(AuxDataParserAbstract):
             ]
             if not authors_list:
                 authors_list = [
-                    author for author in authors_tag.text.strip("\xa0[Add]\n")
+                    author.strip() for author in authors_tag.text.split("\xa0[Add]\n") if author.strip()
                 ]
         except AttributeError:
             return []
@@ -121,7 +121,7 @@ class MangaUpdatesParser(AuxDataParserAbstract):
             ]
             if not publishers:
                 publishers = [
-                    publisher for publisher in publishers_tag.text.strip("\xa0[Add]\n")
+                    publisher.strip() for publisher in publishers_tag.text.split("\xa0[Add]\n") if publisher.strip()
                 ]
         except AttributeError:
             return []

@@ -1,7 +1,7 @@
 import React from "react";
 import "../../../../../styles/components/_navigation.scss";
 import NavElement from "./NavElement";
-const paths = [
+export const paths = [
   { path: "/source", name: "Source" },
   { path: "/about", name: "About" },
   { path: "/contact", name: "Contact" },

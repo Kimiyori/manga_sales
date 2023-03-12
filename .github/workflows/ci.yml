@@ -2,19 +2,34 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  lint:
+  backend-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run linter
-        run: docker-compose --profile test_profile up --exit-code-from lint lint
-
-  tests:
+      - name: Run backend linter
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > src/backend/.env
+          docker-compose --profile test_profile up --exit-code-from lint_backend lint_backend
+  backend-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Run tests
-        run: docker-compose --profile test_profile up --exit-code-from test test
+      - name: Run backend tests
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > src/backend/.env
+          docker-compose --profile test_profile up --exit-code-from test_backend test_backend
+  frontend-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run frontend linter
+        run: docker-compose --profile test_profile up --exit-code-from lint_frontend lint_frontend
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run frontend tests
+        run: docker-compose --profile test_profile up --exit-code-from test_frontend test_frontend

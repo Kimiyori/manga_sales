@@ -9,22 +9,7 @@ from manga_scrapers.scrapers.rating_scrapers.shoseki_scraper import (
     ShosekiWeeklyScraper,
 )
 from manga_scrapers.utils.url_handler import build_url, update_url
-from manga_scrapers.test.conftest import (
-    oricon_container,
-    shoseki_container,
-    oricon_item,
-    oricon_list,
-    manga_updates_title,
-    manga_updates_list,
-    shoseki_list,
-    shoseki_weekly_list,
-    shoseki_item,
-    amazon,
-    aioresponse,
-    manga_updates_container,
-    cdjapan_container,
-)
-
+from manga_scrapers.test.conftest import *
 
 class TestShosekiScraper:
     async def test_get_list_raw_data(

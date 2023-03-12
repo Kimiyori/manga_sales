@@ -8,6 +8,7 @@ from manga_scrapers.test.conftest import (
     amazon_list,
     aioresponse,
     amazon_item,
+    proxy_mock
 )
 
 
@@ -30,7 +31,6 @@ async def test_get_main_info_page(aioresponse, amazon_list, amazon_container):
         assert scraper.volume == 20
         assert str(scraper.page) == "test"
 
-
 def test_get_most_similar_title_without_volume(amazon_list, amazon_container):
     obj = amazon_container(
         title="賢者の孫", volume=None, isbn=9784041126202, publication_date=date(2022, 9, 9)
@@ -41,7 +41,6 @@ def test_get_most_similar_title_without_volume(amazon_list, amazon_container):
         "link": "https://www.amazon.co.jp/-/en/%E7%B7%92%E6%96%B9%E4%BF%8A%E8%BC%94-ebook/dp/B0BBZTP6XT/ref=sr_1_1?camp=247&creative=1211&keywords=9784041126202&linkCode=ur2&linkId=9f125b3efa3f20f629497ff6e3168289&qid=1671299756&s=books&sr=1-1",
         "publication_date": datetime.date(2022, 9, 9),
     }
-
 
 def test_get_most_similar_title_with_volume(amazon_list, amazon_container):
     obj = amazon_container(
@@ -54,14 +53,12 @@ def test_get_most_similar_title_with_volume(amazon_list, amazon_container):
         "publication_date": datetime.date(2020, 8, 10),
     }
 
-
 def test_get_most_similar_title_mismatch_date_and_volume(amazon_list, amazon_container):
     obj = amazon_container(
         title="賢者の孫", volume=20, isbn=9784041126202, publication_date=date(2020, 8, 9)
     )
     title = obj._get_most_similar_title(amazon_list)
     assert title == None
-
 
 @pytest.mark.asyncio
 async def test_get_volume(aioresponse, amazon_list, amazon_container):
@@ -81,7 +78,6 @@ async def test_get_volume(aioresponse, amazon_list, amazon_container):
     ) as scraper:
         assert scraper.get_volume() == 20
 
-
 @pytest.mark.asyncio
 async def test_get_authors(aioresponse, amazon_list, amazon_item, amazon_container):
     url = build_url(
@@ -100,7 +96,6 @@ async def test_get_authors(aioresponse, amazon_list, amazon_item, amazon_contain
     ) as scraper:
         assert scraper.get_authors() == ["緒方俊輔"]
 
-
 @pytest.mark.asyncio
 async def test_get_publisers(aioresponse, amazon_list, amazon_item, amazon_container):
     url = build_url(
@@ -118,7 +113,6 @@ async def test_get_publisers(aioresponse, amazon_list, amazon_item, amazon_conta
         title="賢者の孫", volume=None, isbn=9784041126202, publication_date=date(2022, 9, 9)
     ) as scraper:
         assert scraper.get_publishers() == ["KADOKAWA"]
-
 
 @pytest.mark.asyncio
 async def test_get_image(aioresponse, amazon_list, amazon_item, amazon_container):

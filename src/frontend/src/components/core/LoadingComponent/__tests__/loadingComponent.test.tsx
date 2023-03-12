@@ -1,6 +1,6 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
-import LoadingComponent from "./loadingComponent";
+import LoadingComponent from "../loadingComponent";
 import { render, cleanup, screen } from "@testing-library/react";
 
 afterEach(cleanup);

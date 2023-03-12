@@ -6,8 +6,8 @@ from manga_scrapers.test.conftest import (
     manga_updates_list,
     manga_updates_title,
     aioresponse,
+    proxy_mock
 )
-
 
 @pytest.mark.asyncio
 async def test_get_page_all_success(
@@ -34,7 +34,6 @@ async def test_get_page_all_success(
         title = session.get_title()
         assert title == "Akatsuki no Aria"
 
-
 @pytest.mark.asyncio
 async def test_get_title_exception(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
@@ -59,7 +58,6 @@ async def test_get_title_exception(
         title = session.get_title()
         assert title == "Dawn Aria"
 
-
 @pytest.mark.asyncio
 async def test_get_authors_error(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
@@ -82,7 +80,6 @@ async def test_get_authors_error(
         authors = session.get_authors()
         assert authors == []
 
-
 @pytest.mark.asyncio
 async def test_get_publishers_error(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
@@ -104,7 +101,6 @@ async def test_get_publishers_error(
     async with manga_updates_container(title="Dawn Aria") as session:
         publishers = session.get_publishers()
         assert publishers == []
-
 
 @pytest.mark.asyncio
 async def test_get_most_similar_title_empty_items(
@@ -129,7 +125,6 @@ async def test_get_most_similar_title_empty_items(
     with pytest.raises(AssertionError):
         async with manga_updates_container(title="Dawn Aria"):
             pass
-
 
 @pytest.mark.asyncio
 async def test_get_most_similar_title_empty_titles(
@@ -157,7 +152,6 @@ async def test_get_most_similar_title_empty_titles(
         async with manga_updates_container(title="Dawn Aria"):
             pass
 
-
 @pytest.mark.asyncio
 async def test_get_image_success(
     aioresponse, manga_updates_container, manga_updates_list, manga_updates_title
@@ -182,7 +176,6 @@ async def test_get_image_success(
     async with manga_updates_container(title="Dawn Aria") as session:
         res = await session.get_image()
         assert isinstance(res, bytes)
-
 
 @pytest.mark.asyncio
 async def test_get_image__nof_found_img(

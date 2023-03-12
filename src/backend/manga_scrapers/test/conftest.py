@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import pytest
 import pytest_asyncio
 import sqlalchemy
+from config.config import PROXY_URL
 from manga_scrapers.containers.title_data_container import AuxScrapingContainer
 from manga_scrapers.containers.image_container import ImageScrapingContainer
 from manga_scrapers.containers.rating_container import DataScrapingContainer
@@ -233,3 +234,12 @@ async def create_data_scraper(class_session_factory) -> None:
         session.add_all(pytest.sources)
         session.add_all(pytest.source_types)
         await session.commit()
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def proxy_mock(aioresponse):
+    aioresponse.get(
+        f"{PROXY_URL}/getproxy",
+        status=200,
+        repeat=True
+    )

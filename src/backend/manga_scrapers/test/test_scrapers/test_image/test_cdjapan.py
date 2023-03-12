@@ -7,6 +7,7 @@ from manga_scrapers.test.conftest import (
     cdjapan_list,
     cdjapan_container,
     aioresponse,
+    proxy_mock
 )
 
 
