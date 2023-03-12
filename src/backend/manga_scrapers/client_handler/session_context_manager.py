@@ -68,17 +68,27 @@ class Session:
     ) -> None:
         await self.session.close()
 
+    def choose_proxy(self) -> int:
+        return random.randint(0, len(self.proxy_list) - 1)
+
+    def rotate_proxy(self, proxy_index: int, initial_index: int) -> int:
+        proxy_index = (proxy_index + 1) % len(self.proxy_list)
+        if proxy_index == initial_index:
+            raise ConnectError("Failed to connect, perhabs due to invalid proxies")
+        return proxy_index
+
     async def get_proxy(self) -> list[str | None]:
         proxy_list: list[str | None] = [None]
         try:
             async with self.session.get(f"{PROXY_URL}/getproxy") as response:
                 content = await response.json()
-                proxy_names = content["list"].keys()
-                for name in proxy_names:
-                    proxy_data = content["list"][name]
-                    proxy_list.append(
-                        f"http://{proxy_data['user']}:{proxy_data['pass']}@{proxy_data['host']}:{proxy_data['port']}"
-                    )
+                if content:
+                    proxy_names = content["list"].keys()
+                    for name in proxy_names:
+                        proxy_data = content["list"][name]
+                        proxy_list.append(
+                            f"http://{proxy_data['user']}:{proxy_data['pass']}@{proxy_data['host']}:{proxy_data['port']}"
+                        )
                 return proxy_list
         except aiohttp.ClientResponseError:
             await asyncio.sleep(1)
@@ -127,20 +137,13 @@ class Session:
                     sleep_time += 1
                     return await self.fetch(url, commands, sleep_time)
                 if response.status == 503:
-                    await asyncio.sleep(5)
-                    proxy_index = (proxy_index + 1) % (len(self.proxy_list) - 1)
-                    if proxy_index == initial_index:
-                        raise ConnectError("Failed to connect with following error")
+                    self.rotate_proxy(proxy_index, initial_index)
                     return await self._get(
                         url, proxy_index, initial_index, commands, sleep_time
                     )
                 raise Unsuccessful(f"Status code is {response.status}")
-        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
-            proxy_index = (proxy_index + 1) % (len(self.proxy_list) - 1)
-            if proxy_index == initial_index:
-                raise ConnectError(
-                    f"Failed to connect with following error - {exc} - {url}"
-                ) from exc
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            self.rotate_proxy(proxy_index, initial_index)
             return await self._get(
                 url, proxy_index, initial_index, commands, sleep_time
             )
@@ -162,5 +165,5 @@ class Session:
         """
         if sleep_time:
             await asyncio.sleep(sleep_time)
-        proxy_index = initial_index = random.randint(0, len(self.proxy_list) - 1)
+        proxy_index = initial_index = self.choose_proxy()
         return await self._get(url, proxy_index, initial_index, commands, sleep_time)

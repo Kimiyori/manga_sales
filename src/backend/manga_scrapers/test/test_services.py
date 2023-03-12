@@ -1,7 +1,7 @@
 import datetime
 from unittest import mock
 import pytest_asyncio
-from manga_scrapers.dataclasses import Content
+from manga_scrapers.services.db_service import get_date_list
 from manga_scrapers.scrapers.rating_scrapers.oricon_scraper import (
     OriconWeeklyScraper,
 )
@@ -121,3 +121,15 @@ async def test_get_date_recursive(aioresponse, db_session_container, oricon_cont
 
     res = await get_date(scraper)
     assert res == dates[-1]
+
+
+@mock.patch("manga_scrapers.services.db_service.get_date")
+async def test_get_date_list(mock, oricon_container):
+    date_list = [
+        datetime.date.today() + datetime.timedelta(days=x) for x in range(1, 5)
+    ][::-1]
+    date_list.append(None)
+    mock.side_effect = date_list
+    scraper = await scraper_factory("oricon_scraper")
+    result = await get_date_list(scraper)
+    assert result == sorted(date_list[:-1])

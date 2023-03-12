@@ -1,19 +1,19 @@
- services:
+services:
   frontend:
-      build:
-        context: ./src/frontend
-        dockerfile: Dockerfile.dev
-      command: npm start
-      ports:
-        - 3000:3000
-      volumes:
-        - ./src/frontend:/react-docker:delegated
-        - /react-docker/node_modules
-      environment:
-        - CHOKIDAR_USEPOLLING=true
-        - WATCHPACK_POLLING=true
-        - REACT_APP_BACKEND_URL=/api
-      restart: always
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile.dev
+    command: npm start
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src/frontend:/react-docker:delegated
+      - /react-docker/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - REACT_APP_BACKEND_URL=/api
+    restart: always
   nginx:
     build:
       context: ./nginx/dev
@@ -28,19 +28,29 @@
     depends_on:
       - backend
       - frontend
-  test:
+  test_backend:
     build: ./src/backend
     command: python -m  pytest
     working_dir: /aiohttp/src/backend
     profiles: [ "test_profile" ]
-    volumes:
-      - .:/aiohttp
     depends_on:
       - db
-  lint:
+  lint_backend:
     build: ./src/backend
     command: bash -c "mypy . ; pylint . ; flake8"
     working_dir: /aiohttp/src/backend/.
     profiles: [ "test_profile" ]
-    volumes:
-      - .:/aiohttp
+  test_frontend:
+    build: 
+      context: ./src/frontend
+      dockerfile: Dockerfile.dev
+    command: npx react-scripts test --watchAll=false --testPathIgnorePatterns 'fakeData'
+    working_dir: /react-docker
+    profiles: [ "test_profile" ]
+  lint_frontend:
+    build: 
+      context: ./src/frontend
+      dockerfile: Dockerfile.dev
+    command: npx eslint
+    working_dir: /react-docker
+    profiles: [ "test_profile" ]

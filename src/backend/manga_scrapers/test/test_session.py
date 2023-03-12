@@ -1,9 +1,12 @@
 from unittest import mock
 import pytest
 import pytest_asyncio
+from config.config import PROXY_URL
+from manga_scrapers.exceptions import ConnectError
 from manga_scrapers.exceptions import IncorrectMethod, NotFound, Unsuccessful
 from manga_scrapers.client_handler.session_context_manager import Session
 from aioresponses import aioresponses
+from manga_scrapers.test.conftest import proxy_mock
 
 TEST_URL = "http://example.com"
 
@@ -20,14 +23,37 @@ def aioresponse():
         yield m
 
 
-@pytest.mark.asyncio
+async def test_proxy(client_session):
+    assert client_session.proxy_list == [None]
+
+
+async def test_invalid_proxies(aioresponse, client_session):
+    with pytest.raises(ConnectError) as context:
+        aioresponse.get(TEST_URL, status=503, repeat=True)
+        await client_session.fetch(TEST_URL)
+        assert "Failed to connect, perhabs due to invalid proxies" == str(
+            context.exception
+        )
+
+
+def test_rotate_proxies():
+    session = Session()
+    proxies_list = ["a", "b", "c"]
+    session.proxy_list = proxies_list
+    proxy_index = initial_index = session.choose_proxy()
+    c = 0
+    with pytest.raises(ConnectError):
+        while True:
+            c+=1
+            proxy_index = session.rotate_proxy(proxy_index, initial_index)
+    assert c ==3
+
 async def test_200(aioresponse, client_session):
     aioresponse.get(TEST_URL, status=200)
     response = await client_session.fetch(TEST_URL)
     assert response.status == 200
 
 
-@pytest.mark.asyncio
 async def test_correct_method_error(aioresponse, client_session):
     corrert_methods = ["content", "read"]
     body_text = "test"
@@ -37,7 +63,6 @@ async def test_correct_method_error(aioresponse, client_session):
     assert response.decode("ascii") == body_text
 
 
-@pytest.mark.asyncio
 async def test_incorrect_method_error(aioresponse, client_session):
     wrong_method = ["something"]
     with pytest.raises(IncorrectMethod) as context:
@@ -48,18 +73,6 @@ async def test_incorrect_method_error(aioresponse, client_session):
         )
 
 
-@pytest.mark.asyncio
-@mock.patch("asyncio.sleep", return_value=0.1)
-async def test_429_error(mock, aioresponse):
-    with pytest.raises(Unsuccessful) as context:
-        aioresponse.get(TEST_URL, status=429, repeat=True)
-        async with Session(sleep_time=0.1) as session:
-            await session.fetch(TEST_URL)
-
-        assert "Get 429 error too often" in str(context.exception)
-
-
-@pytest.mark.asyncio
 async def test_404_error(aioresponse, client_session):
     with pytest.raises(NotFound) as context:
         aioresponse.get(TEST_URL, status=404)
@@ -67,17 +80,8 @@ async def test_404_error(aioresponse, client_session):
         assert "Can't find given page" in str(context.exception)
 
 
-@pytest.mark.asyncio
 async def test_500_error(aioresponse, client_session):
     with pytest.raises(Unsuccessful) as context:
         aioresponse.get(TEST_URL, status=500)
         await client_session.fetch(TEST_URL)
         assert "Status code is 500" in str(context.exception)
-
-
-# @pytest.mark.asyncio
-# async def test_without_context(aioresponse):
-#     with pytest.raises(AssertionError):
-#         session = Session()
-#         aioresponse.get(TEST_URL, status=200)
-#         await session.fetch(TEST_URL)

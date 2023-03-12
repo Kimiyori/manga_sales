@@ -28,6 +28,6 @@ describe("ItemBlock", () => {
     expect(document.querySelector(".image")).toBeDefined();
     expect(document.querySelector(".title")).toBeDefined();
     expect(document.querySelector(".description")).toBeDefined();
-    expect(document.querySelector(".link-wrapper")).toBeDefined();
+    expect(document.querySelector(".source_type")).toBeDefined();
   });
 });

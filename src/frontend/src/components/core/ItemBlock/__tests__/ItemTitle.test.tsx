@@ -6,16 +6,22 @@ import { render, cleanup } from "@testing-library/react";
 afterEach(cleanup);
 
 describe("ItemTitle", () => {
-  it("renders with a name", () => {
+  it("renders name", () => {
     act(() => {
-      render(<ItemTitle name={"test"} />);
+      render(<ItemTitle name={"test"} link={"test"} />);
     });
-    expect(document.body.textContent).toBe("test");
+    expect(document.querySelector(".title")?.textContent).toBe("test");
   });
-  it("renders without a name", () => {
+  it("renders link", () => {
     act(() => {
-      render(<ItemTitle />);
+      render(<ItemTitle name={"test"} link={"test"} />);
     });
-    expect(document.body.textContent).toBe("");
+    expect(document.body.querySelector(".link")?.textContent).toBe(" Official Website");
+  });
+  it("renders icon link", () => {
+    act(() => {
+      render(<ItemTitle name={"test"} link={"test"} />);
+    });
+    expect(document.body.querySelector("svg")).toBeDefined();
   });
 });
